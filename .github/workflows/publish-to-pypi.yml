@@ -35,30 +35,12 @@ jobs:
         python-version: '3.11'
         cache: 'pip'
     
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: fuse_frontend/package-lock.json
-    
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install build twine check-manifest
     
-    - name: Build frontend
-      run: |
-        cd fuse_frontend
-        npm ci
-        npm run build
-        cd ..
-    
-    - name: Copy frontend to backend
-      run: |
-        chmod +x scripts/build_frontend.sh
-        ./scripts/build_frontend.sh
-    
+
     - name: Verify MANIFEST.in
       run: |
         cd fuse_backend
