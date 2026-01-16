@@ -52,6 +52,7 @@ jobs:
         repository-url: https://test.pypi.org/legacy/
         packages-dir: dist/
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        attestations: false
     
     - name: Publish to PyPI
       if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.pypi_repository == 'pypi')
