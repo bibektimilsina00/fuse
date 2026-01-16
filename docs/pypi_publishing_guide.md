@@ -19,11 +19,11 @@ Trusted publishing eliminates the need for API tokens by using GitHub's OIDC.
 1. Go to your PyPI account settings
 2. Navigate to "Publishing" → "Add a new publisher"
 3. Fill in:
-   - **PyPI Project Name**: `workflow-automation-platform`
-   - **Owner**: `bibektimilsina` (your GitHub username)
-   - **Repository name**: `automation`
+   - **PyPI Project Name**: `fuse-io`
+   - **Owner**: `bibektimilsina00` (your GitHub username)
+   - **Repository name**: `fuse_backend`
    - **Workflow name**: `publish-to-pypi.yml`
-   - **Environment name**: Leave blank or use `pypi`
+   - **Environment name**: `publish`
 
 #### On Test PyPI (https://test.pypi.org):
 
@@ -90,7 +90,7 @@ For testing before production release:
 
 2. **Verify on Test PyPI**:
    ```bash
-   pip install --index-url https://test.pypi.org/simple/ workflow-automation-platform
+   pip install --index-url https://test.pypi.org/simple/ fuse-io
    ```
 
 ### Method 3: Local Publishing (Not Recommended)

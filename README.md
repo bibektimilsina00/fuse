@@ -1,12 +1,12 @@
-# 🚀 Fuse - Workflow Automation in Flux
+# 🚀 Fuse - Workflow Automation
 
-[![PyPI version](https://badge.fury.io/py/fuse.svg)](https://badge.fury.io/py/fuse)
+[![PyPI version](https://badge.fury.io/py/fuse-io.svg)](https://badge.fury.io/py/fuse-io)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Fuse** is a powerful **local-first** workflow automation platform with visual builder, AI integration, and extensive node library. Build complex automations with a drag-and-drop interface, similar to n8n and Zapier, but optimized for local deployment and AI-powered workflows.
 
-> **"Keep your workflows in constant flux"** ⚡
+> **"Keep your workflows in constant fuse"** ⚡
 
 ## ✨ Features
 
@@ -41,13 +41,18 @@
 ### Quick Start
 
 ```bash
-pip install fluxo
+pip install fuse-io
 ```
 
 ### Initialize and Start
 
 ```bash
 # Initialize configuration
+fuse init
+
+# Start the server and builder
+fuse start
+```
 fluxo init
 
 # Start the server

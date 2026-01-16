@@ -1,4 +1,4 @@
-"""Command-line interface for Fuse - Workflow automation in flux."""
+"""Command-line interface for Fuse - Workflow automation."""
 
 import os
 import sys
@@ -15,10 +15,10 @@ console = Console()
 @click.version_option(version="0.1.0")
 def main():
     """
-    Fuse - Workflow automation in flux.
+    Fuse - Workflow automation.
 
     Build, deploy, and manage workflows with visual builder, AI integration,
-    and extensive node library. Keep your workflows in constant evolution.
+    and extensive node library.
     """
     pass
 
@@ -36,7 +36,7 @@ def start(host: str, port: int, reload: bool, workers: int, no_browser: bool):
 
     console.print(
         Panel.fit(
-            f"""[bold cyan]🚀 Fuse - Workflow Automation in Flux[/bold cyan]
+            f"""[bold cyan]🚀 Fuse - Workflow Automation[/bold cyan]
         
 [green]Starting server...[/green]
 [dim]Host:[/dim] {host}
@@ -84,7 +84,7 @@ def init():
     """Initialize a new Fuse automation project."""
     console.print(
         Panel(
-            """[bold green]✓ Initializing Fuse - Workflow Automation in Flux[/bold green]
+            """[bold green]✓ Initializing Fuse - Workflow Automation[/bold green]
         
 This will create the necessary configuration files and directories.
         """,
