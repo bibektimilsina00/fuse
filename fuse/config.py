@@ -46,13 +46,13 @@ class Settings(BaseSettings):
         Union[List[AnyUrl], str], BeforeValidator(parse_cors)
     ] = []
 
-    PROJECT_NAME: str
+    PROJECT_NAME: str = "Fuse"
     SENTRY_DSN: Optional[HttpUrl] = None
-    POSTGRES_SERVER: str
+    POSTGRES_SERVER: str = "localhost"
     POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str = ""
-    POSTGRES_DB: str = ""
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_DB: str = "fuse"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -111,8 +111,8 @@ class Settings(BaseSettings):
     # TODO: update type to EmailStr when sqlmodel supports it
     EMAIL_TEST_USER: str = "test@example.com"
     # TODO: update type to EmailStr when sqlmodel supports it
-    FIRST_SUPERUSER: str
-    FIRST_SUPERUSER_PASSWORD: str
+    FIRST_SUPERUSER: str = "admin@fuse.io"
+    FIRST_SUPERUSER_PASSWORD: str = "changethis"
 
     # AI Service API Keys
     GOOGLE_AI_API_KEY: Optional[str] = None
