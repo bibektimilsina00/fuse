@@ -42,9 +42,9 @@ class CompactFilter(logging.Filter):
         # 1. Shorten package names first so they can be filtered/used later
         msg = record.msg
         msg = msg.replace(
-            "src.workflows.engine.check_scheduled_workflows", "engine.periodic"
+            "fuse.workflows.engine.check_scheduled_workflows", "engine.periodic"
         )
-        msg = msg.replace("src.workflows.engine.", "engine.")
+        msg = msg.replace("fuse.workflows.engine.", "engine.")
         msg = msg.replace("Task engine.execute_workflow", "Workflow")
 
         # 2. Add request ID prefix if available

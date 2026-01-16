@@ -9,7 +9,7 @@ from fuse.workflows.models import Workflow, WorkflowNode
 
 logger = logging.getLogger(__name__)
 
-@celery_app.task(name="src.workflows.engine.check_scheduled_workflows")
+@celery_app.task(name="fuse.workflows.engine.check_scheduled_workflows")
 def check_scheduled_workflows():
     """
     Scans all active workflows for schedule triggers and executes them if due.

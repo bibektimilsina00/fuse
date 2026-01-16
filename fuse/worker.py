@@ -17,13 +17,13 @@ celery_app.conf.update(
     worker_task_log_format="%(message)s",
     worker_log_color=True,
     task_routes={
-        "src.workflows.engine.execute_workflow": "trigger_queue",
-        "src.workflows.engine.run_node": "default",
-        "src.workflows.engine.check_scheduled_workflows": "default",
+        "fuse.workflows.engine.execute_workflow": "trigger_queue",
+        "fuse.workflows.engine.run_node": "default",
+        "fuse.workflows.engine.check_scheduled_workflows": "default",
     },
     beat_schedule={
         "check-scheduled-workflows-every-10s": {
-            "task": "src.workflows.engine.check_scheduled_workflows",
+            "task": "fuse.workflows.engine.check_scheduled_workflows",
             "schedule": 10.0,
         },
     },

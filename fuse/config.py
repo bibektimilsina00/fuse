@@ -1,6 +1,6 @@
 import secrets
 import warnings
-from typing import Annotated, Any, Literal, List, Optional, Union
+from typing import Annotated, Any, List, Literal, Optional, Union
 
 from pydantic import (
     AnyUrl,
@@ -39,7 +39,11 @@ class Settings(BaseSettings):
     def server_host(self) -> str:
         # Use HTTPS for anything other than local development
         if self.ENVIRONMENT == "local":
-            return f"http://{self.DOMAIN}:8000" if self.DOMAIN == "localhost" else f"http://{self.DOMAIN}"
+            return (
+                f"http://{self.DOMAIN}:8000"
+                if self.DOMAIN == "localhost"
+                else f"http://{self.DOMAIN}"
+            )
         return f"https://{self.DOMAIN}"
 
     BACKEND_CORS_ORIGINS: Annotated[
@@ -69,7 +73,7 @@ class Settings(BaseSettings):
     # Redis & Celery
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
-    
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def REDIS_URL(self) -> str:
@@ -127,7 +131,7 @@ class Settings(BaseSettings):
     SLACK_CLIENT_SECRET: Optional[str] = None
     DISCORD_CLIENT_ID: Optional[str] = None
     DISCORD_CLIENT_SECRET: Optional[str] = None
-    
+
     FRONTEND_URL: str = "http://localhost:3000"
 
     def _check_default_secret(self, var_name: str, value: Optional[str]) -> None:

@@ -207,7 +207,7 @@ async def run_node_logic(execution_id: uuid.UUID, node_execution_id: uuid.UUID):
                 exec_logger.log_workflow_failed(error_context.message)
 
 
-@celery_app.task(name="src.workflows.engine.execute_workflow")
+@celery_app.task(name="fuse.workflows.engine.execute_workflow")
 def execute_workflow_task(
     workflow_id: str,
     trigger_data: Optional[TriggerDataDict] = None,
@@ -238,7 +238,7 @@ def execute_workflow_task(
     return str(execution_uuid)
 
 
-@celery_app.task(name="src.workflows.engine.run_node")
+@celery_app.task(name="fuse.workflows.engine.run_node")
 def run_node_task(execution_id: str, node_execution_id: str):
     """Celery task wrapper for run_node_logic."""
     asyncio.run(run_node_logic(uuid.UUID(execution_id), uuid.UUID(node_execution_id)))
