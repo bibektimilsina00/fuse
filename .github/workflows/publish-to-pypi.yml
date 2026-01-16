@@ -27,7 +27,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Full history for version detection
+        fetch-depth: 0
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -40,43 +40,21 @@ jobs:
         python -m pip install --upgrade pip
         pip install build twine check-manifest
     
-
     - name: Verify MANIFEST.in
-      run: |
-        check-manifest --verbose
+      run: check-manifest --verbose
     
     - name: Build package
-      run: |
-        python -m build
-        pwd
-        ls -lah dist/
-    
-    - name: Check distribution
-      run: |
-        twine check dist/*
+      run: python -m build
     
     - name: Publish to Test PyPI
-      if: github.event.inputs.pypi_repository == 'testpypi' || github.event_name == 'workflow_dispatch'
+      if: github.event_name == 'workflow_dispatch' && github.event.inputs.pypi_repository == 'testpypi'
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
         packages-dir: dist/
-        skip-existing: true
-        verbose: true
     
     - name: Publish to PyPI
-      if: github.event_name == 'release' && github.event.action == 'published'
+      if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.pypi_repository == 'pypi')
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         packages-dir: dist/
-        verbose: true
-    
-    - name: Create Release Assets
-      if: github.event_name == 'release'
-      run: |
-        cd dist
-        for file in *; do
-          gh release upload ${{ github.event.release.tag_name }} "$file"
-        done
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
