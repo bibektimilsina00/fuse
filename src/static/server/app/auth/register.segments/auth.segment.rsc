@@ -1,0 +1,4 @@
+1:"$Sreact.fragment"
+2:I[39756,["/_next/static/chunks/622dde0ea3db7eca.js","/_next/static/chunks/247eb132b7f7b574.js"],"default"]
+3:I[37457,["/_next/static/chunks/622dde0ea3db7eca.js","/_next/static/chunks/247eb132b7f7b574.js"],"default"]
+0:{"buildId":"uapMGiJ7NOGG2BH_YQQH2","rsc":["$","$1","c",{"children":[null,["$","div",null,{"className":"min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900","children":["$","div",null,{"className":"flex items-center justify-center min-h-screen p-4","children":["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]}]}]]}],"loading":null,"isPartial":false}

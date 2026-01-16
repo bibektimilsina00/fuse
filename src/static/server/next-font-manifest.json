@@ -1,0 +1,40 @@
+{
+  "app": {
+    "[project]/app/(main)/ai-create-example/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2"
+    ],
+    "[project]/app/(main)/dashboard/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2"
+    ],
+    "[project]/app/(main)/settings/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2"
+    ],
+    "[project]/app/(main)/workflows/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2"
+    ],
+    "[project]/app/_not-found/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2"
+    ],
+    "[project]/app/auth/login/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2"
+    ],
+    "[project]/app/auth/register/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2"
+    ],
+    "[project]/app/credentials-test/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2"
+    ],
+    "[project]/app/oauth/callback/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2"
+    ],
+    "[project]/app/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2"
+    ],
+    "[project]/app/workflows/[id]/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}

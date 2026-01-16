@@ -1,0 +1,19 @@
+include README.md
+include LICENSE
+include pyproject.toml
+include alembic.ini
+include main.py
+include backend_pre_start.py
+include initial_data.py
+
+recursive-include src *.py
+recursive-include src *.json
+recursive-include src *.yaml
+recursive-include src *.yml
+recursive-include src/static *
+recursive-include alembic *.py
+recursive-include alembic *.mako
+
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store

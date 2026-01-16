@@ -1,0 +1,88 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fuse"
+version = "0.1.0"
+description = "Fuse - Workflow automation in flux. A powerful local-first automation platform with visual builder, AI integration, and extensive node library."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Bibek Timilsina", email = "bibektimilsina@example.com"}
+]
+keywords = ["automation", "workflow", "no-code", "low-code", "fastapi", "ai", "integration"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Office/Business :: Scheduling",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Framework :: FastAPI",
+]
+
+dependencies = [
+    "alembic>=1.16.5",
+    "anthropic>=0.75.0",
+    "argon2-cffi>=23.1.0",
+    "celery>=5.6.0",
+    "click>=8.1.0",
+    "email-validator>=2.3.0",
+    "emails>=0.6",
+    "fastapi>=0.116.1",
+    "google-genai>=0.2.2",
+    "gunicorn>=23.0.0",
+    "httpx>=0.28.1",
+    "jinja2>=3.1.6",
+    "jsonschema>=4.25.1",
+    "openai>=2.8.1",
+    "passlib>=1.7.4",
+    "psycopg>=3.3.2",
+    "psycopg-binary>=3.3.2",
+    "psycopg2-binary>=2.9.11",
+    "pydantic>=2.11.7",
+    "pydantic-settings>=2.10.1",
+    "pyjwt>=2.10.1",
+    "python-multipart>=0.0.20",
+    "redis>=7.1.0",
+    "rich>=14.2.0",
+    "sentry-sdk>=2.37.0",
+    "sqlmodel>=0.0.24",
+    "tenacity>=9.1.2",
+    "uvicorn[standard]>=0.35.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "coverage>=7.10.6",
+    "mypy>=1.17.1",
+    "pre-commit>=4.3.0",
+    "pytest>=8.4.2",
+    "ruff>=0.12.12",
+    "types-passlib>=1.7.7.20250602",
+]
+
+[project.scripts]
+fuse = "src.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/fuse-io/fuse"
+Documentation = "https://github.com/fuse-io/fuse#readme"
+"Source Code" = "https://github.com/fuse-io/fuse"
+"Bug Tracker" = "https://github.com/fuse-io/fuse/issues"
+
+[tool.setuptools]
+packages = ["src"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.yaml", "*.yml", "*.toml"]
