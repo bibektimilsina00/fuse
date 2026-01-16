@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fuse"
+name = "fuse-automation"
 version = "0.1.0"
 description = "Fuse - Workflow automation in flux. A powerful local-first automation platform with visual builder, AI integration, and extensive node library."
 readme = "README.md"
