@@ -43,19 +43,16 @@ jobs:
 
     - name: Verify MANIFEST.in
       run: |
-        cd fuse_backend
         check-manifest --verbose
     
     - name: Build package
       run: |
-        cd fuse_backend
         python -m build
         pwd
         ls -lah dist/
     
     - name: Check distribution
       run: |
-        cd fuse_backend
         twine check dist/*
     
     - name: Publish to Test PyPI
@@ -63,7 +60,7 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
-        packages-dir: fuse_backend/dist/
+        packages-dir: dist/
         skip-existing: true
         verbose: true
     
@@ -71,13 +68,13 @@ jobs:
       if: github.event_name == 'release' && github.event.action == 'published'
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        packages-dir: fuse_backend/dist/
+        packages-dir: dist/
         verbose: true
     
     - name: Create Release Assets
       if: github.event_name == 'release'
       run: |
-        cd fuse_backend/dist
+        cd dist
         for file in *; do
           gh release upload ${{ github.event.release.tag_name }} "$file"
         done
