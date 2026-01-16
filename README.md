@@ -53,18 +53,13 @@ fuse init
 # Start the server and builder
 fuse start
 ```
-fluxo init
 
-# Start the server
-fluxo start
-```
-
-Then open your browser to `http://localhost:8000` 🎉
+Then open your browser to `http://localhost:5678` 🎉
 
 ### Custom Configuration
 
 ```bash
-fluxo start --host 0.0.0.0 --port 3000 --workers 4 --reload
+fuse start --host 0.0.0.0 --port 3000 --workers 4 --reload
 ```
 
 ## 🛠 Development Setup
@@ -97,7 +92,7 @@ Create a `.env` file in the `fuse_backend` directory:
 
 ```bash
 # Database
-DATABASE_URL=postgresql://user:password@localhost:5432/fluxo
+DATABASE_URL=postgresql://user:password@localhost:5432/fuse
 
 # Redis
 REDIS_URL=redis://localhost:6379/0
@@ -189,16 +184,16 @@ Access the application at `http://localhost:8000`
 
 ```bash
 # Start server
-fluxo start [--host HOST] [--port PORT] [--workers N] [--reload]
+fuse start [--host HOST] [--port PORT] [--workers N] [--reload]
 
 # Initialize project
-fluxo init
+fuse init
 
 # Show version
-fluxo version
+fuse version
 
 # Help
-fluxo --help
+fuse --help
 ```
 
 ## 🔐 Security Best Practices
@@ -242,4 +237,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with ⚡ by [Bibek Timilsina](https://github.com/bibektimilsina)**
 
-*Fluxo - Keep your workflows in constant flux* 🌊
+*Fuse - Keep your workflows in constant fuse* 🌊

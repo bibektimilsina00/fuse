@@ -122,7 +122,7 @@ ENVIRONMENT=local
     console.print("\n[bold green]✓ Initialization complete![/bold green]")
     console.print("\nNext steps:")
     console.print("1. Edit [cyan].env[/cyan] with your configuration")
-    console.print("2. Run [cyan]fluxo start[/cyan] to start the server")
+    console.print("2. Run [cyan]fuse start[/cyan] to start the server")
 
 
 @main.command()
@@ -131,7 +131,7 @@ def version():
     from rich.table import Table
 
     table = Table(title="Version Information", show_header=False)
-    table.add_row("Package", "fluxo")
+    table.add_row("Package", "fuse-io")
     table.add_row("Version", "0.1.0")
     table.add_row(
         "Python",
