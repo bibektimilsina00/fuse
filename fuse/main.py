@@ -78,9 +78,14 @@ static_dir = Path(__file__).parent / "static"
 
 if static_dir.exists():
     logger.info(f"Serving frontend from: {static_dir}")
-
-    # Mount static files
-    app.mount("/assets", StaticFiles(directory=static_dir), name="static")
+    
+    # Locate the index.html file
+    index_file = static_dir / "server" / "app" / "index.html"
+    
+    # Mount Next.js static assets
+    static_assets = static_dir / "static"
+    if static_assets.exists():
+        app.mount("/_next/static", StaticFiles(directory=static_assets), name="static")
 
     # Serve index.html for all non-API routes (SPA fallback)
     @app.get("/{full_path:path}")
@@ -91,7 +96,6 @@ if static_dir.exists():
             return JSONResponse(status_code=404, content={"detail": "Not found"})
 
         # Serve index.html for SPA routing
-        index_file = static_dir / "index.html"
         if index_file.exists():
             return FileResponse(index_file)
         return JSONResponse(status_code=404, content={"detail": "Frontend not built"})
