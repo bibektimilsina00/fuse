@@ -53,6 +53,7 @@ jobs:
       with:
         repository-url: https://test.pypi.org/legacy/
         packages-dir: dist/
+        verbose: true
     
     - name: Publish to PyPI
       if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.pypi_repository == 'pypi')
