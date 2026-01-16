@@ -62,12 +62,17 @@ build/
 dist/
 
 # Project specific
-
+node_registry.json
+credentials_storage.json
 celerybeat-schedule
 celerybeat.pid
 *.db
 *.sqlite
 *.sqlite3
+
+# Auto-generated files that shouldn't be versioned
+*.egg-info/
+uv.lock
 
 # Logs
 logs/

@@ -5,6 +5,11 @@ include alembic.ini
 include main.py
 include backend_pre_start.py
 include initial_data.py
+include .python-version
+include .env
+include node_registry.json
+include uv.lock
+include credentials_storage.json
 
 recursive-include src *.py
 recursive-include src *.json
@@ -13,7 +18,14 @@ recursive-include src *.yml
 recursive-include src/static *
 recursive-include alembic *.py
 recursive-include alembic *.mako
+recursive-include alembic *.keep
+recursive-include alembic README
+recursive-include scripts *.sh
+recursive-include docs *.md
 
 global-exclude __pycache__
 global-exclude *.py[co]
 global-exclude .DS_Store
+global-exclude dist/*
+global-exclude build/*
+global-exclude *.egg-info

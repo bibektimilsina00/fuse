@@ -1,2 +1,0 @@
-[console_scripts]
-fuse = src.cli:main
