@@ -21,11 +21,11 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 from sqlmodel import SQLModel  # noqa
 
-from src.config import settings  # noqa
+from fuse.config import settings  # noqa
 
 # Import all models from central models file
 # This ensures Alembic can detect all tables for migrations
-import src.models  # noqa
+import fuse.models  # noqa
 
 target_metadata = SQLModel.metadata
 

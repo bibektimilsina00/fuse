@@ -2,7 +2,7 @@ include README.md
 include LICENSE
 include pyproject.toml
 include alembic.ini
-include main.py
+exclude main.py
 include backend_pre_start.py
 include initial_data.py
 include .python-version
@@ -11,11 +11,11 @@ include node_registry.json
 include uv.lock
 include credentials_storage.json
 
-recursive-include src *.py
-recursive-include src *.json
-recursive-include src *.yaml
-recursive-include src *.yml
-recursive-include src/static *
+recursive-include fuse *.py
+recursive-include fuse *.json
+recursive-include fuse *.yaml
+recursive-include fuse *.yml
+recursive-include fuse/static *
 recursive-include alembic *.py
 recursive-include alembic *.mako
 recursive-include alembic *.keep

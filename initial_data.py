@@ -2,8 +2,8 @@ import logging
 
 from sqlmodel import Session
 
-from src.database import engine, init_db
-import src.models  # Load all models for registry initialization
+from fuse.database import engine, init_db
+import fuse.models  # Load all models for registry initialization
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
