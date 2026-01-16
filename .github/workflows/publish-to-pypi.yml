@@ -43,7 +43,9 @@ jobs:
       run: check-manifest --verbose
     
     - name: Build package
-      run: python -m build
+      run: |
+        rm -rf dist/
+        python -m build
     
     - name: Publish to Test PyPI
       if: github.event_name == 'workflow_dispatch' && github.event.inputs.pypi_repository == 'testpypi'
