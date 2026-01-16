@@ -72,7 +72,7 @@ from fastapi.responses import FileResponse
 # Serve static frontend files (must be last to not override API routes)
 from fastapi.staticfiles import StaticFiles
 
-static_dir = Path(__file__).parent / "src" / "static"
+static_dir = Path(__file__).parent / "static"
 
 if static_dir.exists():
     logger.info(f"Serving frontend from: {static_dir}")

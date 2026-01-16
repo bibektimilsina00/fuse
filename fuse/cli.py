@@ -12,7 +12,7 @@ console = Console()
 
 
 @click.group()
-@click.version_option(version="0.1.6")
+@click.version_option(version="0.1.7")
 def main():
     """
     Fuse - Workflow automation.
@@ -58,7 +58,7 @@ def start(host: str, port: int, reload: bool, workers: int, no_browser: bool):
         import webbrowser
 
         def open_browser():
-            time.sleep(1.5)  # Wait for server to start
+            time.sleep(3.5)  # Wait for server to fully start
             console.print(f"[cyan]🌐 Opening browser at {url}[/cyan]")
             webbrowser.open(url)
 
@@ -132,7 +132,7 @@ def version():
 
     table = Table(title="Version Information", show_header=False)
     table.add_row("Package", "fuse-io")
-    table.add_row("Version", "0.1.6")
+    table.add_row("Version", "0.1.7")
     table.add_row(
         "Python",
         f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
