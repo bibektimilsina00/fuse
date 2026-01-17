@@ -44,16 +44,17 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 # Set all CORS enabled origins
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[
-            str(origin).strip("/") for origin in settings.BACKEND_CORS_ORIGINS
-        ],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+cors_origins = [str(origin).strip("/") for origin in settings.BACKEND_CORS_ORIGINS]
+logger.info(f"Configuring CORS with origins: {cors_origins}")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=(
+        cors_origins if cors_origins else ["*"]
+    ),  # Allow all if none specified
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Rate limiting middleware (add after CORS to ensure CORS headers are set)
 app.add_middleware(RateLimitMiddleware)
@@ -78,14 +79,18 @@ static_dir = Path(__file__).parent / "static"
 
 if static_dir.exists():
     logger.info(f"Serving frontend from: {static_dir}")
+
+    # Check for static export structure (output: 'export' in next.config.js)
+    # Static export puts index.html at root with _next folder for assets
+    index_file = static_dir / "index.html"
+    next_static = static_dir / "_next"
     
-    # Locate the index.html file
-    index_file = static_dir / "server" / "app" / "index.html"
+    # Mount _next directory for static assets (JS, CSS, etc.)
+    if next_static.exists():
+        app.mount("/_next", StaticFiles(directory=next_static), name="next_static")
     
-    # Mount Next.js static assets
-    static_assets = static_dir / "static"
-    if static_assets.exists():
-        app.mount("/_next/static", StaticFiles(directory=static_assets), name="static")
+    # Mount any other static assets at root level
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
     # Serve index.html for all non-API routes (SPA fallback)
     @app.get("/{full_path:path}")
@@ -94,11 +99,22 @@ if static_dir.exists():
         # If path starts with api/v1, it should have been handled by API router
         if full_path.startswith("api/"):
             return JSONResponse(status_code=404, content={"detail": "Not found"})
+        
+        # Try to serve the exact file if it exists (for static pages like /auth/login.html)
+        requested_file = static_dir / full_path
+        if requested_file.is_file():
+            return FileResponse(requested_file)
+        
+        # For directories, try index.html inside
+        if requested_file.is_dir():
+            dir_index = requested_file / "index.html"
+            if dir_index.exists():
+                return FileResponse(dir_index)
 
-        # Serve index.html for SPA routing
+        # Serve index.html for SPA routing (fallback)
         if index_file.exists():
             return FileResponse(index_file)
-        return JSONResponse(status_code=404, content={"detail": "Frontend not built"})
+        return JSONResponse(status_code=404, content={"detail": "Frontend not built. Run 'scripts/build_frontend.sh' first."})
 
 else:
     logger.warning(f"Static frontend directory not found at: {static_dir}")

@@ -1,9 +1,8 @@
-from sqlmodel import Session, create_engine, select
-
-from fuse.config import settings
+from fuse.auth.crud_user import user as user_crud
 from fuse.auth.models import User
 from fuse.auth.schemas import UserCreate
-from fuse.auth.crud_user import user as user_crud
+from fuse.config import settings
+from sqlmodel import Session, create_engine, select
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -14,14 +13,12 @@ engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
 
 def init_db(session: Session) -> None:
-    # Tables should be created with Alembic migrations
-    # But if you don't want to use migrations, create
-    # the tables un-commenting the next lines
-    # from sqlmodel import SQLModel
+    # Create tables if they don't exist (useful for SQLite)
+    # For PostgreSQL in production, use Alembic migrations instead
+    from fuse import models  # Import all models to register them
+    from sqlmodel import SQLModel
 
-    # from app.core.engine import engine
-    # This works because the models are already imported and registered from app.models
-    # SQLModel.metadata.create_all(engine)
+    SQLModel.metadata.create_all(engine)
 
     user = session.exec(
         select(User).where(User.email == settings.FIRST_SUPERUSER)
