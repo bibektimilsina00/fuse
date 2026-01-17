@@ -1,10 +1,7 @@
 include README.md
 include LICENSE
 include pyproject.toml
-include initial_data.py
 include .python-version
-include .env
-include node_registry.json
 include uv.lock
 
 recursive-include fuse *
@@ -16,3 +13,5 @@ global-exclude .DS_Store
 global-exclude dist/*
 global-exclude build/*
 global-exclude *.egg-info
+global-exclude fuse.db
+global-exclude .env
