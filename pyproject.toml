@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fuse-io"
-version = "0.1.18"
+version = "0.1.19"
 description = "Fuse - Workflow automation. A powerful local-first automation platform with visual builder, AI integration, and extensive node library."
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
@@ -86,4 +86,4 @@ packages = ["fuse"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-"*" = ["*.json", "*.yaml", "*.yml", "*.toml", "*.ini", "alembic/*", "alembic/versions/*"]
+fuse = ["*.json", "*.yaml", "*.yml", "*.ini", "*.py", "alembic/**/*", "static/**/*"]

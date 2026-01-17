@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-@click.version_option(version="0.1.18")
+@click.version_option(version="0.1.19")
 def main():
     """
     Fuse - Workflow automation.
@@ -68,19 +68,14 @@ def setup_db():
         command.upgrade(alembic_cfg, "head")
         
         # 4. Seed initial data
-        # Search for initial_data.py
-        seed_locations = [
-            project_dir / "initial_data.py",
-            package_dir / "initial_data.py",
-        ]
+        # Search for initial_data.py (priority to package-internal)
+        initial_data_script = package_dir / "initial_data.py"
         
-        initial_data_script = None
-        for loc in seed_locations:
-            if loc.exists():
-                initial_data_script = loc
-                break
+        if not initial_data_script.exists():
+            # Fallback to project root
+            initial_data_script = project_dir / "initial_data.py"
 
-        if initial_data_script:
+        if initial_data_script.exists():
             console.print("[cyan]🌱 Seeding initial data...[/cyan]")
             import subprocess
             subprocess.run(
@@ -258,7 +253,7 @@ def version():
 
     table = Table(title="Version Information", show_header=False)
     table.add_row("Package", "fuse-io")
-    table.add_row("Version", "0.1.18")
+    table.add_row("Version", "0.1.19")
     table.add_row(
         "Python",
         f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
