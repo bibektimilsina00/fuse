@@ -12,7 +12,7 @@ console = Console()
 
 
 @click.group()
-@click.version_option(version="0.1.12")
+@click.version_option(version="0.1.13")
 def main():
     """
     Fuse - Workflow automation.
@@ -233,7 +233,7 @@ def version():
 
     table = Table(title="Version Information", show_header=False)
     table.add_row("Package", "fuse-io")
-    table.add_row("Version", "0.1.12")
+    table.add_row("Version", "0.1.13")
     table.add_row(
         "Python",
         f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
