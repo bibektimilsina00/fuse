@@ -35,25 +35,19 @@ def setup_db():
         import fuse
 
         # 1. Discover paths
+        import fuse
         package_dir = Path(fuse.__file__).parent
         project_dir = package_dir.parent
         
-        # Possible locations for alembic.ini
-        # a. development structure (project root)
-        # b. package structure (site-packages root or inside package)
-        locations = [
-            project_dir / "alembic.ini",
-            package_dir / "alembic.ini",
-        ]
+        # Prioritize location inside package (for bundled installs)
+        alembic_ini = package_dir / "alembic.ini"
         
-        alembic_ini = None
-        for loc in locations:
-            if loc.exists():
-                alembic_ini = loc
-                break
+        if not alembic_ini.exists():
+            # Fallback to project root (for development)
+            alembic_ini = project_dir / "alembic.ini"
         
-        if not alembic_ini:
-            console.print("[yellow]⚠ alembic.ini not found, skipping auto-migrations[/yellow]")
+        if not alembic_ini.exists():
+            console.print(f"[yellow]⚠ alembic.ini not found (checked {package_dir} and {project_dir}), skipping auto-migrations[/yellow]")
             return
 
         # 2. Discover migration scripts location
