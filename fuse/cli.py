@@ -8,11 +8,14 @@ import uvicorn
 from rich.console import Console
 from rich.panel import Panel
 
+import logging
+
 console = Console()
+logger = logging.getLogger(__name__)
 
 
 @click.group()
-@click.version_option(version="0.1.13")
+@click.version_option(version="0.1.15")
 def main():
     """
     Fuse - Workflow automation.
@@ -26,40 +29,66 @@ def main():
 def setup_db():
     """Run migrations and seed initial data if needed."""
     try:
-        import subprocess
+        from alembic.config import Config
+        from alembic import command
         from pathlib import Path
-
-        # The fuse package might be installed in site-packages
-        # We need to find the alembic.ini and initial_data.py
         import fuse
+
+        # 1. Discover paths
         package_dir = Path(fuse.__file__).parent
         project_dir = package_dir.parent
-        alembic_ini = project_dir / "alembic.ini"
         
-        # If it's a site-packages install, we might need to look differently
-        # or assume they are in the package data
-        if not alembic_ini.exists():
-            # Try within the package if bundled differently
-            alembic_ini = package_dir / "alembic.ini"
+        # Possible locations for alembic.ini
+        # a. development structure (project root)
+        # b. package structure (site-packages root or inside package)
+        locations = [
+            project_dir / "alembic.ini",
+            package_dir / "alembic.ini",
+        ]
+        
+        alembic_ini = None
+        for loc in locations:
+            if loc.exists():
+                alembic_ini = loc
+                break
+        
+        if not alembic_ini:
+            console.print("[yellow]⚠ alembic.ini not found, skipping auto-migrations[/yellow]")
+            return
 
-        if not alembic_ini.exists():
-            console.print(f"[yellow]⚠ alembic.ini not found, skipping auto-migrations[/yellow]")
+        # 2. Discover migration scripts location
+        # Usually 'alembic/' directory next to alembic.ini
+        script_location = alembic_ini.parent / "alembic"
+        if not script_location.exists():
+            console.print(f"[yellow]⚠ Migration directory not found at {script_location}, skipping[/yellow]")
             return
 
         console.print("[cyan]⚙ Checking database and running migrations...[/cyan]")
-        # Run migrations - use 'python -m alembic' to ensure correct environment
-        subprocess.run(
-            [sys.executable, "-m", "alembic", "upgrade", "head"],
-            cwd=project_dir,
-            check=True,
-            capture_output=True,
-            text=True
-        )
         
-        # Seed data
-        initial_data_script = project_dir / "initial_data.py"
-        if initial_data_script.exists():
+        # 3. Create Alembic config and run upgrade
+        # We must set script_location to an absolute path for it to work regardless of CWD
+        alembic_cfg = Config(str(alembic_ini))
+        alembic_cfg.set_main_option("script_location", str(script_location))
+        
+        # Ensure SQLALCHEMY_DATABASE_URI is used (env.py handles this via fuse.config)
+        command.upgrade(alembic_cfg, "head")
+        
+        # 4. Seed initial data
+        # Search for initial_data.py
+        seed_locations = [
+            project_dir / "initial_data.py",
+            package_dir / "initial_data.py",
+        ]
+        
+        initial_data_script = None
+        for loc in seed_locations:
+            if loc.exists():
+                initial_data_script = loc
+                break
+
+        if initial_data_script:
             console.print("[cyan]🌱 Seeding initial data...[/cyan]")
+            import subprocess
             subprocess.run(
                 [sys.executable, str(initial_data_script)],
                 cwd=project_dir,
@@ -71,6 +100,8 @@ def setup_db():
         console.print("[green]✓ Database is up to date.[/green]")
     except Exception as e:
         console.print(f"[red]❌ Error setting up database: {e}[/red]")
+        import traceback
+        logger.debug(traceback.format_exc())
         # Continue anyway
 
 
@@ -233,7 +264,7 @@ def version():
 
     table = Table(title="Version Information", show_header=False)
     table.add_row("Package", "fuse-io")
-    table.add_row("Version", "0.1.13")
+    table.add_row("Version", "0.1.15")
     table.add_row(
         "Python",
         f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
