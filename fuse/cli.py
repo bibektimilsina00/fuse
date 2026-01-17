@@ -23,14 +23,89 @@ def main():
     pass
 
 
+def setup_db():
+    """Run migrations and seed initial data if needed."""
+    try:
+        import subprocess
+        from pathlib import Path
+
+        # The fuse package might be installed in site-packages
+        # We need to find the alembic.ini and initial_data.py
+        import fuse
+        package_dir = Path(fuse.__file__).parent
+        project_dir = package_dir.parent
+        alembic_ini = project_dir / "alembic.ini"
+        
+        # If it's a site-packages install, we might need to look differently
+        # or assume they are in the package data
+        if not alembic_ini.exists():
+            # Try within the package if bundled differently
+            alembic_ini = package_dir / "alembic.ini"
+
+        if not alembic_ini.exists():
+            console.print(f"[yellow]⚠ alembic.ini not found, skipping auto-migrations[/yellow]")
+            return
+
+        console.print("[cyan]⚙ Checking database and running migrations...[/cyan]")
+        # Run migrations - use 'python -m alembic' to ensure correct environment
+        subprocess.run(
+            [sys.executable, "-m", "alembic", "upgrade", "head"],
+            cwd=project_dir,
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        
+        # Seed data
+        initial_data_script = project_dir / "initial_data.py"
+        if initial_data_script.exists():
+            console.print("[cyan]🌱 Seeding initial data...[/cyan]")
+            subprocess.run(
+                [sys.executable, str(initial_data_script)],
+                cwd=project_dir,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+        
+        console.print("[green]✓ Database is up to date.[/green]")
+    except Exception as e:
+        console.print(f"[red]❌ Error setting up database: {e}[/red]")
+        # Continue anyway
+
+
+def wait_for_server(url: str, timeout: int = 15):
+    """Wait for the server to be healthy."""
+    import time
+    import httpx
+
+    start_time = time.time()
+    health_url = f"{url.rstrip('/')}/health"
+    
+    while time.time() - start_time < timeout:
+        try:
+            with httpx.Client() as client:
+                response = client.get(health_url, timeout=1.0)
+                if response.status_code == 200:
+                    return True
+        except Exception:
+            pass
+        time.sleep(0.5)
+    return False
+
+
 @main.command()
 @click.option("--host", default="0.0.0.0", help="Host to bind to")
 @click.option("--port", default=5678, help="Port to bind to (default: 5678)")
 @click.option("--reload", is_flag=True, help="Enable auto-reload for development")
 @click.option("--workers", default=1, help="Number of worker processes")
 @click.option("--no-browser", is_flag=True, help="Do not open browser automatically")
-def start(host: str, port: int, reload: bool, workers: int, no_browser: bool):
+@click.option("--skip-migration", is_flag=True, help="Skip database migrations")
+def start(host: str, port: int, reload: bool, workers: int, no_browser: bool, skip_migration: bool):
     """Start the Fuse automation server."""
+
+    if not skip_migration:
+        setup_db()
 
     url = f"http://{'localhost' if host == '0.0.0.0' else host}:{port}"
 
@@ -45,25 +120,45 @@ def start(host: str, port: int, reload: bool, workers: int, no_browser: bool):
 [dim]Reload:[/dim] {reload}
 
 [yellow]Access the UI at:[/yellow] [link]{url}[/link]
+
+[dim]Press [bold]o[/bold] to open browser | [bold]q[/bold] to quit[/dim]
         """,
             title="🎯 Server Configuration",
             border_style="cyan",
         )
     )
 
-    # Open browser automatically
-    if not no_browser:
-        import threading
-        import time
-        import webbrowser
+    # Browser & Keyboard controller
+    import threading
+    import webbrowser
 
-        def open_browser():
-            time.sleep(3.5)  # Wait for server to fully start
-            console.print(f"[cyan]🌐 Opening browser at {url}[/cyan]")
-            webbrowser.open(url)
+    def browser_controller():
+        # First-time automatic open
+        if not no_browser:
+            if wait_for_server(url):
+                console.print(f"[cyan]🌐 Opening browser at {url}[/cyan]")
+                webbrowser.open(url)
+            else:
+                console.print("[yellow]⚠ Server health check timed out, browser not opened automatically[/yellow]")
+        
+        # Listen for keyboard input
+        try:
+            while True:
+                cmd = input().lower().strip()
+                if cmd == 'o':
+                    console.print(f"[cyan]🌐 Re-opening browser at {url}[/cyan]")
+                    webbrowser.open(url)
+                elif cmd == 'q':
+                    console.print("[yellow]👋 Stopping server...[/yellow]")
+                    import os
+                    import signal
+                    os.kill(os.getpid(), signal.SIGINT)
+                    break
+        except EOFError:
+            pass
 
-        thread = threading.Thread(target=open_browser, daemon=True)
-        thread.start()
+    thread = threading.Thread(target=browser_controller, daemon=True)
+    thread.start()
 
     try:
         uvicorn.run(
@@ -98,18 +193,23 @@ This will create the necessary configuration files and directories.
         with open(".env", "w") as f:
             f.write(
                 """# Database Configuration
-DATABASE_URL=postgresql://user:password@localhost:5432/automation
+# For local SQLite (default)
+DATABASE_URL=sqlite:///./fuse.db
 
-# Redis Configuration
-REDIS_URL=redis://localhost:6379/0
+# Redis Configuration (Optional, defaults to memory if not available)
+# REDIS_URL=redis://localhost:6379/0
 
-# Security
-SECRET_KEY=your-secret-key-here-change-this-in-production
+# Security (Change this in production!)
+SECRET_KEY=dev-secret-key-12345
+
+# Initial User Data
+FIRST_SUPERUSER_EMAIL=admin@fuse.io
+FIRST_SUPERUSER_PASSWORD=changethis
 
 # AI API Keys (Optional - for AI nodes)
-OPENAI_API_KEY=
-ANTHROPIC_API_KEY=
-GOOGLE_API_KEY=
+# OPENAI_API_KEY=
+# ANTHROPIC_API_KEY=
+# GOOGLE_API_KEY=
 
 # Environment
 ENVIRONMENT=local
@@ -121,8 +221,9 @@ ENVIRONMENT=local
 
     console.print("\n[bold green]✓ Initialization complete![/bold green]")
     console.print("\nNext steps:")
-    console.print("1. Edit [cyan].env[/cyan] with your configuration")
-    console.print("2. Run [cyan]fuse start[/cyan] to start the server")
+    console.print("1. Edit [cyan].env[/cyan] with your configuration (e.g. AI keys)")
+    console.print("2. Run [cyan]fuse start[/cyan] to initialize database and start the server")
+    console.print("3. Login with [cyan]admin@fuse.io[/cyan] / [cyan]changethis[/cyan]")
 
 
 @main.command()
