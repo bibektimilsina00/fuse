@@ -64,7 +64,7 @@ dist/
 # Project specific
 node_registry.json
 credentials_storage.json
-celerybeat-schedule
+celerybeat-schedule*
 celerybeat.pid
 *.db
 *.sqlite
