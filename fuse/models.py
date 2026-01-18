@@ -2,7 +2,6 @@
 
 # Import all SQLModel models so Alembic can detect them
 from fuse.auth.models import User  # noqa: F401
-from fuse.items.models import Item  # noqa: F401
 from fuse.workflows.models import Workflow, WorkflowNode, WorkflowEdge  # noqa: F401
 
 # Add future models here as you create new modules

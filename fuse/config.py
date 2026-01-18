@@ -6,11 +6,9 @@ from pydantic import (
     AnyUrl,
     BeforeValidator,
     HttpUrl,
-    PostgresDsn,
     computed_field,
     model_validator,
 )
-from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing_extensions import Self
 
@@ -56,41 +54,17 @@ class Settings(BaseSettings):
     ]
 
     PROJECT_NAME: str = "Fuse"
-    SENTRY_DSN: Optional[HttpUrl] = None
 
-    # Database configuration - defaults to SQLite for easy setup
-    # Set POSTGRES_SERVER to use PostgreSQL instead
-    POSTGRES_SERVER: Optional[str] = None
-    POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str = "app"
-    POSTGRES_PASSWORD: str = "changethis"
-    POSTGRES_DB: str = "app"
-
-    # SQLite database path (used when POSTGRES_SERVER is not set)
+    # SQLite database path
     SQLITE_DB_PATH: str = "fuse.db"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         """
-        Returns the database URI. Uses SQLite by default for easy setup.
-        Set POSTGRES_SERVER environment variable to use PostgreSQL instead.
+        Returns the SQLite database URI.
         """
-        if self.POSTGRES_SERVER:
-            # Use PostgreSQL if configured
-            return str(
-                MultiHostUrl.build(
-                    scheme="postgresql+psycopg",
-                    username=self.POSTGRES_USER,
-                    password=self.POSTGRES_PASSWORD,
-                    host=self.POSTGRES_SERVER,
-                    port=self.POSTGRES_PORT,
-                    path=self.POSTGRES_DB,
-                )
-            )
-        else:
-            # Use SQLite by default
-            return f"sqlite:///{self.SQLITE_DB_PATH}"
+        return f"sqlite:///{self.SQLITE_DB_PATH}"
 
     # Redis & Celery
     REDIS_HOST: str = "localhost"
@@ -168,9 +142,6 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
-        # Only check PostgreSQL password if using PostgreSQL
-        if self.POSTGRES_SERVER:
-            self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )
