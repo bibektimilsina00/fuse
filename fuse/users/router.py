@@ -2,7 +2,6 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import col, delete
 from fuse.auth.dependencies import CurrentUser, SessionDep, get_current_active_superuser
 from fuse.auth.models import User
 from fuse.auth.schemas import (
@@ -23,7 +22,6 @@ from fuse.auth.utils import (
     verify_password,
 )
 from fuse.config import settings
-from fuse.items.models import Item
 from fuse.utils.pagination import DEFAULT_LIMIT, PaginationLimit, PaginationSkip
 
 router = APIRouter()
@@ -136,8 +134,6 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    statement = delete(Item).where(col(Item.owner_id) == current_user.id)
-    session.exec(statement)  # type: ignore
     session.delete(current_user)
     session.commit()
     return Message(message="User deleted successfully")
@@ -227,8 +223,6 @@ def delete_user(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    statement = delete(Item).where(col(Item.owner_id) == user_id)
-    session.exec(statement)  # type: ignore
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")

@@ -18,7 +18,8 @@ class WebhookTriggerNode(BaseNode):
             outputs=[
                 NodeOutput(name="body", type="json", label="Request Body"),
                 NodeOutput(name="headers", type="json", label="Headers")
-            ]
+            ],
+            trigger_group="webhook"
         )
 
     async def execute(self, context: Dict[str, Any], input_data: Any) -> Any:

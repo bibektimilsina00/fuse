@@ -41,6 +41,7 @@ class NodeSchema(BaseModel):
     runtime: RuntimeType = RuntimeType.INTERNAL # Rule 6 & 7
     error_policy: ErrorPolicy = ErrorPolicy.STOP # Rule 7 & 8
     category: str = "Common"
+    trigger_group: Optional[str] = None
 
 class BaseNode(ABC):
     @property

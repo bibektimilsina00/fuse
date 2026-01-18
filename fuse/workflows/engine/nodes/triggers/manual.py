@@ -15,7 +15,8 @@ class ManualTriggerNode(BaseNode):
             outputs=[
                 NodeOutput(name="output", type="json", label="Initial Data")
             ],
-            category="Trigger"
+            category="Trigger",
+            trigger_group="manual"
         )
 
     async def execute(self, context: Dict[str, Any], input_data: Any) -> Any:

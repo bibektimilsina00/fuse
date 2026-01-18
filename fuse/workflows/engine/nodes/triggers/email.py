@@ -19,7 +19,8 @@ class EmailTriggerNode(BaseNode):
                 NodeOutput(name="from", type="string", label="Sender"),
                 NodeOutput(name="subject", type="string", label="Subject"),
                 NodeOutput(name="body", type="string", label="Email Body")
-            ]
+            ],
+            trigger_group="app"
         )
 
     async def execute(self, context: Dict[str, Any], input_data: Any) -> Any:

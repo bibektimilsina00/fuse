@@ -23,7 +23,8 @@ class ScheduleTriggerNode(BaseNode):
             ],
             outputs=[
                 NodeOutput(name="timestamp", type="string", label="Trigger Time")
-            ]
+            ],
+            trigger_group="schedule"
         )
 
     async def execute(self, context: Dict[str, Any], input_data: Any) -> Any:

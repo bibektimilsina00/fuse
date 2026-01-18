@@ -22,7 +22,8 @@ class RSSFeedTriggerNode(BaseNode):
                 NodeOutput(name="link", type="string", label="Link"),
                 NodeOutput(name="summary", type="string", label="Summary"),
                 NodeOutput(name="published", type="string", label="Published Date")
-            ]
+            ],
+            trigger_group="app"
         )
 
     async def execute(self, context: Dict[str, Any], input_data: Any) -> Dict[str, Any]:

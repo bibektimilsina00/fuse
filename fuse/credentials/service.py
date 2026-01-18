@@ -1,13 +1,47 @@
+"""
+Credential service functions for resolving and refreshing credentials.
+"""
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
+import uuid
 
 import httpx
-from fuse.utils.security import decrypt_string, encrypt_string
+from sqlmodel import Session, select
 
-from .router import OAUTH_CONFIG, load_credentials_db, save_credentials_db
+from fuse.database import engine
+from fuse.utils.security import decrypt_string, encrypt_string
+from fuse.credentials.models import Credential
 
 logger = logging.getLogger(__name__)
+
+# OAuth configuration - duplicated here to avoid circular imports
+OAUTH_CONFIG = {
+    "google_sheets": {
+        "token_url": "https://oauth2.googleapis.com/token",
+    },
+    "slack": {
+        "token_url": "https://slack.com/api/oauth.v2.access",
+    },
+    "discord": {
+        "token_url": "https://discord.com/api/oauth2/token",
+    }
+}
+
+
+def decrypt_credential_data(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Decrypt sensitive fields in credential data."""
+    result = data.copy()
+    sensitive_fields = ['access_token', 'refresh_token', 'api_key', 'token', 'secret', 'password', 'webhook_url', 'bot_token']
+    
+    for field in sensitive_fields:
+        if field in result and result[field]:
+            try:
+                result[field] = decrypt_string(result[field])
+            except Exception:
+                pass  # If decryption fails, keep original value
+    
+    return result
 
 
 def get_credential_by_id(cred_id: str) -> Optional[Dict[str, Any]]:
@@ -15,17 +49,16 @@ def get_credential_by_id(cred_id: str) -> Optional[Dict[str, Any]]:
     Look up a credential by ID and return its data dictionary.
     DECRYPTS sensitive fields.
     """
-    creds = load_credentials_db()
-    for c in creds:
-        if c.id == cred_id:
-            data = c.data.copy()
-            if "access_token" in data:
-                data["access_token"] = decrypt_string(data["access_token"])
-            if "bot_token" in data:
-                data["bot_token"] = decrypt_string(data["bot_token"])
-            if "refresh_token" in data:
-                data["refresh_token"] = decrypt_string(data["refresh_token"])
-            return data
+    try:
+        cred_uuid = uuid.UUID(cred_id)
+    except ValueError:
+        return None
+    
+    with Session(engine) as session:
+        credential = session.get(Credential, cred_uuid)
+        if credential:
+            return decrypt_credential_data(credential.data)
+    
     return None
 
 
@@ -34,30 +67,28 @@ def get_full_credential_by_id(cred_id: str) -> Optional[Dict[str, Any]]:
     Look up a credential by ID and return its full dictionary including type and data.
     DECRYPTS sensitive fields.
     """
-    creds = load_credentials_db()
-    for c in creds:
-        if c.id == cred_id:
+    try:
+        cred_uuid = uuid.UUID(cred_id)
+    except ValueError:
+        return None
+    
+    with Session(engine) as session:
+        credential = session.get(Credential, cred_uuid)
+        if credential:
             # Determine provider for ai_provider type
-            if c.type == "ai_provider":
-                provider = c.data.get("provider", "openrouter")
+            if credential.type == "ai_provider":
+                provider = credential.data.get("provider", "openrouter")
             else:
-                provider = c.type
-
-            data = c.data.copy()
-            if "access_token" in data:
-                data["access_token"] = decrypt_string(data["access_token"])
-            if "bot_token" in data:
-                data["bot_token"] = decrypt_string(data["bot_token"])
-            if "refresh_token" in data:
-                data["refresh_token"] = decrypt_string(data["refresh_token"])
+                provider = credential.type
 
             return {
-                "id": c.id,
-                "name": c.name,
-                "type": c.type,
+                "id": str(credential.id),
+                "name": credential.name,
+                "type": credential.type,
                 "provider": provider,
-                "data": data,
+                "data": decrypt_credential_data(credential.data),
             }
+    
     return None
 
 
@@ -89,11 +120,21 @@ async def get_active_credential(cred_id: str) -> Optional[Dict[str, Any]]:
 
         if config:
             try:
-                # 1. Determine which keys to use (User-provided VS Server-provided)
-                # If the credential itself has client_id/secret (Manual Setup), use those.
-                # Otherwise, fallback to the server config (.env).
-                client_id = data.get("client_id") or config.get("client_id")
-                client_secret = data.get("client_secret") or config.get("client_secret")
+                # Get client credentials from settings
+                from fuse.config import settings
+                
+                client_id = None
+                client_secret = None
+                
+                if provider == "google_sheets":
+                    client_id = settings.GOOGLE_CLIENT_ID
+                    client_secret = settings.GOOGLE_CLIENT_SECRET
+                elif provider == "slack":
+                    client_id = settings.SLACK_CLIENT_ID
+                    client_secret = settings.SLACK_CLIENT_SECRET
+                elif provider == "discord":
+                    client_id = settings.DISCORD_CLIENT_ID
+                    client_secret = settings.DISCORD_CLIENT_SECRET
 
                 if not client_id or not client_secret:
                     logger.error(
@@ -115,29 +156,33 @@ async def get_active_credential(cred_id: str) -> Optional[Dict[str, Any]]:
                         new_tokens = resp.json()
 
                         # Update DB
-                        # We need to load fresh from DB to write safely
-                        creds_db = load_credentials_db()
-                        for c in creds_db:
-                            if c.id == cred_id:
+                        try:
+                            cred_uuid = uuid.UUID(cred_id)
+                        except ValueError:
+                            return cred
+                            
+                        with Session(engine) as session:
+                            credential = session.get(Credential, cred_uuid)
+                            if credential:
                                 # Update fields
-                                c.data["access_token"] = encrypt_string(
+                                credential.data["access_token"] = encrypt_string(
                                     new_tokens["access_token"]
                                 )
                                 # Some providers rotate refresh tokens
                                 if "refresh_token" in new_tokens:
-                                    c.data["refresh_token"] = encrypt_string(
+                                    credential.data["refresh_token"] = encrypt_string(
                                         new_tokens["refresh_token"]
                                     )
 
                                 if "expires_in" in new_tokens:
-                                    from datetime import timedelta
-
-                                    c.data["expires_at"] = (
+                                    credential.data["expires_at"] = (
                                         datetime.now()
                                         + timedelta(seconds=new_tokens["expires_in"])
                                     ).isoformat()
 
-                                save_credentials_db(creds_db)
+                                credential.updated_at = datetime.utcnow()
+                                session.add(credential)
+                                session.commit()
 
                                 # Update our local return data (decrypted)
                                 data["access_token"] = new_tokens["access_token"]
@@ -147,7 +192,6 @@ async def get_active_credential(cred_id: str) -> Optional[Dict[str, Any]]:
                                 logger.debug(
                                     f"Token refreshed successfully for {cred['name']}"
                                 )
-                                break
                     else:
                         logger.error(f"Failed to refresh token: {resp.text}")
             except Exception as e:

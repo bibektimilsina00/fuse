@@ -20,7 +20,8 @@ class WhatsAppTriggerNode(BaseNode):
             outputs=[
                 NodeOutput(name="sender", type="string", label="From Number"),
                 NodeOutput(name="message", type="string", label="Message Text")
-            ]
+            ],
+            trigger_group="app"
         )
     
     async def execute(self, context: Dict[str, Any], input_data: Any) -> Any:

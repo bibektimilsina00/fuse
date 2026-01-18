@@ -1,83 +1,256 @@
-from typing import List, Optional, Any
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-import json
-import os
-import uuid
+"""
+Credentials API router with database storage.
+"""
+from typing import List, Optional
 from datetime import datetime, timedelta
-from fuse.utils.security import encrypt_string
+import uuid
+
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
+from sqlmodel import Session, select
+import httpx
+
+from fuse.auth.dependencies import get_db, get_current_user
+from fuse.auth.models import User
+from fuse.credentials.models import Credential
+from fuse.utils.security import encrypt_string, decrypt_string
+from fuse.config import settings
 
 router = APIRouter()
 
-CREDENTIALS_FILE = "credentials_storage.json"
 
-class Credential(BaseModel):
+# =============================================================================
+# Pydantic Schemas
+# =============================================================================
+
+class CredentialResponse(BaseModel):
+    """Public credential response (masks sensitive data)"""
     id: str
     name: str
-    type: str  # e.g., 'google_sheets', 'slack', 'discord'
-    data: dict # stores the actual secrets: { 'token': '...', 'webhook_url': '...' }
+    type: str
     created_at: str
+    updated_at: str
+    description: Optional[str] = None
+    last_used_at: Optional[str] = None
+
 
 class CredentialCreate(BaseModel):
+    """Request body for creating a credential"""
     name: str
     type: str
     data: dict
+    description: Optional[str] = None
 
-def load_credentials_db() -> List[Credential]:
-    if not os.path.exists(CREDENTIALS_FILE):
-        return []
-    try:
-        with open(CREDENTIALS_FILE, "r") as f:
-            data = json.load(f)
-            return [Credential(**d) for d in data]
-    except:
-        return []
 
-def save_credentials_db(creds: List[Credential]):
-    with open(CREDENTIALS_FILE, "w") as f:
-        # Convert Pydantic models to dicts
-        json.dump([c.dict() for c in creds], f, indent=2)
+class CredentialUpdate(BaseModel):
+    """Request body for updating a credential"""
+    name: Optional[str] = None
+    data: Optional[dict] = None
+    description: Optional[str] = None
 
-@router.get("/", response_model=List[Credential])
-def get_credentials():
-    """List all available credentials."""
-    creds = load_credentials_db()
-    # Mask sensitive data before returning list? 
-    # For now, let's keep it simple. Usually we wouldn't return full secrets.
-    # But for an internal automation tool, returning it (or just returning ID/Name) is ok.
-    # Ideally, frontend only needs ID and Type/Name to display in dropdown.
-    # Let's return everything but maybe we can be smarter later.
-    return creds
 
-@router.post("/", response_model=Credential)
-def create_credential(cred_in: CredentialCreate):
-    """Create a new credential."""
-    creds = load_credentials_db()
+class CredentialDetail(BaseModel):
+    """Full credential response (includes data for internal use)"""
+    id: str
+    name: str
+    type: str
+    data: dict
+    created_at: str
+    updated_at: str
+    description: Optional[str] = None
+    last_used_at: Optional[str] = None
+
+
+# =============================================================================
+# Helper Functions
+# =============================================================================
+
+def credential_to_response(cred: Credential) -> CredentialResponse:
+    """Convert database model to response schema (without sensitive data)"""
+    return CredentialResponse(
+        id=str(cred.id),
+        name=cred.name,
+        type=cred.type,
+        created_at=cred.created_at.isoformat(),
+        updated_at=cred.updated_at.isoformat(),
+        description=cred.description,
+        last_used_at=cred.last_used_at.isoformat() if cred.last_used_at else None
+    )
+
+
+def credential_to_detail(cred: Credential) -> CredentialDetail:
+    """Convert database model to detail schema (with decrypted data)"""
+    # Decrypt sensitive fields
+    decrypted_data = {}
+    for key, value in cred.data.items():
+        if key in ['access_token', 'refresh_token', 'api_key', 'token', 'secret', 'password', 'webhook_url']:
+            try:
+                decrypted_data[key] = decrypt_string(value) if value else value
+            except:
+                decrypted_data[key] = value  # If decryption fails, use as-is
+        else:
+            decrypted_data[key] = value
     
-    new_cred = Credential(
-        id=str(uuid.uuid4()),
+    return CredentialDetail(
+        id=str(cred.id),
+        name=cred.name,
+        type=cred.type,
+        data=decrypted_data,
+        created_at=cred.created_at.isoformat(),
+        updated_at=cred.updated_at.isoformat(),
+        description=cred.description,
+        last_used_at=cred.last_used_at.isoformat() if cred.last_used_at else None
+    )
+
+
+def encrypt_credential_data(data: dict) -> dict:
+    """Encrypt sensitive fields in credential data"""
+    encrypted = {}
+    sensitive_fields = ['access_token', 'refresh_token', 'api_key', 'token', 'secret', 'password', 'webhook_url']
+    
+    for key, value in data.items():
+        if key in sensitive_fields and value:
+            encrypted[key] = encrypt_string(str(value))
+        else:
+            encrypted[key] = value
+    
+    return encrypted
+
+
+# =============================================================================
+# CRUD Endpoints
+# =============================================================================
+
+@router.get("/", response_model=List[CredentialResponse])
+def list_credentials(
+    session: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """List all credentials for the current user."""
+    statement = select(Credential).where(Credential.owner_id == current_user.id)
+    credentials = session.exec(statement).all()
+    return [credential_to_response(c) for c in credentials]
+
+
+@router.get("/{cred_id}", response_model=CredentialDetail)
+def get_credential(
+    cred_id: str,
+    session: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get a specific credential with decrypted data."""
+    try:
+        cred_uuid = uuid.UUID(cred_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid credential ID")
+    
+    statement = select(Credential).where(
+        Credential.id == cred_uuid,
+        Credential.owner_id == current_user.id
+    )
+    credential = session.exec(statement).first()
+    
+    if not credential:
+        raise HTTPException(status_code=404, detail="Credential not found")
+    
+    return credential_to_detail(credential)
+
+
+@router.post("/", response_model=CredentialResponse)
+def create_credential(
+    cred_in: CredentialCreate,
+    session: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new credential."""
+    encrypted_data = encrypt_credential_data(cred_in.data)
+    
+    credential = Credential(
         name=cred_in.name,
         type=cred_in.type,
-        data=cred_in.data,
-        created_at=datetime.now().isoformat()
+        data=encrypted_data,
+        owner_id=current_user.id,
+        description=cred_in.description
     )
     
-    creds.append(new_cred)
-    save_credentials_db(creds)
-    return new_cred
+    session.add(credential)
+    session.commit()
+    session.refresh(credential)
+    
+    return credential_to_response(credential)
+
+
+@router.patch("/{cred_id}", response_model=CredentialResponse)
+def update_credential(
+    cred_id: str,
+    cred_in: CredentialUpdate,
+    session: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update an existing credential."""
+    try:
+        cred_uuid = uuid.UUID(cred_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid credential ID")
+    
+    statement = select(Credential).where(
+        Credential.id == cred_uuid,
+        Credential.owner_id == current_user.id
+    )
+    credential = session.exec(statement).first()
+    
+    if not credential:
+        raise HTTPException(status_code=404, detail="Credential not found")
+    
+    if cred_in.name is not None:
+        credential.name = cred_in.name
+    
+    if cred_in.data is not None:
+        credential.data = encrypt_credential_data(cred_in.data)
+    
+    if cred_in.description is not None:
+        credential.description = cred_in.description
+    
+    credential.updated_at = datetime.utcnow()
+    
+    session.add(credential)
+    session.commit()
+    session.refresh(credential)
+    
+    return credential_to_response(credential)
+
 
 @router.delete("/{cred_id}")
-def delete_credential(cred_id: str):
-    creds = load_credentials_db()
-    creds = [c for c in creds if c.id != cred_id]
-    save_credentials_db(creds)
-    return {"success": True}
+def delete_credential(
+    cred_id: str,
+    session: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a credential."""
+    try:
+        cred_uuid = uuid.UUID(cred_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid credential ID")
+    
+    statement = select(Credential).where(
+        Credential.id == cred_uuid,
+        Credential.owner_id == current_user.id
+    )
+    credential = session.exec(statement).first()
+    
+    if not credential:
+        raise HTTPException(status_code=404, detail="Credential not found")
+    
+    session.delete(credential)
+    session.commit()
+    
+    return {"success": True, "message": "Credential deleted"}
 
-# --- OAuth Implementation ---
 
-import httpx
-from fastapi.responses import RedirectResponse
-from fuse.config import settings
+# =============================================================================
+# OAuth Implementation
+# =============================================================================
 
 OAUTH_CONFIG = {
     "google_sheets": {
@@ -97,20 +270,21 @@ OAUTH_CONFIG = {
     "discord": {
         "auth_url": "https://discord.com/api/oauth2/authorize",
         "token_url": "https://discord.com/api/oauth2/token",
-        "scopes": "identify connections workflows.webhook.incoming",
+        "scopes": "identify connections webhooks.incoming",
         "client_id": settings.DISCORD_CLIENT_ID,
         "client_secret": settings.DISCORD_CLIENT_SECRET,
     }
 }
 
+
 @router.get("/oauth/{provider}/authorize")
 async def oauth_authorize(provider: str):
+    """Initiate OAuth flow for a provider."""
     config = OAUTH_CONFIG.get(provider)
     if not config:
         raise HTTPException(status_code=400, detail=f"OAuth not supported for {provider}")
     
     if not config.get("client_id") or not config.get("client_secret"):
-        # Map provider to actual env var names for helpful error message
         ENV_VARS = {
             "google_sheets": ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"),
             "slack": ("SLACK_CLIENT_ID", "SLACK_CLIENT_SECRET"),
@@ -126,6 +300,7 @@ async def oauth_authorize(provider: str):
 
     redirect_uri = f"{settings.server_host}/api/v1/credentials/oauth/{provider}/callback"
     
+    from urllib.parse import urlencode
     params = {
         "client_id": config["client_id"],
         "redirect_uri": redirect_uri,
@@ -135,13 +310,17 @@ async def oauth_authorize(provider: str):
         "prompt": "consent",
     }
     
-    from urllib.parse import urlencode
-    auth_url = config["auth_url"]
     query_string = urlencode(params)
-    return RedirectResponse(url=f"{auth_url}?{query_string}")
+    return RedirectResponse(url=f"{config['auth_url']}?{query_string}")
+
 
 @router.get("/oauth/{provider}/callback")
-async def oauth_callback(provider: str, code: str):
+async def oauth_callback(
+    provider: str,
+    code: str,
+    session: Session = Depends(get_db)
+):
+    """Handle OAuth callback and save credential."""
     config = OAUTH_CONFIG.get(provider)
     if not config:
         raise HTTPException(status_code=400, detail="Invalid provider")
@@ -165,35 +344,39 @@ async def oauth_callback(provider: str, code: str):
         
         token_data = response.json()
         
-        # --- ENCRYPTION STEP ---
-        # Encrypt sensitive fields before saving
-        if "access_token" in token_data:
-            token_data["access_token"] = encrypt_string(token_data["access_token"])
-        if "refresh_token" in token_data:
-            token_data["refresh_token"] = encrypt_string(token_data["refresh_token"])
+        # Encrypt sensitive fields
+        encrypted_data = encrypt_credential_data(token_data)
         
-        # Calculate expiry if present (Google gives expires_in)
+        # Calculate expiry if present
         if "expires_in" in token_data:
-             token_data["expires_at"] = (datetime.now() + timedelta(seconds=token_data["expires_in"])).isoformat()
+            encrypted_data["expires_at"] = (datetime.now() + timedelta(seconds=token_data["expires_in"])).isoformat()
 
-        # Save as a credential
-        creds = load_credentials_db()
-        
-        # Try to get a useful name
+        # Get name for the credential
         name = f"{provider.replace('_', ' ').title()} OAuth"
         if provider == "slack":
             name = token_data.get("team", {}).get("name", name)
         
-        new_cred = Credential(
-            id=str(uuid.uuid4()),
+        # For OAuth callbacks, we don't have user context from JWT
+        # In production, you'd store state param with user_id and retrieve it here
+        # For now, we'll get the first superuser as owner
+        from fuse.auth.models import User
+        user = session.exec(select(User).where(User.is_superuser == True)).first()
+        
+        if not user:
+            raise HTTPException(status_code=500, detail="No user found to assign credential")
+        
+        credential = Credential(
             name=name,
             type=provider,
-            data=token_data, # Encrypted data
-            created_at=datetime.now().isoformat()
+            data=encrypted_data,
+            owner_id=user.id
         )
         
-        creds.append(new_cred)
-        save_credentials_db(creds)
+        session.add(credential)
+        session.commit()
+        session.refresh(credential)
         
         # Redirect back to frontend
-        return RedirectResponse(url=f"{settings.FRONTEND_URL}/oauth/callback?status=success&id={new_cred.id}&name={name}")
+        return RedirectResponse(
+            url=f"{settings.FRONTEND_URL}/oauth/callback?status=success&id={credential.id}&name={name}"
+        )

@@ -17,7 +17,8 @@ class FormTriggerNode(BaseNode):
             ],
             outputs=[
                 NodeOutput(name="data", type="json", label="Form Data")
-            ]
+            ],
+            trigger_group="form"
         )
 
     async def execute(self, context: Dict[str, Any], input_data: Any) -> Any:

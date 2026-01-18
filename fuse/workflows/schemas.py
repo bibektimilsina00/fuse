@@ -29,6 +29,7 @@ class WorkflowUpdate(SQLModel):
 
 # --- V2 Schemas ---
 
+
 class WorkflowMeta(BaseModel):
     id: Optional[str] = None
     name: str
@@ -40,13 +41,16 @@ class WorkflowMeta(BaseModel):
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
+
 class WorkflowUI(BaseModel):
     label: str
     position: Dict
 
+
 class NodeRuntime(BaseModel):
     type: str  # internal, code, http
     language: Optional[str] = None
+
 
 class NodeSpec(BaseModel):
     node_name: str
@@ -57,11 +61,13 @@ class NodeSpec(BaseModel):
     credentials_ref: Optional[str] = None
     error_policy: Optional[Dict] = None
 
+
 class WorkflowNodeV2(BaseModel):
     id: str
     kind: str  # trigger, action, logic
     ui: WorkflowUI
     spec: NodeSpec
+
 
 class WorkflowEdgeV2(BaseModel):
     id: str
@@ -71,9 +77,11 @@ class WorkflowEdgeV2(BaseModel):
     sourceHandle: Optional[str] = None
     targetHandle: Optional[str] = None
 
+
 class WorkflowGraph(BaseModel):
     nodes: List[WorkflowNodeV2]
     edges: List[WorkflowEdgeV2]
+
 
 class ExecutionConfig(BaseModel):
     mode: str = "async"
@@ -81,15 +89,18 @@ class ExecutionConfig(BaseModel):
     retry: Dict = {"max_attempts": 3, "strategy": "exponential"}
     concurrency: int = 1
 
+
 class ObservabilityConfig(BaseModel):
     logging: bool = True
     metrics: bool = True
     tracing: bool = False
 
+
 class AIMetadata(BaseModel):
     generated_by: Optional[str] = None
     confidence: Optional[float] = None
     prompt_version: Optional[str] = None
+
 
 class WorkflowV2(BaseModel):
     meta: WorkflowMeta
@@ -98,7 +109,9 @@ class WorkflowV2(BaseModel):
     observability: ObservabilityConfig
     ai: AIMetadata
 
+
 # --- End V2 Schemas ---
+
 
 # Properties to return via API
 class WorkflowPublic(SQLModel):
@@ -108,7 +121,7 @@ class WorkflowPublic(SQLModel):
     execution: ExecutionConfig
     observability: ObservabilityConfig
     ai: AIMetadata
-    
+
     # Required for backend tracking in SQLModel
     id: uuid.UUID
     owner_id: uuid.UUID
@@ -136,6 +149,7 @@ class AIWorkflowRequest(BaseModel):
     current_nodes: Optional[List[Dict]] = None
     current_edges: Optional[List[Dict]] = None
     model: str = "openrouter"
+    credential_id: Optional[uuid.UUID] = None
 
 
 class AIWorkflowResponse(BaseModel):
@@ -163,7 +177,6 @@ class NodeExecutionPublic(BaseModel):
     error: Optional[str] = None
 
 
-
 class WorkflowExecutionPublic(BaseModel):
     id: uuid.UUID
     workflow_id: uuid.UUID
@@ -174,14 +187,17 @@ class WorkflowExecutionPublic(BaseModel):
     trigger_data: Optional[str] = None
     node_executions: List[NodeExecutionPublic] = []
 
+
 class ExecuteNodeRequest(BaseModel):
     input_data: Dict[str, Any] = {}
     config: Optional[Dict[str, Any]] = None
-    
+
+
 class TriggerWebhookResponse(BaseModel):
     execution_id: uuid.UUID
     status: str
     message: str
+
 
 class ExecuteNodeResponse(BaseModel):
     status: str

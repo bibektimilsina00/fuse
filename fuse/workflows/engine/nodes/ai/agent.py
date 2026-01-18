@@ -1,6 +1,9 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from fuse.workflows.engine.nodes.base import BaseNode, NodeSchema, NodeInput, NodeOutput
 from fuse.workflows.engine.nodes.registry import NodeRegistry
+import logging
+
+logger = logging.getLogger(__name__)
 
 @NodeRegistry.register
 class AgentNode(BaseNode):
@@ -13,14 +16,14 @@ class AgentNode(BaseNode):
             description="Autonomous agent capable of using specific tools.",
             category="AI",
             inputs=[
-                NodeInput(name="credential", type="credential", label="AI Provider", credential_type="ai_provider", required=True),
-                NodeInput(name="model", type="select", label="Intelligence", options=[
-                    {"label": "Gemini 2.0 Flash (Free)", "value": "google/gemini-2.0-flash-exp:free"},
-                    {"label": "Llama 3.3 70B (Free)", "value": "meta-llama/llama-3.3-70b-instruct:free"},
-                    {"label": "Llama 3.1 8B (Free)", "value": "meta-llama/llama-3.1-8b-instruct:free"},
-                    {"label": "Mistral 7B (Free)", "value": "mistralai/mistral-7b-instruct:free"}
-                ], default="google/gemini-2.0-flash-exp:free"),
-                NodeInput(name="goal", type="string", label="Goal", required=True)
+                # Connection Inputs (Visual handles)
+                NodeInput(name="chat_model", type="ai_model", label="Chat Model", required=True),
+                NodeInput(name="memory", type="ai_memory", label="Memory", required=False),
+                NodeInput(name="tools", type="ai_tool", label="Tools", required=False),
+                
+                # Configuration Inputs
+                NodeInput(name="goal", type="string", label="Goal / System Prompt", required=True, description="What is the agent supposed to do?"),
+                NodeInput(name="input_text", type="string", label="Input Text", description="User input to process (optional, defaults to workflow input)")
             ],
             outputs=[
                 NodeOutput(name="result", type="string", label="Final Result")
@@ -30,69 +33,91 @@ class AgentNode(BaseNode):
     async def execute(self, context: Dict[str, Any], input_data: Any) -> Dict[str, Any]:
         """Execute autonomous agent goal"""
         from fuse.ai.service import ai_service
+        from fuse.credentials.service import get_full_credential_by_id
         
         config = context.get("node_config", {})
         goal_raw = config.get("goal")
-        model = config.get("model", "google/gemini-2.0-flash-exp:free")
         
-        # Hotpatch invalid models
-        model_mapping = {
-            "gemini": "google/gemini-2.0-flash-exp:free",
-            "llama": "meta-llama/llama-3.3-70b-instruct:free",
-            "microsoft/phi-3-medium-128k-instruct:free": "google/gemini-2.0-flash-exp:free",
-            "huggingfaceh4/zephyr-orpo-141b-a35b-v0.1:free": "google/gemini-2.0-flash-exp:free"
-        }
-        if model in model_mapping:
-            model = model_mapping[model]
+        # Extract dependencies from input_data
+        # Input data might be a dictionary with keys if merged, or we need to find them
+        # We assume the engine merges inputs or we manually inspect context
+        
+        model_config = None
+        memory_config = None
+        tools_config = []
+        
+        # Helper to find config in nested data
+        def find_key(data, key):
+            if isinstance(data, dict):
+                if key in data: return data[key]
+                for k, v in data.items():
+                    res = find_key(v, key)
+                    if res: return res
+            return None
 
-        cred_id = config.get("credential")
+        # Logic to extract model from input_data
+        # This depends on how the engine handles multi-input. 
+        # Assuming input_data contains outputs from upstream nodes.
+        if isinstance(input_data, dict):
+            model_config = input_data.get("model")
+            memory_config = input_data.get("memory")
+            tool = input_data.get("tool")
+            if tool: tools_config.append(tool)
+        elif isinstance(input_data, list):
+            for item in input_data:
+                if isinstance(item, dict):
+                    if "model" in item: model_config = item["model"]
+                    if "memory" in item: memory_config = item["memory"]
+                    if "tool" in item: tools_config.append(item["tool"])
+
+        # Fallback: if not in input_data, maybe try to fetch from context (not implemented here)
         
-        if not goal_raw:
-            return {"error": "Goal must be provided for the AI Agent"}
+        if not model_config:
+            # Check if we can fallback to default? No, user wanted to connect.
+            # But for safety, providing a helpful error
+            return {"error": "No Chat Model connected. Please connect a 'Chat Model' node to the Agent."}
             
-        # 1. Variable Injection for Goal
+        cred_id = model_config.get("credential_id")
+        model_name = model_config.get("model_name")
+        
+        if not cred_id or not model_name:
+             return {"error": "Invalid Chat Model configuration."}
+
+        cred_data = get_full_credential_by_id(cred_id)
+        if not cred_data:
+            return {"error": f"Credential '{cred_id}' not found"}
+
+        # Goal rendering
         try:
             template_context = {
                 "input": input_data,
                 "workflow_id": context.get("workflow_id"),
-                "execution_id": context.get("execution_id"),
-                **context.get("results", {}),
-                **(input_data if isinstance(input_data, dict) else {})
+                **context.get("results", {})
             }
             from jinja2 import Template
             goal = Template(goal_raw).render(template_context)
         except Exception as e:
             goal = goal_raw
-            logger.warning(f"Agent goal rendering failed: {e}")
-            
-        if not cred_id:
-            return {"error": "Credential must be provided for the AI Agent"}
-            
-        from fuse.credentials.service import get_full_credential_by_id
-        cred_data = get_full_credential_by_id(cred_id)
-        if not cred_data:
-            return {"error": f"Credential '{cred_id}' not found"}
             
         system_instruction = (
             "You are an autonomous AI agent. Your goal is to process the input data and achieve the specified objective. "
             "Think step by step. Provide a final comprehensive result."
         )
         
-        # Prepare the prompt
-        prompt = f"GOAL: {goal}\n\nINPUT DATA: {input_data}\n\nPlease analyze the data and fulfill the goal."
-        
+        prompt = f"GOAL: {goal}\n\nCONTEXT DATA: {input_data}\n\nPlease analyze the data and fulfill the goal."
+
         try:
             result = await ai_service.call_llm(
                 messages=[
                     {"role": "system", "content": system_instruction},
                     {"role": "user", "content": prompt}
                 ],
-                model=model,
+                model=model_name,
                 credential=cred_data
             )
             
             return {
-                "result": result.get("content", "No response from agent"),
+                "result": result.get("content", "No response"),
                 "status": "success",
                 "usage": result.get("usage", {})
             }

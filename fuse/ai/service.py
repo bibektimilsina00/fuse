@@ -56,32 +56,44 @@ class AIWorkflowService:
         model: str = "openrouter",
         current_nodes: Optional[List[dict]] = None,
         current_edges: Optional[List[dict]] = None,
+        credential_data: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Generate workflow nodes and edges from natural language prompt"""
         system_prompt = self._get_system_prompt(current_nodes, current_edges)
         user_prompt = f"USER REQUEST: {prompt}\n\nPlease generate a workflow JSON based on this request."
 
+        # Override model provider if credential specifies one
+        provider = model
+        if credential_data:
+            provider = credential_data.get("provider", model)
+
         try:
-            if model == "gemini":
+            if provider == "gemini":
                 response_text = await self._generate_with_gemini(
-                    f"{system_prompt}\n\n{user_prompt}"
+                    f"{system_prompt}\n\n{user_prompt}", credential_data=credential_data
                 )
-            elif model == "openai":
+            elif provider == "openai":
                 response_text = await self._generate_with_openai(
-                    f"{system_prompt}\n\n{user_prompt}"
+                    f"{system_prompt}\n\n{user_prompt}",
+                    credential_data=credential_data,
+                    model_name=model if model != "openai" else "gpt-4",
                 )
-            elif model == "anthropic":
+            elif provider == "anthropic":
                 response_text = await self._generate_with_anthropic(
-                    f"{system_prompt}\n\n{user_prompt}"
+                    f"{system_prompt}\n\n{user_prompt}", credential_data=credential_data
                 )
-            elif model == "openrouter":
+            elif provider == "openrouter":
                 response_text = await self._generate_with_openrouter(
-                    f"{system_prompt}\n\n{user_prompt}"
+                    f"{system_prompt}\n\n{user_prompt}",
+                    model=model if model != "openrouter" else "deepseek/deepseek-r1",
+                    credential_data=credential_data,
                 )
             else:
                 # Default to openrouter if model is unknown
                 response_text = await self._generate_with_openrouter(
-                    f"{system_prompt}\n\n{user_prompt}", model=model
+                    f"{system_prompt}\n\n{user_prompt}",
+                    model=model,
+                    credential_data=credential_data,
                 )
 
             return self._parse_ai_response(response_text, current_nodes)
@@ -229,27 +241,47 @@ Do NOT explain anything
 Generate one complete workflow JSON that fully satisfies the user request and strictly follows this schema.
 """
 
-    async def _generate_with_gemini(self, prompt: str) -> str:
+    async def _generate_with_gemini(
+        self, prompt: str, credential_data: Optional[Dict] = None
+    ) -> str:
         """Generate using Google Gemini"""
-        if not self.gemini_client:
+        client = self.gemini_client
+        if credential_data:
+            api_key = credential_data.get("data", {}).get("api_key")
+            if api_key:
+                client = genai.Client(api_key=api_key)
+
+        if not client:
             raise ValueError(
-                "Gemini API key not configured. Please set GOOGLE_AI_API_KEY environment variable."
+                "Gemini API key not configured. Please set GOOGLE_AI_API_KEY environment variable or provide a credential."
             )
         async with CircuitBreakers.google():
-            response = self.gemini_client.models.generate_content(
+            response = client.models.generate_content(
                 model="gemini-2.0-flash", contents=prompt
             )
             return response.text
 
-    async def _generate_with_openai(self, prompt: str) -> str:
+    async def _generate_with_openai(
+        self,
+        prompt: str,
+        credential_data: Optional[Dict] = None,
+        model_name: str = "gpt-4",
+    ) -> str:
         """Generate using OpenAI GPT"""
-        if not self.openai_client:
+        client = self.openai_client
+        if credential_data:
+            api_key = credential_data.get("data", {}).get("api_key")
+            base_url = credential_data.get("data", {}).get("base_url")
+            if api_key:
+                client = OpenAI(api_key=api_key, base_url=base_url)
+
+        if not client:
             raise ValueError(
-                "OpenAI API key not configured. Please set OPENAI_API_KEY environment variable."
+                "OpenAI API key not configured. Please set OPENAI_API_KEY environment variable or provide a credential."
             )
         async with CircuitBreakers.openai():
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4",
+            response = client.chat.completions.create(
+                model=model_name,
                 messages=[
                     {
                         "role": "system",
@@ -261,14 +293,22 @@ Generate one complete workflow JSON that fully satisfies the user request and st
             )
             return response.choices[0].message.content
 
-    async def _generate_with_anthropic(self, prompt: str) -> str:
+    async def _generate_with_anthropic(
+        self, prompt: str, credential_data: Optional[Dict] = None
+    ) -> str:
         """Generate using Anthropic Claude"""
-        if not self.anthropic_client:
+        client = self.anthropic_client
+        if credential_data:
+            api_key = credential_data.get("data", {}).get("api_key")
+            if api_key:
+                client = Anthropic(api_key=api_key)
+
+        if not client:
             raise ValueError(
-                "Anthropic API key not configured. Please set ANTHROPIC_API_KEY environment variable."
+                "Anthropic API key not configured. Please set ANTHROPIC_API_KEY environment variable or provide a credential."
             )
         async with CircuitBreakers.anthropic():
-            response = self.anthropic_client.messages.create(
+            response = client.messages.create(
                 model="claude-3-sonnet-20240229",
                 max_tokens=2048,
                 messages=[{"role": "user", "content": prompt}],
@@ -276,17 +316,29 @@ Generate one complete workflow JSON that fully satisfies the user request and st
             return response.content[0].text
 
     async def _generate_with_openrouter(
-        self, prompt: str, model: str = "deepseek/deepseek-r1"
+        self,
+        prompt: str,
+        model: str = "deepseek/deepseek-r1",
+        credential_data: Optional[Dict] = None,
     ) -> str:
         """Generate using OpenRouter"""
-        if not self.openrouter_client:
+        client = self.openrouter_client
+        if credential_data:
+            api_key = credential_data.get("data", {}).get("api_key")
+            if api_key:
+                client = OpenAI(
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key=api_key,
+                )
+
+        if not client:
             raise ValueError(
-                "OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable."
+                "OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable or provide a credential."
             )
 
         # Use a generic HTTP circuit breaker for OpenRouter
         async with CircuitBreakers.http("openrouter-api"):
-            response = self.openrouter_client.chat.completions.create(
+            response = client.chat.completions.create(
                 model=model,
                 messages=[
                     {
