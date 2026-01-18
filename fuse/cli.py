@@ -28,6 +28,12 @@ def main():
 
 def setup_db():
     """Run migrations and seed initial data if needed."""
+    # Suppress verbose migration logging and specific config warnings
+    import logging
+    import warnings
+    logging.getLogger("alembic").setLevel(logging.WARNING)
+    warnings.filterwarnings("ignore", message=".*FIRST_SUPERUSER_PASSWORD.*")
+    
     try:
         from alembic.config import Config
         from alembic import command

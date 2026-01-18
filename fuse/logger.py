@@ -126,7 +126,6 @@ def setup_global_logger(log_level: str = "INFO"):
     # Inject into builtins
     builtins.logger = logger
 
-    logger.info("[bold green]Log stream optimized[/bold green]")
     return logger
 
 

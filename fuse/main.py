@@ -45,7 +45,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 # Set all CORS enabled origins
 cors_origins = [str(origin).strip("/") for origin in settings.BACKEND_CORS_ORIGINS]
-logger.info(f"Configuring CORS with origins: {cors_origins}")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=(
@@ -78,8 +77,6 @@ from fastapi.staticfiles import StaticFiles
 static_dir = Path(__file__).parent / "static"
 
 if static_dir.exists():
-    logger.info(f"Serving frontend from: {static_dir}")
-
     # Check for static export structure (output: 'export' in next.config.js)
     # Static export puts index.html at root with _next folder for assets
     index_file = static_dir / "index.html"

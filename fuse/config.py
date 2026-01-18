@@ -162,9 +162,7 @@ class Settings(BaseSettings):
                 f'The value of {var_name} is "changethis", '
                 "for security, please change it, at least for deployments."
             )
-            if self.ENVIRONMENT == "local":
-                warnings.warn(message, stacklevel=1)
-            else:
+            if self.ENVIRONMENT != "local":
                 raise ValueError(message)
 
     @model_validator(mode="after")

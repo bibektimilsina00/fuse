@@ -28,7 +28,7 @@ def validate_pagination(skip: int = 0, limit: int = DEFAULT_LIMIT) -> tuple[int,
 
 # FastAPI dependency for validated pagination
 PaginationSkip = Annotated[
-    int, Query(ge=0, description="Number of items to skip", example=0)
+    int, Query(ge=0, description="Number of items to skip", examples=[0])
 ]
 
 PaginationLimit = Annotated[
@@ -37,6 +37,6 @@ PaginationLimit = Annotated[
         ge=1,
         le=MAX_LIMIT,
         description=f"Maximum number of items to return (max: {MAX_LIMIT})",
-        example=DEFAULT_LIMIT,
+        examples=[DEFAULT_LIMIT],
     ),
 ]
