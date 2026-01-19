@@ -95,6 +95,26 @@ def get_full_credential_by_id(cred_id: str) -> Optional[Dict[str, Any]]:
     return None
 
 
+def _parse_expiry(val: Any) -> Optional[datetime]:
+    """Helper to parse expiry timestamps safely from int, float, or string."""
+    if not val:
+        return None
+    if isinstance(val, (int, float)):
+        return datetime.fromtimestamp(val)
+    if isinstance(val, datetime):
+        return val
+    if isinstance(val, str):
+        try:
+            return datetime.fromisoformat(val)
+        except ValueError:
+            try:
+                # Try parsing as timestamp string
+                return datetime.fromtimestamp(float(val))
+            except ValueError:
+                pass
+    return None
+
+
 async def get_active_credential(cred_id: str) -> Optional[Dict[str, Any]]:
     """
     Async wrapper that fetches a credential AND refreshes it if expired.
@@ -109,8 +129,8 @@ async def get_active_credential(cred_id: str) -> Optional[Dict[str, Any]]:
 
     # Special handling for GitHub Copilot Refresh
     if provider == "github_copilot":
-        copilot_expires = data.get("copilot_expires_at")
-        if copilot_expires and datetime.fromisoformat(copilot_expires) < datetime.now():
+        copilot_expires = _parse_expiry(data.get("copilot_expires_at"))
+        if copilot_expires and copilot_expires < datetime.now():
              logger.debug(f"Copilot token expired. Refreshing using device flow access token...")
              access_token = data.get("access_token")
              if not access_token:
@@ -157,15 +177,16 @@ async def get_active_credential(cred_id: str) -> Optional[Dict[str, Any]]:
 
     # Standard OAuth Refresh
     expires_at = data.get("expires_at")
+    expiry_dt = _parse_expiry(expires_at)
     refresh_token = data.get("refresh_token")
 
     # If expired and we have a refresh token, TRY to refresh
     if (
-        expires_at
+        expiry_dt
         and refresh_token
-        and datetime.fromisoformat(expires_at) < datetime.now()
+        and expiry_dt < datetime.now()
     ):
-        logger.debug(f"Token for {cred['name']} expired at {expires_at}. Refreshing...")
+        logger.debug(f"Token for {cred['name']} expired at {expiry_dt}. Refreshing...")
 
         config = OAUTH_CONFIG.get(provider)
 
