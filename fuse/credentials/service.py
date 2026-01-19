@@ -141,7 +141,7 @@ async def get_active_credential(cred_id: str) -> Optional[Dict[str, Any]]:
                     copilot_resp = await client.get(
                         "https://api.github.com/copilot_internal/v2/token",
                         headers={
-                            "Authorization": f"token {access_token}",
+                            "Authorization": f"Bearer {access_token}",
                             "Editor-Version": "vscode/1.85.0",
                             "User-Agent": "GitHubCopilot/1.138.0"
                         }
