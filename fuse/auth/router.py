@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
-from fuse.auth.dependencies import CurrentUser, SessionDep, get_current_active_superuser
+from fuse.auth.dependencies import CurrentUser, SessionDep
 from fuse.auth import utils as security
 from fuse.config import settings
 from fuse.auth.utils import get_password_hash
@@ -121,27 +121,3 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
     return Message(message="Password updated successfully")
 
 
-@router.post(
-    "/password-recovery-html-content/{email}",
-    dependencies=[Depends(get_current_active_superuser)],
-    response_class=HTMLResponse,
-)
-def recover_password_html_content(email: str, session: SessionDep) -> Any:
-    """
-    HTML Content for Password Recovery
-    """
-    user = user_service.get_user_by_email(session=session, email=email)
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this username does not exist in the system.",
-        )
-    password_reset_token = generate_password_reset_token(email=email)
-    email_data = generate_reset_password_email(
-        email_to=user.email, email=email, token=password_reset_token
-    )
-
-    return HTMLResponse(
-        content=email_data.html_content, headers={"subject:": email_data.subject}
-    )

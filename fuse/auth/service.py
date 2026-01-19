@@ -39,9 +39,6 @@ class UserService:
     def is_active(user: User) -> bool:
         return crud.user.is_active(user)
 
-    @staticmethod
-    def is_superuser(user: User) -> bool:
-        return crud.user.is_superuser(user)
 
     @staticmethod
     def count_users(session: Session) -> int:

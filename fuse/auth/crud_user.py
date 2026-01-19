@@ -56,8 +56,6 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def is_active(self, user: User) -> bool:
         return user.is_active
 
-    def is_superuser(self, user: User) -> bool:
-        return user.is_superuser
 
 
 user = CRUDUser(User)
