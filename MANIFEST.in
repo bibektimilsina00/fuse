@@ -18,3 +18,4 @@ global-exclude build/*
 global-exclude *.egg-info
 global-exclude fuse.db
 global-exclude .env
+global-exclude credentials_storage.json
