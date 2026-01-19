@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-@click.version_option(version="0.1.42")
+@click.version_option(version="0.1.43")
 def main():
     """
     Fuse - Workflow automation.
@@ -38,6 +38,8 @@ def setup_db():
         from alembic.config import Config
         from alembic import command
         from pathlib import Path
+        import shutil
+        from fuse.config import settings
         import fuse
 
         # 1. Discover paths
@@ -62,6 +64,19 @@ def setup_db():
         if not script_location.exists():
             console.print(f"[yellow]⚠ Migration directory not found at {script_location}, skipping[/yellow]")
             return
+
+        # Pre-check: Optimize first run by copying template DB if available
+        if settings.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
+            target_db = Path(settings.SQLITE_DB_PATH).resolve()
+            if not target_db.exists():
+                template_db = package_dir / "initial_fuse.db"
+                if template_db.exists():
+                    console.print(f"[cyan]📦 Initializing database from shipped template...[/cyan]")
+                    try:
+                        shutil.copy2(template_db, target_db)
+                        console.print(f"[green]✓ Pre-migrated database ready.[/green]")
+                    except Exception as e:
+                        console.print(f"[yellow]⚠ Failed to copy template database: {e}[/yellow]")
 
         console.print("[cyan]⚙ Checking database and running migrations...[/cyan]")
         
@@ -259,7 +274,7 @@ def version():
 
     table = Table(title="Version Information", show_header=False)
     table.add_row("Package", "fuse-io")
-    table.add_row("Version", "0.1.42")
+    table.add_row("Version", "0.1.43")
     table.add_row(
         "Python",
         f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
