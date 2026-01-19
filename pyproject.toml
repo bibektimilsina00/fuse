@@ -83,3 +83,9 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 fuse = ["*.json", "*.yaml", "*.yml", "*.ini", "*.py", "alembic/**/*", "static/**/*"]
+
+[tool.check-manifest]
+ignore = [
+    "fuse/static",
+    "fuse/static/**/*"
+]
