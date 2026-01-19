@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-@click.version_option(version="0.1.43")
+@click.version_option(version="0.1.44")
 def main():
     """
     Fuse - Workflow automation.
@@ -144,6 +144,36 @@ def wait_for_server(url: str, timeout: int = 15):
 @click.option("--skip-migration", is_flag=True, help="Skip database migrations")
 def start(host: str, port: int, reload: bool, workers: int, no_browser: bool, skip_migration: bool):
     """Start the Fuse automation server."""
+
+    # Auto-init: Create default .env if missing
+    if not os.path.exists(".env"):
+        console.print("[cyan]📝 No local configuration found. Auto-creating default .env file...[/cyan]")
+        with open(".env", "w") as f:
+            f.write(
+                """# Database Configuration
+# For local SQLite (default)
+DATABASE_URL=sqlite:///./fuse.db
+
+# Redis Configuration (Optional, defaults to memory if not available)
+# REDIS_URL=redis://localhost:6379/0
+
+# Security (Change this in production!)
+SECRET_KEY=dev-secret-key-12345
+
+# Initial User Data
+FIRST_SUPERUSER_EMAIL=admin@fuse.io
+FIRST_SUPERUSER_PASSWORD=changethis
+
+# AI API Keys (Optional - for AI nodes)
+# OPENAI_API_KEY=
+# ANTHROPIC_API_KEY=
+# GOOGLE_API_KEY=
+
+# Environment
+ENVIRONMENT=local
+"""
+            )
+        console.print("[green]✓ Configuration created.[/green]")
 
     if not skip_migration:
         setup_db()
@@ -274,7 +304,7 @@ def version():
 
     table = Table(title="Version Information", show_header=False)
     table.add_row("Package", "fuse-io")
-    table.add_row("Version", "0.1.43")
+    table.add_row("Version", "0.1.44")
     table.add_row(
         "Python",
         f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
