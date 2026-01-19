@@ -387,6 +387,43 @@ async def oauth_callback(
             raise HTTPException(status_code=400, detail=f"Failed to exchange code: {response.text}")
         
         token_data = response.json()
+
+        # Fetch Google AI Project ID (Antigravity)
+        if provider == "google_ai":
+            try:
+                access_token = token_data.get("access_token")
+                # Antigravity Load Project Endpoint
+                load_url = "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist"
+                load_headers = {
+                    "Authorization": f"Bearer {access_token}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "google-api-nodejs-client/9.15.1",
+                    "X-Goog-Api-Client": "google-cloud-sdk vscode_cloudshelleditor/0.1",
+                    "Client-Metadata": '{"ideType":"IDE_UNSPECIFIED","platform":"PLATFORM_UNSPECIFIED","pluginType":"GEMINI"}', 
+                }
+                load_body = {
+                    "metadata": {
+                        "ideType": "IDE_UNSPECIFIED",
+                        "platform": "PLATFORM_UNSPECIFIED",
+                        "pluginType": "GEMINI", # Must match valid enum or string
+                    }
+                }
+                load_resp = await client.post(load_url, headers=load_headers, json=load_body, timeout=10.0)
+                if load_resp.status_code == 200:
+                    load_data = load_resp.json()
+                    # Extract project ID
+                    proj = load_data.get("cloudaicompanionProject")
+                    if isinstance(proj, str) and proj:
+                        token_data["project_id"] = proj
+                    elif isinstance(proj, dict) and proj.get("id"):
+                        token_data["project_id"] = proj.get("id")
+                else:
+                    logger.warning(f"Failed to fetch Google AI Project ID: {load_resp.status_code} {load_resp.text}")
+                    # Fallback default project from Antigravity constants (if applicable)
+                    token_data["project_id"] = "rising-fact-p41fc" 
+            except Exception as e:
+                logger.error(f"Error fetching Google AI Project ID: {e}")
+                
         
         # Encrypt sensitive fields
         encrypted_data = encrypt_credential_data(token_data)

@@ -65,6 +65,15 @@ class AIWorkflowService:
              cred_data = credential_data.get("data", {})
              api_key = cred_data.get("api_key")
              access_token = cred_data.get("access_token")
+             project_id = cred_data.get("project_id")
+
+             if project_id and access_token:
+                 # Antigravity Mode - Static List (Discovery is internal)
+                 return [
+                    {"id": "gemini-2.0-flash-001", "label": "Gemini 2.0 Flash", "provider": "google"},
+                    {"id": "gemini-1.5-pro-002", "label": "Gemini 1.5 Pro", "provider": "google"},
+                    {"id": "gemini-1.5-flash-002", "label": "Gemini 1.5 Flash", "provider": "google"},
+                 ]
              
              try:
                  # Standard listing with API Key
@@ -422,14 +431,28 @@ Generate one complete workflow JSON that fully satisfies the user request and st
         """Generate using Google Gemini"""
         # Check for OAuth access token first
         access_token = credential_data.get("data", {}).get("access_token") if credential_data else None
+        project_id = credential_data.get("data", {}).get("project_id") if credential_data else None
+
         if access_token:
              async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent",
-                     headers={
+                if project_id:
+                    # Antigravity Endpoint
+                    url = f"https://cloudcode-pa.googleapis.com/v1/projects/{project_id}/locations/global/models/gemini-1.5-pro-002:generateContent"
+                    headers = {
                         "Authorization": f"Bearer {access_token}", 
-                        "Content-Type": "application/json"
-                    },
+                        "Content-Type": "application/json",
+                        "User-Agent": "antigravity/1.11.5 windows/amd64",
+                        "X-Goog-Api-Client": "google-cloud-sdk vscode_cloudshelleditor/0.1",
+                        "Client-Metadata": '{"ideType":"IDE_UNSPECIFIED","platform":"PLATFORM_UNSPECIFIED","pluginType":"GEMINI"}',
+                    }
+                else:
+                    # Standard PaLM Endpoint
+                    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent"
+                    headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+
+                resp = await client.post(
+                    url,
+                    headers=headers,
                     json={"contents": [{"parts": [{"text": prompt}]}]},
                     timeout=60.0
                 )
@@ -681,16 +704,34 @@ Generate one complete workflow JSON that fully satisfies the user request and st
             # 1. OAuth Access Token (Google AI Login)
             if access_token:
                 try:
-                    target_model = model or "gemini-1.5-pro-latest"
+                    project_id = cred_data.get("project_id")
+                    target_model = model or "gemini-1.5-pro-002"
                     if "/" in target_model: target_model = target_model.split("/")[-1]
                     
+                    # Handle model name aliases/versions if using Antigravity
+                    if project_id and "latest" in target_model:
+                        target_model = "gemini-1.5-pro-002"
+
+                    if project_id:
+                         url = f"https://cloudcode-pa.googleapis.com/v1/projects/{project_id}/locations/global/models/{target_model}:generateContent"
+                         headers = {
+                            "Authorization": f"Bearer {access_token}", 
+                            "Content-Type": "application/json",
+                            "User-Agent": "antigravity/1.11.5 windows/amd64",
+                            "X-Goog-Api-Client": "google-cloud-sdk vscode_cloudshelleditor/0.1",
+                            "Client-Metadata": '{"ideType":"IDE_UNSPECIFIED","platform":"PLATFORM_UNSPECIFIED","pluginType":"GEMINI"}',
+                         }
+                    else:
+                         url = f"https://generativelanguage.googleapis.com/v1beta/models/{target_model}:generateContent"
+                         headers = {
+                            "Authorization": f"Bearer {access_token}", 
+                            "Content-Type": "application/json"
+                         }
+
                     async with httpx.AsyncClient() as client:
                         resp = await client.post(
-                            f"https://generativelanguage.googleapis.com/v1beta/models/{target_model}:generateContent",
-                            headers={
-                                "Authorization": f"Bearer {access_token}", 
-                                "Content-Type": "application/json"
-                            },
+                            url,
+                            headers=headers,
                             json={
                                 "contents": [{"parts": [{"text": combined_prompt}]}],
                                 "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens}
@@ -698,13 +739,13 @@ Generate one complete workflow JSON that fully satisfies the user request and st
                             timeout=60.0
                         )
                         if resp.status_code != 200:
-                             raise ValueError(f"Google AI OAuth Error: {resp.text}")
+                             raise ValueError(f"Google AI OAuth Error ({resp.status_code}): {resp.text}")
                         
                         resp_json = resp.json()
                         content = resp_json.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
                         return {
                             "content": content,
-                            "usage": {"total_tokens": 0} # Usage not always returned in simple format
+                            "usage": {"total_tokens": 0} 
                         }
                 except Exception as e:
                     logger.error(f"Google AI OAuth Failed: {e}")
