@@ -66,12 +66,20 @@ class AIWorkflowService:
         # Override model provider if credential specifies one
         provider = model
         if credential_data:
-            provider = credential_data.get("provider", model)
+            provider = credential_data.get("provider")
+            if not provider:
+                provider = credential_data.get("type", model)
 
         try:
-            if provider == "gemini":
+            if provider == "gemini" or provider == "google_ai":
                 response_text = await self._generate_with_gemini(
                     f"{system_prompt}\n\n{user_prompt}", credential_data=credential_data
+                )
+            elif provider == "github_copilot":
+                response_text = await self._generate_with_copilot(
+                    f"{system_prompt}\n\n{user_prompt}", 
+                    credential_data=credential_data,
+                    model=model
                 )
             elif provider == "openai":
                 response_text = await self._generate_with_openai(
@@ -242,10 +250,69 @@ Do NOT explain anything
 Generate one complete workflow JSON that fully satisfies the user request and strictly follows this schema.
 """
 
+    async def _generate_with_copilot(
+        self, prompt: str, credential_data: Dict, model: str
+    ) -> str:
+        """Generate using GitHub Copilot"""
+        copilot_token = credential_data.get("data", {}).get("copilot_token")
+        if not copilot_token:
+             raise ValueError("Copilot token missing.")
+        
+        # Use httpx
+        headers = {
+            "Authorization": f"Bearer {copilot_token}",
+            "Editor-Version": "vscode/1.85.0",
+            "User-Agent": "GitHubCopilot/1.138.0",
+            "Content-Type": "application/json"
+        }
+        
+        # Parse model or default
+        copilot_model = model
+        if not copilot_model or "/" in copilot_model: 
+             # Strip provider prefix if present (e.g. "copilot/gpt-4o")
+             if "/" in model: copilot_model = model.split("/")[-1]
+             else: copilot_model = "gpt-4o"
+
+        payload = {
+            "messages": [
+                 {"role": "system", "content": "You are a workflow automation assistant. Return only valid JSON."},
+                 {"role": "user", "content": prompt}
+            ],
+            "model": copilot_model,
+            "temperature": 0.7
+        }
+        
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                "https://api.githubcopilot.com/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=60.0
+            ) 
+            resp.raise_for_status()
+            return resp.json()["choices"][0]["message"]["content"]
+
     async def _generate_with_gemini(
         self, prompt: str, credential_data: Optional[Dict] = None
     ) -> str:
         """Generate using Google Gemini"""
+        # Check for OAuth access token first
+        access_token = credential_data.get("data", {}).get("access_token") if credential_data else None
+        if access_token:
+             async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent",
+                     headers={
+                        "Authorization": f"Bearer {access_token}", 
+                        "Content-Type": "application/json"
+                    },
+                    json={"contents": [{"parts": [{"text": prompt}]}]},
+                    timeout=60.0
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                return data["candidates"][0]["content"]["parts"][0]["text"]
+
         client = self.gemini_client
         if credential_data:
             api_key = credential_data.get("data", {}).get("api_key")
