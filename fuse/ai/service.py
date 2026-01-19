@@ -109,6 +109,40 @@ class AIWorkflowService:
 
         # GitHub Copilot
         elif provider == "github_copilot":
+             # Try to fetch dynamically
+             copilot_token = credential_data.get("data", {}).get("copilot_token")
+             if copilot_token:
+                 try:
+                     async with httpx.AsyncClient() as client:
+                         resp = await client.get(
+                             "https://api.githubcopilot.com/models",
+                             headers={
+                                 "Authorization": f"Bearer {copilot_token}",
+                                 "Editor-Version": "vscode/1.85.0",
+                                 "User-Agent": "GitHubCopilot/1.138.0"
+                             },
+                             timeout=5.0
+                         )
+                         if resp.status_code == 200:
+                             data = resp.json()
+                             # Expecting OpenAI-format: {"data": [{"id": "gpt-4", ...}]}
+                             dynamic_models = []
+                             for m in data.get("data", []):
+                                 # specific filter? or just take all
+                                 dynamic_models.append({
+                                     "id": m["id"],
+                                     "label": f"{m.get('id')} (Copilot)",
+                                     "provider": "copilot"
+                                 })
+                             
+                             if dynamic_models:
+                                 return dynamic_models
+                         else:
+                             logger.warning(f"Copilot models fetch failed {resp.status_code}: {resp.text}")
+                 except Exception as e:
+                     logger.warning(f"Failed to fetch dynamic Copilot models: {e}")
+
+             # Fallback
              return [
                  {"id": "gpt-4", "label": "GPT-4 (Copilot)", "provider": "copilot"},
                  {"id": "gpt-3.5-turbo", "label": "GPT-3.5 Turbo (Copilot)", "provider": "copilot"},
