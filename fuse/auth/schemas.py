@@ -5,6 +5,7 @@ from sqlmodel import Field, SQLModel
 # JSON payload containing access token
 class Token(SQLModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
 
 
