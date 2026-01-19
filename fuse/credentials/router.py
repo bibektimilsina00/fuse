@@ -332,7 +332,8 @@ async def oauth_authorize(
     }
     
     query_string = urlencode(params)
-    return RedirectResponse(url=f"{config['auth_url']}?{query_string}")
+    # Return JSON with URL so frontend can redirect (preserving auth headers during the API call)
+    return {"url": f"{config['auth_url']}?{query_string}"}
 
 
 @router.get("/oauth/{provider}/callback")
