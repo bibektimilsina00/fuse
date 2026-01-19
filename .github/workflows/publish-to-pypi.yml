@@ -40,6 +40,26 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install build twine check-manifest
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Checkout Frontend
+      uses: actions/checkout@v4
+      with:
+        repository: bibektimilsina00/fuse_frontend
+        path: temp_frontend
+        ref: main
+
+    - name: Build Frontend
+      run: |
+        cd temp_frontend
+        npm install
+        npm run build
+        mkdir -p ../fuse/static
+        cp -r out/* ../fuse/static/
     
     - name: Verify MANIFEST.in
       run: check-manifest --verbose
