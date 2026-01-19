@@ -5,7 +5,7 @@ import logging
 from fuse.auth.dependencies import CurrentUser
 from fuse.workflows.schemas import AIWorkflowRequest, AIWorkflowResponse, AIChatRequest, AIChatResponse
 from fuse.ai.service import ai_service
-from fuse.credentials.service import get_full_credential_by_id
+from fuse.credentials.service import get_full_credential_by_id, get_active_credential
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ async def generate_workflow_with_ai(
     try:
         credential_data = None
         if request.credential_id:
-            credential_data = get_full_credential_by_id(str(request.credential_id))
+            credential_data = await get_active_credential(str(request.credential_id))
             if not credential_data:
                 raise HTTPException(status_code=404, detail="Credential not found")
 
@@ -52,7 +52,7 @@ async def chat_with_ai(
     try:
         credential_data = {}
         if request.credential_id:
-            credential_data = get_full_credential_by_id(str(request.credential_id)) or {}
+            credential_data = await get_active_credential(str(request.credential_id)) or {}
 
         # Construct messages (History + Current)
         messages = request.history or []
@@ -83,7 +83,7 @@ async def get_ai_models(
     try:
         credential_data = {}
         if credential_id:
-            credential_data = get_full_credential_by_id(credential_id) or {}
+            credential_data = await get_active_credential(credential_id) or {}
             
         return await ai_service.get_available_models(credential_data)
     except Exception as e:
