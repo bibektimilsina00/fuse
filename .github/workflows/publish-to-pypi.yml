@@ -56,7 +56,7 @@ jobs:
     - name: Build Frontend
       run: |
         cd temp_frontend
-        npm install
+        npm install --legacy-peer-deps
         npm run build
         mkdir -p ../fuse/static
         cp -r out/* ../fuse/static/
