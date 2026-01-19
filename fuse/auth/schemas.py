@@ -26,7 +26,6 @@ from sqlmodel import Field, SQLModel
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
-    is_superuser: bool = False
     full_name: Optional[str] = Field(default=None, max_length=255)
 
 

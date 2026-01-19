@@ -111,8 +111,8 @@ class Settings(BaseSettings):
     # TODO: update type to EmailStr when sqlmodel supports it
     EMAIL_TEST_USER: str = "test@example.com"
     # TODO: update type to EmailStr when sqlmodel supports it
-    FIRST_SUPERUSER: str = "admin@fuse.io"
-    FIRST_SUPERUSER_PASSWORD: str = "changethis"
+    FIRST_USER_EMAIL: str = "admin@fuse.io"
+    FIRST_USER_PASSWORD: str = "changethis"
 
     # AI Service API Keys
     GOOGLE_AI_API_KEY: Optional[str] = None
@@ -143,7 +143,7 @@ class Settings(BaseSettings):
     def _enforce_non_default_secrets(self) -> Self:
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
         self._check_default_secret(
-            "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
+            "FIRST_USER_PASSWORD", self.FIRST_USER_PASSWORD
         )
 
         return self

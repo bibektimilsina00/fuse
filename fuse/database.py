@@ -21,12 +21,11 @@ def init_db(session: Session) -> None:
     SQLModel.metadata.create_all(engine)
 
     user = session.exec(
-        select(User).where(User.email == settings.FIRST_SUPERUSER)
+        select(User).where(User.email == settings.FIRST_USER_EMAIL)
     ).first()
     if not user:
         user_in = UserCreate(
-            email=settings.FIRST_SUPERUSER,
-            password=settings.FIRST_SUPERUSER_PASSWORD,
-            is_superuser=True,
+            email=settings.FIRST_USER_EMAIL,
+            password=settings.FIRST_USER_PASSWORD,
         )
         user = user_crud.create(session=session, obj_in=user_in)

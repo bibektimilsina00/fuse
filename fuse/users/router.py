@@ -2,7 +2,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from fuse.auth.dependencies import CurrentUser, SessionDep, get_current_active_superuser
+from fuse.auth.dependencies import CurrentUser, SessionDep
 from fuse.auth.models import User
 from fuse.auth.schemas import (
     Message,
@@ -27,50 +27,8 @@ from fuse.utils.pagination import DEFAULT_LIMIT, PaginationLimit, PaginationSkip
 router = APIRouter()
 
 
-@router.get(
-    "/",
-    dependencies=[Depends(get_current_active_superuser)],
-    response_model=UsersPublic,
-)
-def read_users(
-    session: SessionDep,
-    skip: PaginationSkip = 0,
-    limit: PaginationLimit = DEFAULT_LIMIT,
-) -> Any:
-    """
-    Retrieve users.
-    """
-    count = user_service.count_users(session)
-    users = user_service.get_users(session, skip=skip, limit=limit)
-    users_public = [UserPublic.model_validate(user) for user in users]
-    return UsersPublic(data=users_public, count=count)
 
 
-@router.post(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
-)
-def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
-    """
-    Create new user.
-    """
-    user = user_service.get_user_by_email(session=session, email=user_in.email)
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this email already exists in the system.",
-        )
-
-    user = user_service.create_user(session=session, user_create=user_in)
-    if settings.emails_enabled and user_in.email:
-        email_data = generate_new_account_email(
-            email_to=user_in.email, username=user_in.email, password=user_in.password
-        )
-        send_email(
-            email_to=user_in.email,
-            subject=email_data.subject,
-            html_content=email_data.html_content,
-        )
-    return user
 
 
 @router.patch("/me", response_model=UserPublic)
@@ -130,10 +88,6 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Delete own user.
     """
-    if current_user.is_superuser:
-        raise HTTPException(
-            status_code=403, detail="Super users are not allowed to delete themselves"
-        )
     session.delete(current_user)
     session.commit()
     return Message(message="User deleted successfully")
@@ -163,9 +117,7 @@ def read_user_by_id(
     Get a specific user by id.
     """
     user = session.get(User, user_id)
-    if user == current_user:
-        return user
-    if not current_user.is_superuser:
+    if user != current_user:
         raise HTTPException(
             status_code=403,
             detail="The user doesn't have enough privileges",
@@ -173,56 +125,5 @@ def read_user_by_id(
     return user
 
 
-@router.patch(
-    "/{user_id}",
-    dependencies=[Depends(get_current_active_superuser)],
-    response_model=UserPublic,
-)
-def update_user(
-    *,
-    session: SessionDep,
-    user_id: uuid.UUID,
-    user_in: UserUpdate,
-) -> Any:
-    """
-    Update a user.
-    """
-
-    db_user = session.get(User, user_id)
-    if not db_user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this id does not exist in the system",
-        )
-    if user_in.email:
-        existing_user = user_service.get_user_by_email(
-            session=session, email=user_in.email
-        )
-        if existing_user and existing_user.id != user_id:
-            raise HTTPException(
-                status_code=409, detail="User with this email already exists"
-            )
-
-    db_user = user_service.update_user(
-        session=session, db_user=db_user, user_in=user_in
-    )
-    return db_user
 
 
-@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
-def delete_user(
-    session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
-) -> Message:
-    """
-    Delete a user.
-    """
-    user = session.get(User, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if user == current_user:
-        raise HTTPException(
-            status_code=403, detail="Super users are not allowed to delete themselves"
-        )
-    session.delete(user)
-    session.commit()
-    return Message(message="User deleted successfully")
