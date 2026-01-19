@@ -251,12 +251,22 @@ def delete_credential(
 # =============================================================================
 # OAuth Implementation
 # =============================================================================
+import json
+import base64
+from urllib.parse import urlencode
 
 OAUTH_CONFIG = {
     "google_sheets": {
         "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
         "token_url": "https://oauth2.googleapis.com/token",
         "scopes": "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly",
+        "client_id": settings.GOOGLE_CLIENT_ID,
+        "client_secret": settings.GOOGLE_CLIENT_SECRET,
+    },
+    "google_ai": {
+        "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
+        "token_url": "https://oauth2.googleapis.com/token",
+        "scopes": "https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/generative-language.retriever",
         "client_id": settings.GOOGLE_CLIENT_ID,
         "client_secret": settings.GOOGLE_CLIENT_SECRET,
     },
@@ -278,7 +288,10 @@ OAUTH_CONFIG = {
 
 
 @router.get("/oauth/{provider}/authorize")
-async def oauth_authorize(provider: str):
+async def oauth_authorize(
+    provider: str,
+    current_user: User = Depends(get_current_user)
+):
     """Initiate OAuth flow for a provider."""
     config = OAUTH_CONFIG.get(provider)
     if not config:
@@ -287,6 +300,7 @@ async def oauth_authorize(provider: str):
     if not config.get("client_id") or not config.get("client_secret"):
         ENV_VARS = {
             "google_sheets": ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"),
+            "google_ai": ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"),
             "slack": ("SLACK_CLIENT_ID", "SLACK_CLIENT_SECRET"),
             "discord": ("DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET"),
         }
@@ -300,7 +314,10 @@ async def oauth_authorize(provider: str):
 
     redirect_uri = f"{settings.server_host}/api/v1/credentials/oauth/{provider}/callback"
     
-    from urllib.parse import urlencode
+    # Encode state with user_id
+    state_data = {"user_id": str(current_user.id)}
+    state = base64.urlsafe_b64encode(json.dumps(state_data).encode()).decode()
+
     params = {
         "client_id": config["client_id"],
         "redirect_uri": redirect_uri,
@@ -308,6 +325,7 @@ async def oauth_authorize(provider: str):
         "scope": config["scopes"],
         "access_type": "offline",
         "prompt": "consent",
+        "state": state,
     }
     
     query_string = urlencode(params)
@@ -318,12 +336,34 @@ async def oauth_authorize(provider: str):
 async def oauth_callback(
     provider: str,
     code: str,
+    state: Optional[str] = None,
     session: Session = Depends(get_db)
 ):
     """Handle OAuth callback and save credential."""
     config = OAUTH_CONFIG.get(provider)
     if not config:
         raise HTTPException(status_code=400, detail="Invalid provider")
+    
+    # Retrieve user from state
+    user_id = None
+    if state:
+        try:
+            state_data = json.loads(base64.urlsafe_b64decode(state).decode())
+            user_id = state_data.get("user_id")
+        except Exception:
+            pass # Handle gracefully or error out
+            
+    if not user_id:
+        # Fallback for legacy flows or direct visits?
+        # In strictly secured app, we should fail.
+        # But given we just removed superuser, we need a fallback if state is missing?
+        # No, state is required now.
+        raise HTTPException(status_code=400, detail="Invalid state parameter. Login flow interrupted.")
+
+    # Verify user exists
+    user = session.get(User, uuid.UUID(user_id))
+    if not user:
+         raise HTTPException(status_code=404, detail="User not found")
 
     redirect_uri = f"{settings.server_host}/api/v1/credentials/oauth/{provider}/callback"
     
@@ -356,15 +396,6 @@ async def oauth_callback(
         if provider == "slack":
             name = token_data.get("team", {}).get("name", name)
         
-        # For OAuth callbacks, we don't have user context from JWT
-        # In production, you'd store state param with user_id and retrieve it here
-        # For now, we'll get the first superuser as owner
-        from fuse.auth.models import User
-        user = session.exec(select(User).where(User.is_superuser == True)).first()
-        
-        if not user:
-            raise HTTPException(status_code=500, detail="No user found to assign credential")
-        
         credential = Credential(
             name=name,
             type=provider,
@@ -380,3 +411,99 @@ async def oauth_callback(
         return RedirectResponse(
             url=f"{settings.FRONTEND_URL}/oauth/callback?status=success&id={credential.id}&name={name}"
         )
+
+
+# =============================================================================
+# GitHub Copilot (Device Flow)
+# =============================================================================
+
+GITHUB_COPILOT_CLIENT_ID = "01ab8ac9400c4e429b23" # VS Code Client ID
+
+@router.post("/oauth/github-copilot/device/code")
+async def github_copilot_device_code(current_user: User = Depends(get_current_user)):
+    """Start GitHub Copilot Device Flow"""
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "https://github.com/login/device/code",
+            json={"client_id": GITHUB_COPILOT_CLIENT_ID, "scope": "read:user"},
+            headers={"Accept": "application/json"}
+        )
+        
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Failed to initiate device flow")
+            
+        return response.json()
+
+@router.post("/oauth/github-copilot/device/poll")
+async def github_copilot_poll(
+    device_code: str, 
+    session: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Poll for GitHub Copilot Token"""
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "https://github.com/login/oauth/access_token",
+            json={
+                "client_id": GITHUB_COPILOT_CLIENT_ID,
+                "device_code": device_code,
+                "grant_type": "urn:ietf:params:oauth:grant-type:device_code"
+            },
+            headers={"Accept": "application/json"}
+        )
+        
+        data = response.json()
+        
+        if "error" in data:
+            error = data.get("error")
+            if error == "authorization_pending":
+                return {"status": "pending"}
+            elif error == "slow_down":
+                return {"status": "pending", "interval": data.get("interval", 5)}
+            elif error == "expired_token":
+                raise HTTPException(status_code=400, detail="Device code expired")
+            else:
+                 raise HTTPException(status_code=400, detail=f"GitHub Error: {error}")
+                 
+        # Success!
+        # Now we need to get the "Copilot Token" using this OAuth token?
+        # Actually, standard Copilot flow:
+        # 1. OAuth Token (from device flow)
+        # 2. Get Copilot Token (GET https://api.github.com/copilot_internal/v2/token) using OAuth token
+        
+        oauth_token = data.get("access_token")
+        
+        # Verify copilot access and get internal token
+        copilot_resp = await client.get(
+            "https://api.github.com/copilot_internal/v2/token",
+            headers={
+                "Authorization": f"token {oauth_token}",
+                "Editor-Version": "vscode/1.85.0",
+                "User-Agent": "GitHubCopilot/1.138.0"
+            }
+        )
+        
+        if copilot_resp.status_code != 200:
+             raise HTTPException(status_code=403, detail="Failed to retrieve Copilot token. Access denied or no subscription.")
+
+        copilot_data = copilot_resp.json()
+        
+        # Save Credential
+        encrypted_data = encrypt_credential_data({
+            "access_token": oauth_token, # The GitHub OAuth token
+            "copilot_token": copilot_data.get("token"), # The actual model access token
+            "copilot_expires_at": copilot_data.get("expires_at"),
+            "token_type": "github_copilot"
+        })
+        
+        credential = Credential(
+            name="GitHub Copilot",
+            type="github_copilot",
+            data=encrypted_data,
+            owner_id=current_user.id
+        )
+        session.add(credential)
+        session.commit()
+        session.refresh(credential)
+        
+        return {"status": "success", "credential": credential_to_response(credential)}

@@ -443,6 +443,11 @@ Generate one complete workflow JSON that fully satisfies the user request and st
             logger.error(f"AI execution error: {e}")
             raise e
 
+import httpx
+
+# ... imports ...
+
+
     async def call_llm(
         self,
         messages: Optional[List[Dict[str, str]]] = None,
@@ -465,20 +470,62 @@ Generate one complete workflow JSON that fully satisfies the user request and st
             if user_prompt:
                 messages.append({"role": "user", "content": user_prompt})
 
-        provider = (credential.get("provider") or "unknown").lower()
+        # Determine provider
+        provider = (credential.get("provider") or credential.get("type", "unknown")).lower()
+        if provider == "ai_provider":
+             provider = credential.get("data", {}).get("provider", "unknown").lower()
+             
         cred_data = credential.get("data", {})
         api_key = cred_data.get("api_key")
         base_url = cred_data.get("base_url")
 
-        if provider == "gemini":
-            client = genai.Client(api_key=api_key) if api_key else self.gemini_client
-            if not client:
-                raise ValueError("Gemini API key not found.")
-
-            # Combine messages for Gemini (it uses a slightly different format)
+        # =========================================================================
+        # Google AI (OAuth or API Key)
+        # =========================================================================
+        if provider == "gemini" or provider == "google_ai":
+            access_token = cred_data.get("access_token")
+            
+            # Combine formatting for Gemini
             combined_prompt = ""
             for msg in messages:
                 combined_prompt += f"{msg['role'].upper()}: {msg['content']}\n\n"
+
+            # 1. OAuth Access Token (Google AI Login)
+            if access_token:
+                try:
+                    target_model = model or "gemini-1.5-pro-latest"
+                    if "/" in target_model: target_model = target_model.split("/")[-1]
+                    
+                    async with httpx.AsyncClient() as client:
+                        resp = await client.post(
+                            f"https://generativelanguage.googleapis.com/v1beta/models/{target_model}:generateContent",
+                            headers={
+                                "Authorization": f"Bearer {access_token}", 
+                                "Content-Type": "application/json"
+                            },
+                            json={
+                                "contents": [{"parts": [{"text": combined_prompt}]}],
+                                "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens}
+                            },
+                            timeout=60.0
+                        )
+                        if resp.status_code != 200:
+                             raise ValueError(f"Google AI OAuth Error: {resp.text}")
+                        
+                        resp_json = resp.json()
+                        content = resp_json.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                        return {
+                            "content": content,
+                            "usage": {"total_tokens": 0} # Usage not always returned in simple format
+                        }
+                except Exception as e:
+                    logger.error(f"Google AI OAuth Failed: {e}")
+                    raise e
+            
+            # 2. Existing API Key Flow
+            client = genai.Client(api_key=api_key) if api_key else self.gemini_client
+            if not client:
+                raise ValueError("Gemini API key not found and no OAuth token provided.")
 
             response = client.models.generate_content(
                 model=model or "gemini-2.0-flash",
@@ -506,8 +553,57 @@ Generate one complete workflow JSON that fully satisfies the user request and st
                 },
             }
 
+        # =========================================================================
+        # GitHub Copilot
+        # =========================================================================
+        elif provider == "github_copilot":
+            copilot_token = cred_data.get("copilot_token")
+            if not copilot_token:
+                 raise ValueError("GitHub Copilot token missing. Please re-authenticate.")
+            
+            headers = {
+                "Authorization": f"Bearer {copilot_token}",
+                "Editor-Version": "vscode/1.85.0",
+                "User-Agent": "GitHubCopilot/1.138.0",
+                "Content-Type": "application/json"
+            }
+            
+            # Map standard model names to Copilot internal names?
+            # Copilot usually supports 'gpt-4', 'gpt-3.5-turbo'.
+            # If user sends 'openai/gpt-4', split it.
+            copilot_model = model
+            if "/" in model:
+                copilot_model = model.split("/")[-1]
+            
+            # Copilot often defaults to specific models if not specified or different names.
+            # But the API is OpenAI compatible.
+            
+            payload = {
+                "messages": messages,
+                "model": copilot_model,
+                "temperature": temperature,
+                "max_tokens": max_tokens
+            }
+            
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    "https://api.githubcopilot.com/chat/completions",
+                    headers=headers,
+                    json=payload,
+                    timeout=60.0
+                )
+                
+                if resp.status_code != 200:
+                    raise ValueError(f"GitHub Copilot API Error ({resp.status_code}): {resp.text}")
+                
+                resp_json = resp.json()
+                return {
+                    "content": resp_json["choices"][0]["message"]["content"],
+                    "usage": resp_json.get("usage", {})
+                }
+
         elif provider == "openai" or (provider == "openrouter" and not base_url):
-            # Default OpenAI or OpenRouter if no custom base_url
+            # ... (existing OpenAI logic) ...
             actual_base_url = base_url or (
                 "https://openrouter.ai/api/v1" if provider == "openrouter" else None
             )
@@ -536,6 +632,7 @@ Generate one complete workflow JSON that fully satisfies the user request and st
             }
 
         elif provider == "anthropic":
+            # ... (existing Anthropic logic) ...
             client = Anthropic(api_key=api_key) if api_key else self.anthropic_client
             if not client:
                 raise ValueError("Anthropic API key not found.")
@@ -564,7 +661,7 @@ Generate one complete workflow JSON that fully satisfies the user request and st
             }
 
         elif provider == "ai_provider" or base_url:
-            # Generic OpenAI-compatible provider
+            # ... (Rest of existing logic) ...
             client = OpenAI(api_key=api_key, base_url=base_url)
             response = client.chat.completions.create(
                 model=model,

@@ -20,6 +20,9 @@ OAUTH_CONFIG = {
     "google_sheets": {
         "token_url": "https://oauth2.googleapis.com/token",
     },
+    "google_ai": {
+        "token_url": "https://oauth2.googleapis.com/token",
+    },
     "slack": {
         "token_url": "https://slack.com/api/oauth.v2.access",
     },
@@ -32,7 +35,7 @@ OAUTH_CONFIG = {
 def decrypt_credential_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """Decrypt sensitive fields in credential data."""
     result = data.copy()
-    sensitive_fields = ['access_token', 'refresh_token', 'api_key', 'token', 'secret', 'password', 'webhook_url', 'bot_token']
+    sensitive_fields = ['access_token', 'refresh_token', 'api_key', 'token', 'secret', 'password', 'webhook_url', 'bot_token', 'copilot_token']
     
     for field in sensitive_fields:
         if field in result and result[field]:
@@ -102,8 +105,57 @@ async def get_active_credential(cred_id: str) -> Optional[Dict[str, Any]]:
         return None
 
     data = cred["data"]
+    provider = cred["type"]
 
-    # Check expiry
+    # Special handling for GitHub Copilot Refresh
+    if provider == "github_copilot":
+        copilot_expires = data.get("copilot_expires_at")
+        if copilot_expires and datetime.fromisoformat(copilot_expires) < datetime.now():
+             logger.debug(f"Copilot token expired. Refreshing using device flow access token...")
+             access_token = data.get("access_token")
+             if not access_token:
+                 return cred # Can't refresh
+             
+             try:
+                 async with httpx.AsyncClient() as client:
+                    copilot_resp = await client.get(
+                        "https://api.github.com/copilot_internal/v2/token",
+                        headers={
+                            "Authorization": f"token {access_token}",
+                            "Editor-Version": "vscode/1.85.0",
+                            "User-Agent": "GitHubCopilot/1.138.0"
+                        }
+                    )
+                    
+                    if copilot_resp.status_code == 200:
+                        copilot_data = copilot_resp.json()
+                        new_token = copilot_data.get("token")
+                        new_expiry = copilot_data.get("expires_at")
+                        
+                        # Update DB
+                        try:
+                            cred_uuid = uuid.UUID(cred_id)
+                            with Session(engine) as session:
+                                credential = session.get(Credential, cred_uuid)
+                                if credential:
+                                    credential.data["copilot_token"] = encrypt_string(new_token)
+                                    credential.data["copilot_expires_at"] = new_expiry
+                                    credential.updated_at = datetime.utcnow()
+                                    session.add(credential)
+                                    session.commit()
+                                    
+                                    # Update local return
+                                    data["copilot_token"] = new_token
+                                    data["copilot_expires_at"] = new_expiry
+                        except Exception as e:
+                            logger.error(f"Failed to save refreshed Copilot token: {e}")
+             except Exception as e:
+                 logger.error(f"Failed to refresh Copilot token: {e}")
+        
+        return cred
+
+
+    # Standard OAuth Refresh
     expires_at = data.get("expires_at")
     refresh_token = data.get("refresh_token")
 
@@ -115,7 +167,6 @@ async def get_active_credential(cred_id: str) -> Optional[Dict[str, Any]]:
     ):
         logger.debug(f"Token for {cred['name']} expired at {expires_at}. Refreshing...")
 
-        provider = cred["type"]  # e.g., google_sheets
         config = OAUTH_CONFIG.get(provider)
 
         if config:
@@ -126,7 +177,7 @@ async def get_active_credential(cred_id: str) -> Optional[Dict[str, Any]]:
                 client_id = None
                 client_secret = None
                 
-                if provider == "google_sheets":
+                if provider in ["google_sheets", "google_ai"]:
                     client_id = settings.GOOGLE_CLIENT_ID
                     client_secret = settings.GOOGLE_CLIENT_SECRET
                 elif provider == "slack":
