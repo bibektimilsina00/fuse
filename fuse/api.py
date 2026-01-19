@@ -8,7 +8,7 @@ from fuse.ai.router import router as ai_router
 api_router = APIRouter()
 api_router.include_router(auth_router, tags=["auth"])
 api_router.include_router(users_router, prefix="/users", tags=["users"])
-api_router.include_router(ai_router, prefix="/workflows/ai", tags=["ai"])
+api_router.include_router(ai_router, prefix="/ai", tags=["ai"])
 api_router.include_router(workflows_router, prefix="/workflows", tags=["workflows"])
 
 from fuse.credentials.router import router as credentials_router
