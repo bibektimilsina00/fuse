@@ -8,6 +8,7 @@ from google import genai
 from openai import OpenAI
 from fuse.config import settings
 from fuse.utils.circuit_breaker import CircuitBreakerOpenError, CircuitBreakers
+import httpx
 
 logger = logging.getLogger(__name__)
 # Import nodes to ensure they are registered
@@ -442,10 +443,6 @@ Generate one complete workflow JSON that fully satisfies the user request and st
         except Exception as e:
             logger.error(f"AI execution error: {e}")
             raise e
-
-import httpx
-
-# ... imports ...
 
 
     async def call_llm(
