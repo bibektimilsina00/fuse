@@ -244,8 +244,8 @@ DATABASE_URL=sqlite:///./fuse.db
 SECRET_KEY=dev-secret-key-12345
 
 # Initial User Data
-FIRST_SUPERUSER_EMAIL=admin@fuse.io
-FIRST_SUPERUSER_PASSWORD=changethis
+FIRST_USER_EMAIL=admin@fuse.io
+FIRST_USER_PASSWORD=changethis
 
 # AI API Keys (Optional - for AI nodes)
 # OPENAI_API_KEY=
