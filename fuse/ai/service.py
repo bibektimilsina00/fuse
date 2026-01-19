@@ -110,11 +110,8 @@ class AIWorkflowService:
         # GitHub Copilot
         elif provider == "github_copilot":
              return [
-                 {"id": "gpt-4o", "label": "GPT-4o (Copilot)", "provider": "copilot"},
-                 {"id": "claude-3.5-sonnet", "label": "Claude 3.5 Sonnet (Copilot)", "provider": "copilot"},
                  {"id": "gpt-4", "label": "GPT-4 (Copilot)", "provider": "copilot"},
-                 {"id": "o1-preview", "label": "o1 Preview (Copilot)", "provider": "copilot"},
-                 {"id": "o1-mini", "label": "o1 Mini (Copilot)", "provider": "copilot"},
+                 {"id": "gpt-3.5-turbo", "label": "GPT-3.5 Turbo (Copilot)", "provider": "copilot"},
              ]
              
         # OpenRouter / OpenAI
@@ -364,7 +361,7 @@ Generate one complete workflow JSON that fully satisfies the user request and st
         if not copilot_model or "/" in copilot_model: 
              # Strip provider prefix if present (e.g. "copilot/gpt-4o")
              if "/" in model: copilot_model = model.split("/")[-1]
-             else: copilot_model = "gpt-4o"
+             else: copilot_model = "gpt-4"
 
         payload = {
             "messages": [
