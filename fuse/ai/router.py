@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 import logging
 
 from fuse.auth.dependencies import CurrentUser
-from fuse.workflows.schemas import AIWorkflowRequest, AIWorkflowResponse
+from fuse.workflows.schemas import AIWorkflowRequest, AIWorkflowResponse, AIChatRequest, AIChatResponse
 from fuse.ai.service import ai_service
 from fuse.credentials.service import get_full_credential_by_id
 
@@ -41,3 +41,51 @@ async def generate_workflow_with_ai(
     except Exception as e:
         logger.error(f"AI generation failed: {e}")
         raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+
+
+@router.post("/chat", response_model=AIChatResponse)
+async def chat_with_ai(
+    request: AIChatRequest,
+    current_user: CurrentUser,
+) -> Any:
+    """Chat with AI assistant."""
+    try:
+        credential_data = {}
+        if request.credential_id:
+            credential_data = get_full_credential_by_id(str(request.credential_id)) or {}
+
+        # Construct messages (History + Current)
+        messages = request.history or []
+        # If history does not have system prompt, add one?
+        if not any(m.get("role") == "system" for m in messages):
+             messages.insert(0, {"role": "system", "content": "You are a helpful workflow automation assistant."})
+        
+        messages.append({"role": "user", "content": request.message})
+
+        result = await ai_service.call_llm(
+            messages=messages,
+            model=request.model,
+            credential=credential_data
+        )
+        
+        return AIChatResponse(response=result["content"])
+    except Exception as e:
+        logger.error(f"AI chat failed: {e}")
+        raise HTTPException(status_code=500, detail=f"AI chat failed: {str(e)}")
+
+
+@router.get("/models")
+async def get_ai_models(
+    credential_id: Optional[str] = None,
+    current_user: CurrentUser = None,
+) -> Any:
+    """Get available models based on credential."""
+    try:
+        credential_data = {}
+        if credential_id:
+            credential_data = get_full_credential_by_id(credential_id) or {}
+            
+        return await ai_service.get_available_models(credential_data)
+    except Exception as e:
+        logger.error(f"Failed to fetch models: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch models: {str(e)}")

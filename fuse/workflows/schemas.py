@@ -164,6 +164,17 @@ class Message(SQLModel):
     message: str
 
 
+class AIChatRequest(BaseModel):
+    message: str
+    model: str = "openrouter"
+    credential_id: Optional[uuid.UUID] = None
+    history: Optional[List[Dict[str, str]]] = None
+
+
+class AIChatResponse(BaseModel):
+    response: str
+
+
 # Execution Schemas
 class NodeExecutionPublic(BaseModel):
     id: uuid.UUID

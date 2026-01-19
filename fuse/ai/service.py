@@ -51,6 +51,99 @@ class AIWorkflowService:
                 },
             )
 
+    async def get_available_models(self, credential_data: Dict[str, Any]) -> List[Dict[str, str]]:
+        """Fetch available models for the given credential."""
+        provider = (credential_data.get("provider") or credential_data.get("type", "unknown")).lower()
+        if provider == "ai_provider":
+             provider = credential_data.get("data", {}).get("provider", "unknown").lower()
+        
+        models = []
+        
+        # Google AI
+        if provider == "gemini" or provider == "google_ai":
+             # Use genai to list models
+             cred_data = credential_data.get("data", {})
+             api_key = cred_data.get("api_key")
+             access_token = cred_data.get("access_token")
+             
+             try:
+                 # Standard listing with API Key
+                 if api_key:
+                     client = genai.Client(api_key=api_key)
+                     # list_models returns an iterator
+                     for m in client.models.list_models():
+                         if "generateContent" in m.supported_generation_methods:
+                             models.append({
+                                 "id": m.name.replace("models/", ""), 
+                                 "label": m.display_name, 
+                                 "provider": "google"
+                             })
+                 else:
+                     # Fallback for OAuth - Use public listing or hardcoded if scope issues
+                     # We try REST API
+                     async with httpx.AsyncClient() as client:
+                        headers = {}
+                        if access_token: headers["Authorization"] = f"Bearer {access_token}"
+                        elif api_key: headers["x-goog-api-key"] = api_key
+                        
+                        # Note: v1beta/models usually works public, but let's try
+                        resp = await client.get("https://generativelanguage.googleapis.com/v1beta/models", headers=headers)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            for m in data.get("models", []):
+                                if "generateContent" in m.get("supportedGenerationMethods", []):
+                                     name = m["name"].replace("models/", "")
+                                     models.append({
+                                         "id": name,
+                                         "label": m.get("displayName", name),
+                                         "provider": "google"
+                                     })
+             except Exception as e:
+                 logger.error(f"Failed to fetch Google models: {e}")
+                 # Fallback list
+                 return [
+                     {"id": "gemini-2.0-flash-exp", "label": "Gemini 2.0 Flash (Exp)", "provider": "google"},
+                     {"id": "gemini-1.5-pro-latest", "label": "Gemini 1.5 Pro", "provider": "google"},
+                     {"id": "gemini-1.5-flash-latest", "label": "Gemini 1.5 Flash", "provider": "google"},
+                 ]
+
+        # GitHub Copilot
+        elif provider == "github_copilot":
+             return [
+                 {"id": "gpt-4o", "label": "GPT-4o (Copilot)", "provider": "copilot"},
+                 {"id": "claude-3.5-sonnet", "label": "Claude 3.5 Sonnet (Copilot)", "provider": "copilot"},
+                 {"id": "gpt-4", "label": "GPT-4 (Copilot)", "provider": "copilot"},
+                 {"id": "o1-preview", "label": "o1 Preview (Copilot)", "provider": "copilot"},
+                 {"id": "o1-mini", "label": "o1 Mini (Copilot)", "provider": "copilot"},
+             ]
+             
+        # OpenRouter / OpenAI
+        elif provider == "openrouter":
+             try:
+                 async with httpx.AsyncClient() as client:
+                     resp = await client.get("https://openrouter.ai/api/v1/models")
+                     if resp.status_code == 200:
+                         data = resp.json()
+                         for m in data.get("data", []):
+                             models.append({
+                                 "id": m["id"],
+                                 "label": m.get("name", m["id"]),
+                                 "provider": "openrouter"
+                             })
+                         return models
+             except Exception:
+                 pass
+        
+        # Generic Fallback
+        if not models:
+             models = [
+                 {"id": "gpt-4o", "label": "GPT-4o", "provider": "openai"},
+                 {"id": "gpt-4o-mini", "label": "GPT-4o Mini", "provider": "openai"},
+                 {"id": "claude-3-5-sonnet-20240620", "label": "Claude 3.5 Sonnet", "provider": "anthropic"},
+             ]
+        
+        return models
+
     async def generate_workflow_from_prompt(
         self,
         prompt: str,
