@@ -10,6 +10,9 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlmodel import Session, select
 import httpx
+import logging
+
+logger = logging.getLogger(__name__)
 
 from fuse.auth.dependencies import get_db, get_current_user
 from fuse.auth.models import User
@@ -444,7 +447,7 @@ async def github_copilot_poll(
     async with httpx.AsyncClient() as client:
         response = await client.post(
             "https://github.com/login/oauth/access_token",
-            json={
+            data={
                 "client_id": GITHUB_COPILOT_CLIENT_ID,
                 "device_code": device_code,
                 "grant_type": "urn:ietf:params:oauth:grant-type:device_code"
@@ -453,6 +456,7 @@ async def github_copilot_poll(
         )
         
         data = response.json()
+        logger.info(f"GitHub Device Poll Response: {data}")
         
         if "error" in data:
             error = data.get("error")
