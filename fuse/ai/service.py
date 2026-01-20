@@ -8,7 +8,7 @@ from google import genai
 from openai import OpenAI
 from fuse.config import settings
 from fuse.utils.circuit_breaker import CircuitBreakerOpenError, CircuitBreakers
-from fuse.ai import cliproxy_manager
+from fuse.plugins.google_ai import manager as cliproxy_manager
 import httpx
 import uuid
 

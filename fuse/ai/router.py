@@ -5,7 +5,7 @@ import logging
 from fuse.auth.dependencies import CurrentUser
 from fuse.workflows.schemas import AIWorkflowRequest, AIWorkflowResponse, AIChatRequest, AIChatResponse
 from fuse.ai.service import ai_service
-from fuse.ai import cliproxy_manager
+from fuse.plugins.google_ai import manager as cliproxy_manager
 from fuse.credentials.service import get_full_credential_by_id, get_active_credential
 
 logger = logging.getLogger(__name__)

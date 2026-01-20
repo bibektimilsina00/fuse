@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, Depends
 from fuse.auth.dependencies import CurrentUser
-from fuse.ai import cliproxy_manager
+from fuse.plugins.google_ai import manager as cliproxy_manager
 
 router = APIRouter()
 

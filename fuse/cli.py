@@ -291,7 +291,7 @@ def google_login():
     This enables access to Gemini, Claude, and GPT models through your
     Google One AI subscription.
     """
-    from fuse.ai import cliproxy_manager
+    from fuse.plugins.google_ai import manager as cliproxy_manager
     
     console.print(
         Panel.fit(
@@ -324,7 +324,7 @@ After logging in, you'll have access to:
 @main.command("google-status")
 def google_status():
     """Check Google OAuth and CLIProxyAPI status."""
-    from fuse.ai import cliproxy_manager
+    from fuse.plugins.google_ai import manager as cliproxy_manager
     from pathlib import Path
     
     console.print("[bold cyan]Checking Google AI / CLIProxyAPI status...[/bold cyan]\n")
