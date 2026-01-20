@@ -13,3 +13,6 @@ api_router.include_router(workflows_router, prefix="/workflows", tags=["workflow
 
 from fuse.credentials.router import router as credentials_router
 api_router.include_router(credentials_router, prefix="/credentials", tags=["credentials"])
+
+from fuse.plugins.router import router as plugins_router
+api_router.include_router(plugins_router, prefix="/plugins", tags=["plugins"])
