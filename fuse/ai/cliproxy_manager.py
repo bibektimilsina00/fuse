@@ -223,7 +223,7 @@ def start_cliproxy() -> bool:
             )
         
         # Wait for it to start
-        for _ in range(10):
+        for i in range(20):
             time.sleep(0.5)
             if is_cliproxy_running():
                 logger.info(f"CLIProxyAPI started on port {CLIPROXY_PORT}")
