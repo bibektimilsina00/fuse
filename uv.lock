@@ -682,7 +682,7 @@ wheels = [
 
 [[package]]
 name = "fuse-io"
-version = "0.1.40"
+version = "0.1.71"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },

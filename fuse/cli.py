@@ -283,5 +283,80 @@ def version():
     console.print(table)
 
 
+@main.command("google-login")
+def google_login():
+    """
+    Login with Google OAuth for Antigravity API access.
+    
+    This enables access to Gemini, Claude, and GPT models through your
+    Google One AI subscription.
+    """
+    from fuse.ai import cliproxy_manager
+    
+    console.print(
+        Panel.fit(
+            """[bold cyan]🔐 Google OAuth Login for AI Models[/bold cyan]
+
+This will open your browser to authenticate with Google.
+After logging in, you'll have access to:
+  • [green]Gemini 3 Pro/Flash[/green]
+  • [green]Claude Sonnet 4.5 / Opus 4.5[/green] (requires Google One AI)
+  • [green]GPT models[/green] (via Antigravity)
+
+[dim]Your credentials are stored locally in ~/.cli-proxy-api[/dim]
+            """,
+            title="🌐 Antigravity OAuth",
+            border_style="cyan",
+        )
+    )
+    
+    console.print("[cyan]Starting OAuth login flow...[/cyan]")
+    
+    if cliproxy_manager.run_antigravity_login():
+        console.print("\n[bold green]✓ Successfully logged in![/bold green]")
+        console.print("\nYou can now use Google AI OAuth credentials in Fuse.")
+        console.print("Run [cyan]fuse start[/cyan] and select a Google AI model to test.")
+    else:
+        console.print("\n[bold red]✗ Login failed or was cancelled.[/bold red]")
+        console.print("Please try again or check your internet connection.")
+
+
+@main.command("google-status")
+def google_status():
+    """Check Google OAuth and CLIProxyAPI status."""
+    from fuse.ai import cliproxy_manager
+    from pathlib import Path
+    
+    console.print("[bold cyan]Checking Google AI / CLIProxyAPI status...[/bold cyan]\n")
+    
+    # Check if CLIProxyAPI binary is installed
+    binary_path = cliproxy_manager.get_cliproxy_binary_path()
+    if binary_path.exists():
+        console.print(f"[green]✓[/green] CLIProxyAPI binary: [cyan]{binary_path}[/cyan]")
+    else:
+        console.print(f"[yellow]○[/yellow] CLIProxyAPI binary: Not installed")
+        console.print("  [dim]Will be auto-downloaded on first use[/dim]")
+    
+    # Check for auth files
+    auth_dir = Path.home() / ".cli-proxy-api"
+    auth_files = list(auth_dir.glob("antigravity-*.json")) if auth_dir.exists() else []
+    
+    if auth_files:
+        console.print(f"[green]✓[/green] OAuth accounts: {len(auth_files)}")
+        for f in auth_files:
+            name = f.stem.replace("antigravity-", "").replace("_", "@")
+            console.print(f"    • [cyan]{name}[/cyan]")
+    else:
+        console.print("[yellow]○[/yellow] OAuth accounts: None")
+        console.print("  [dim]Run 'fuse google-login' to add an account[/dim]")
+    
+    # Check if proxy is running
+    if cliproxy_manager.is_cliproxy_running():
+        console.print(f"[green]✓[/green] CLIProxyAPI server: Running on port {cliproxy_manager.CLIPROXY_PORT}")
+    else:
+        console.print(f"[yellow]○[/yellow] CLIProxyAPI server: Not running")
+        console.print("  [dim]Will auto-start when needed[/dim]")
+
+
 if __name__ == "__main__":
     main()

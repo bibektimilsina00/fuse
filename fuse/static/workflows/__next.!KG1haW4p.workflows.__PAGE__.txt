@@ -1,10 +1,10 @@
 1:"$Sreact.fragment"
 2:I[61304,[],"ClientPageRoot"]
-3:I[74362,["702","static/chunks/c37d3baf-0fedbf5b6ffcd550.js","547","static/chunks/547-1833756cc09c3c28.js","275","static/chunks/275-f12d66089f519b01.js","393","static/chunks/393-d1b3ea65900fdc5e.js","821","static/chunks/821-04976ebb62352e45.js","24","static/chunks/24-4ee5417b9b9b92a9.js","814","static/chunks/814-18bcbd34c09817f1.js","162","static/chunks/162-d9110b81661c7d7d.js","4","static/chunks/4-bdc965d7dcca4cab.js","498","static/chunks/app/(main)/workflows/page-7c3c63a11ae33eed.js"],"default"]
+3:I[70896,["8702","static/chunks/c37d3baf-180121c3277c2507.js","8547","static/chunks/8547-58d8503b201666a3.js","2842","static/chunks/2842-48c56528293a12b3.js","5039","static/chunks/5039-3499cf038df19a6b.js","8500","static/chunks/8500-27e7d9770d119ae1.js","8343","static/chunks/8343-ef1a60b305d3ec50.js","7904","static/chunks/7904-d9a11b6346a58c87.js","2427","static/chunks/2427-a4ea1bdd3c847d4f.js","7152","static/chunks/7152-95b5dadcb1196779.js","605","static/chunks/605-3f053ca57f674380.js","1950","static/chunks/1950-ae290f5c5b8a8ad7.js","585","static/chunks/585-01da20de094ce292.js","3038","static/chunks/3038-d59411fad0eb71db.js","4498","static/chunks/app/(main)/workflows/page-00871c5ded16ae3d.js"],"default"]
 6:I[90484,[],"OutletBoundary"]
 7:"$Sreact.suspense"
 :HL["/_next/static/css/d1e1fa7731bfdccb.css","style"]
-0:{"buildId":"bAsbGnh27hobCWq6gYKAq","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/d1e1fa7731bfdccb.css","precedence":"next"}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"m5aVRV8oAYk3b9iWU35ix","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/d1e1fa7731bfdccb.css","precedence":"next"}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
 4:{}
 5:{}
 8:null

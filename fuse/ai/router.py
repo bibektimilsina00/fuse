@@ -89,3 +89,17 @@ async def get_ai_models(
     except Exception as e:
         logger.error(f"Failed to fetch models: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch models: {str(e)}")
+
+
+# TEMPORARY DEBUG ENDPOINT - Remove in production!
+@router.get("/debug/credentials/{credential_id}")
+async def debug_get_credentials(
+    credential_id: str,
+    current_user: CurrentUser,
+) -> Any:
+    """DEBUG: Get raw decrypted credentials for Postman testing."""
+    credential_data = await get_active_credential(credential_id)
+    if not credential_data:
+        raise HTTPException(status_code=404, detail="Credential not found")
+    return credential_data
+

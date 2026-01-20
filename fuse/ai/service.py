@@ -8,7 +8,9 @@ from google import genai
 from openai import OpenAI
 from fuse.config import settings
 from fuse.utils.circuit_breaker import CircuitBreakerOpenError, CircuitBreakers
+from fuse.ai import cliproxy_manager
 import httpx
+import uuid
 
 logger = logging.getLogger(__name__)
 # Import nodes to ensure they are registered
@@ -51,137 +53,213 @@ class AIWorkflowService:
                 },
             )
 
-    async def get_available_models(self, credential_data: Dict[str, Any]) -> List[Dict[str, str]]:
+    async def get_available_models(
+        self, credential_data: Dict[str, Any]
+    ) -> List[Dict[str, str]]:
         """Fetch available models for the given credential."""
-        provider = (credential_data.get("provider") or credential_data.get("type", "unknown")).lower()
+        provider = (
+            credential_data.get("provider") or credential_data.get("type", "unknown")
+        ).lower()
         if provider == "ai_provider":
-             provider = credential_data.get("data", {}).get("provider", "unknown").lower()
-        
+            provider = (
+                credential_data.get("data", {}).get("provider", "unknown").lower()
+            )
+
         models = []
-        
+
         # Google AI
         if provider == "gemini" or provider == "google_ai":
-             # Use genai to list models
-             cred_data = credential_data.get("data", {})
-             api_key = cred_data.get("api_key")
-             access_token = cred_data.get("access_token")
-             project_id = cred_data.get("project_id")
+            # Use genai to list models
+            cred_data = credential_data.get("data", {})
+            api_key = cred_data.get("api_key")
+            access_token = cred_data.get("access_token")
+            project_id = cred_data.get("project_id")
 
-             if project_id and access_token:
-                 # Antigravity Mode - Static List (Discovery is internal)
-                 return [
-                    {"id": "gemini-2.0-flash-001", "label": "Gemini 2.0 Flash", "provider": "google"},
-                    {"id": "gemini-1.5-pro-002", "label": "Gemini 1.5 Pro", "provider": "google"},
-                    {"id": "gemini-1.5-flash-002", "label": "Gemini 1.5 Flash", "provider": "google"},
-                 ]
-             
-             try:
-                 # Standard listing with API Key
-                 if api_key:
-                     client = genai.Client(api_key=api_key)
-                     # list_models returns an iterator
-                     for m in client.models.list_models():
-                         if "generateContent" in m.supported_generation_methods:
-                             models.append({
-                                 "id": m.name.replace("models/", ""), 
-                                 "label": m.display_name, 
-                                 "provider": "google"
-                             })
-                 else:
-                     # Fallback for OAuth - Use public listing or hardcoded if scope issues
-                     # We try REST API
-                     async with httpx.AsyncClient() as client:
+            if project_id and access_token:
+                # CLIProxyAPI Mode - Models available through CLIProxyAPI
+                # These are the models registered by Antigravity OAuth login
+                return [
+                    {
+                        "id": "gemini-3-pro-preview",
+                        "label": "Gemini 3 Pro",
+                        "provider": "google",
+                    },
+                    {
+                        "id": "gemini-3-flash-preview",
+                        "label": "Gemini 3 Flash",
+                        "provider": "google",
+                    },
+                    {
+                        "id": "gemini-2.5-flash",
+                        "label": "Gemini 2.5 Flash",
+                        "provider": "google",
+                    },
+                    {
+                        "id": "claude-sonnet-4-5",
+                        "label": "Claude Sonnet 4.5",
+                        "provider": "anthropic",
+                    },
+                    {
+                        "id": "claude-sonnet-4-5-thinking",
+                        "label": "Claude Sonnet 4.5 Thinking",
+                        "provider": "anthropic",
+                    },
+                    {
+                        "id": "claude-opus-4-5-thinking",
+                        "label": "Claude Opus 4.5 Thinking",
+                        "provider": "anthropic",
+                    },
+                    {
+                        "id": "gpt-oss-120b-medium",
+                        "label": "GPT-OSS 120B Medium",
+                        "provider": "openai",
+                    },
+                ]
+
+            try:
+                # Standard listing with API Key
+                if api_key:
+                    client = genai.Client(api_key=api_key)
+                    # list_models returns an iterator
+                    for m in client.models.list_models():
+                        if "generateContent" in m.supported_generation_methods:
+                            models.append(
+                                {
+                                    "id": m.name.replace("models/", ""),
+                                    "label": m.display_name,
+                                    "provider": "google",
+                                }
+                            )
+                else:
+                    # Fallback for OAuth - Use public listing or hardcoded if scope issues
+                    # We try REST API
+                    async with httpx.AsyncClient() as client:
                         headers = {}
-                        if access_token: headers["Authorization"] = f"Bearer {access_token}"
-                        elif api_key: headers["x-goog-api-key"] = api_key
-                        
+                        if access_token:
+                            headers["Authorization"] = f"Bearer {access_token}"
+                        elif api_key:
+                            headers["x-goog-api-key"] = api_key
+
                         # Note: v1beta/models usually works public, but let's try
-                        resp = await client.get("https://generativelanguage.googleapis.com/v1beta/models", headers=headers)
+                        resp = await client.get(
+                            "https://generativelanguage.googleapis.com/v1beta/models",
+                            headers=headers,
+                        )
                         if resp.status_code == 200:
                             data = resp.json()
                             for m in data.get("models", []):
-                                if "generateContent" in m.get("supportedGenerationMethods", []):
-                                     name = m["name"].replace("models/", "")
-                                     models.append({
-                                         "id": name,
-                                         "label": m.get("displayName", name),
-                                         "provider": "google"
-                                     })
-             except Exception as e:
-                 logger.error(f"Failed to fetch Google models: {e}")
-                 # Fallback list
-                 return [
-                     {"id": "gemini-2.0-flash-exp", "label": "Gemini 2.0 Flash (Exp)", "provider": "google"},
-                     {"id": "gemini-1.5-pro-latest", "label": "Gemini 1.5 Pro", "provider": "google"},
-                     {"id": "gemini-1.5-flash-latest", "label": "Gemini 1.5 Flash", "provider": "google"},
-                 ]
+                                if "generateContent" in m.get(
+                                    "supportedGenerationMethods", []
+                                ):
+                                    name = m["name"].replace("models/", "")
+                                    models.append(
+                                        {
+                                            "id": name,
+                                            "label": m.get("displayName", name),
+                                            "provider": "google",
+                                        }
+                                    )
+            except Exception as e:
+                logger.error(f"Failed to fetch Google models: {e}")
+                # Fallback list
+                return [
+                    {
+                        "id": "gemini-2.0-flash-exp",
+                        "label": "Gemini 2.0 Flash (Exp)",
+                        "provider": "google",
+                    },
+                    {
+                        "id": "gemini-1.5-pro-latest",
+                        "label": "Gemini 1.5 Pro",
+                        "provider": "google",
+                    },
+                    {
+                        "id": "gemini-1.5-flash-latest",
+                        "label": "Gemini 1.5 Flash",
+                        "provider": "google",
+                    },
+                ]
 
         # GitHub Copilot
         elif provider == "github_copilot":
-             # Try to fetch dynamically
-             copilot_token = credential_data.get("data", {}).get("copilot_token")
-             if copilot_token:
-                 try:
-                     async with httpx.AsyncClient() as client:
-                         resp = await client.get(
-                             "https://api.githubcopilot.com/models",
-                             headers={
-                                 "Authorization": f"Bearer {copilot_token}",
-                                 "Editor-Version": "vscode/1.85.0",
-                                 "User-Agent": "GitHubCopilot/1.138.0"
-                             },
-                             timeout=5.0
-                         )
-                         if resp.status_code == 200:
-                             data = resp.json()
-                             # Expecting OpenAI-format: {"data": [{"id": "gpt-4", ...}]}
-                             dynamic_models = []
-                             for m in data.get("data", []):
-                                 # specific filter? or just take all
-                                 dynamic_models.append({
-                                     "id": m["id"],
-                                     "label": f"{m.get('id')} (Copilot)",
-                                     "provider": "copilot"
-                                 })
-                             
-                             if dynamic_models:
-                                 return dynamic_models
-                         else:
-                             logger.warning(f"Copilot models fetch failed {resp.status_code}: {resp.text}")
-                 except Exception as e:
-                     logger.warning(f"Failed to fetch dynamic Copilot models: {e}")
+            # Try to fetch dynamically
+            copilot_token = credential_data.get("data", {}).get("copilot_token")
+            if copilot_token:
+                try:
+                    async with httpx.AsyncClient() as client:
+                        resp = await client.get(
+                            "https://api.githubcopilot.com/models",
+                            headers={
+                                "Authorization": f"Bearer {copilot_token}",
+                                "Editor-Version": "vscode/1.85.0",
+                                "User-Agent": "GitHubCopilot/1.138.0",
+                            },
+                            timeout=5.0,
+                        )
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            # Expecting OpenAI-format: {"data": [{"id": "gpt-4", ...}]}
+                            dynamic_models = []
+                            for m in data.get("data", []):
+                                # specific filter? or just take all
+                                dynamic_models.append(
+                                    {
+                                        "id": m["id"],
+                                        "label": f"{m.get('id')} (Copilot)",
+                                        "provider": "copilot",
+                                    }
+                                )
 
-             # Fallback
-             return [
-                 {"id": "gpt-4", "label": "GPT-4 (Copilot)", "provider": "copilot"},
-                 {"id": "gpt-3.5-turbo", "label": "GPT-3.5 Turbo (Copilot)", "provider": "copilot"},
-             ]
-             
+                            if dynamic_models:
+                                return dynamic_models
+                        else:
+                            logger.warning(
+                                f"Copilot models fetch failed {resp.status_code}: {resp.text}"
+                            )
+                except Exception as e:
+                    logger.warning(f"Failed to fetch dynamic Copilot models: {e}")
+
+            # Fallback
+            return [
+                {"id": "gpt-4", "label": "GPT-4 (Copilot)", "provider": "copilot"},
+                {
+                    "id": "gpt-3.5-turbo",
+                    "label": "GPT-3.5 Turbo (Copilot)",
+                    "provider": "copilot",
+                },
+            ]
+
         # OpenRouter / OpenAI
         elif provider == "openrouter":
-             try:
-                 async with httpx.AsyncClient() as client:
-                     resp = await client.get("https://openrouter.ai/api/v1/models")
-                     if resp.status_code == 200:
-                         data = resp.json()
-                         for m in data.get("data", []):
-                             models.append({
-                                 "id": m["id"],
-                                 "label": m.get("name", m["id"]),
-                                 "provider": "openrouter"
-                             })
-                         return models
-             except Exception:
-                 pass
-        
+            try:
+                async with httpx.AsyncClient() as client:
+                    resp = await client.get("https://openrouter.ai/api/v1/models")
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        for m in data.get("data", []):
+                            models.append(
+                                {
+                                    "id": m["id"],
+                                    "label": m.get("name", m["id"]),
+                                    "provider": "openrouter",
+                                }
+                            )
+                        return models
+            except Exception:
+                pass
+
         # Generic Fallback
         if not models:
-             models = [
-                 {"id": "gpt-4o", "label": "GPT-4o", "provider": "openai"},
-                 {"id": "gpt-4o-mini", "label": "GPT-4o Mini", "provider": "openai"},
-                 {"id": "claude-3-5-sonnet-20240620", "label": "Claude 3.5 Sonnet", "provider": "anthropic"},
-             ]
-        
+            models = [
+                {"id": "gpt-4o", "label": "GPT-4o", "provider": "openai"},
+                {"id": "gpt-4o-mini", "label": "GPT-4o Mini", "provider": "openai"},
+                {
+                    "id": "claude-3-5-sonnet-20240620",
+                    "label": "Claude 3.5 Sonnet",
+                    "provider": "anthropic",
+                },
+            ]
+
         return models
 
     async def generate_workflow_from_prompt(
@@ -210,9 +288,9 @@ class AIWorkflowService:
                 )
             elif provider == "github_copilot":
                 response_text = await self._generate_with_copilot(
-                    f"{system_prompt}\n\n{user_prompt}", 
+                    f"{system_prompt}\n\n{user_prompt}",
                     credential_data=credential_data,
-                    model=model
+                    model=model,
                 )
             elif provider == "openai":
                 response_text = await self._generate_with_openai(
@@ -389,39 +467,44 @@ Generate one complete workflow JSON that fully satisfies the user request and st
         """Generate using GitHub Copilot"""
         copilot_token = credential_data.get("data", {}).get("copilot_token")
         if not copilot_token:
-             raise ValueError("Copilot token missing.")
-        
+            raise ValueError("Copilot token missing.")
+
         # Use httpx
         headers = {
             "Authorization": f"Bearer {copilot_token}",
             "Editor-Version": "vscode/1.85.0",
             "User-Agent": "GitHubCopilot/1.138.0",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
-        
+
         # Parse model or default
         copilot_model = model
-        if not copilot_model or "/" in copilot_model: 
-             # Strip provider prefix if present (e.g. "copilot/gpt-4o")
-             if "/" in model: copilot_model = model.split("/")[-1]
-             else: copilot_model = "gpt-4"
+        if not copilot_model or "/" in copilot_model:
+            # Strip provider prefix if present (e.g. "copilot/gpt-4o")
+            if "/" in model:
+                copilot_model = model.split("/")[-1]
+            else:
+                copilot_model = "gpt-4"
 
         payload = {
             "messages": [
-                 {"role": "system", "content": "You are a workflow automation assistant. Return only valid JSON."},
-                 {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a workflow automation assistant. Return only valid JSON.",
+                },
+                {"role": "user", "content": prompt},
             ],
             "model": copilot_model,
-            "temperature": 0.7
+            "temperature": 0.7,
         }
-        
+
         async with httpx.AsyncClient() as client:
             resp = await client.post(
                 "https://api.githubcopilot.com/chat/completions",
                 headers=headers,
                 json=payload,
-                timeout=60.0
-            ) 
+                timeout=60.0,
+            )
             resp.raise_for_status()
             return resp.json()["choices"][0]["message"]["content"]
 
@@ -430,35 +513,49 @@ Generate one complete workflow JSON that fully satisfies the user request and st
     ) -> str:
         """Generate using Google Gemini"""
         # Check for OAuth access token first
-        access_token = credential_data.get("data", {}).get("access_token") if credential_data else None
-        project_id = credential_data.get("data", {}).get("project_id") if credential_data else None
+        access_token = (
+            credential_data.get("data", {}).get("access_token")
+            if credential_data
+            else None
+        )
 
         if access_token:
-             async with httpx.AsyncClient() as client:
-                if project_id:
-                    # Antigravity Endpoint
-                    url = f"https://cloudcode-pa.googleapis.com/v1/projects/{project_id}/locations/global/models/gemini-1.5-pro-002:generateContent"
-                    headers = {
-                        "Authorization": f"Bearer {access_token}", 
-                        "Content-Type": "application/json",
-                        "User-Agent": "antigravity/1.11.5 windows/amd64",
-                        "X-Goog-Api-Client": "google-cloud-sdk vscode_cloudshelleditor/0.1",
-                        "Client-Metadata": '{"ideType":"IDE_UNSPECIFIED","platform":"PLATFORM_UNSPECIFIED","pluginType":"GEMINI"}',
-                    }
-                else:
-                    # Standard PaLM Endpoint
-                    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent"
-                    headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
-
-                resp = await client.post(
-                    url,
-                    headers=headers,
-                    json={"contents": [{"parts": [{"text": prompt}]}]},
-                    timeout=60.0
+            try:
+                from fuse.ai.antigravity import (
+                    ensure_project_context,
+                    make_antigravity_request,
                 )
-                resp.raise_for_status()
-                data = resp.json()
-                return data["candidates"][0]["content"]["parts"][0]["text"]
+                from datetime import datetime
+
+                cred_data = credential_data.get("data", {}) if credential_data else {}
+                stored_refresh_token = cred_data.get(
+                    "stored_refresh_token"
+                ) or cred_data.get("refresh_token", "")
+                expires_at_str = cred_data.get("expires_at")
+                expires_at = (
+                    datetime.fromisoformat(expires_at_str) if expires_at_str else None
+                )
+
+                # Ensure we have a valid project context
+                context = await ensure_project_context(
+                    access_token=access_token,
+                    stored_refresh_token=stored_refresh_token,
+                    expires_at=expires_at,
+                )
+
+                # Make the API request
+                resp_json = await make_antigravity_request(
+                    access_token=context.access_token,
+                    project_id=context.effective_project_id,
+                    model="gemini-3-pro-low",
+                    contents=[{"role": "user", "parts": [{"text": prompt}]}],
+                )
+
+                return resp_json["candidates"][0]["content"]["parts"][0]["text"]
+
+            except Exception as e:
+                logger.error(f"Antigravity request failed: {e}")
+                raise
 
         client = self.gemini_client
         if credential_data:
@@ -474,7 +571,7 @@ Generate one complete workflow JSON that fully satisfies the user request and st
             response = client.models.generate_content(
                 model="gemini-2.0-flash", contents=prompt
             )
-            return response.text
+            return response.text or ""
 
     async def _generate_with_openai(
         self,
@@ -658,7 +755,6 @@ Generate one complete workflow JSON that fully satisfies the user request and st
             logger.error(f"AI execution error: {e}")
             raise e
 
-
     async def call_llm(
         self,
         messages: Optional[List[Dict[str, str]]] = None,
@@ -682,10 +778,12 @@ Generate one complete workflow JSON that fully satisfies the user request and st
                 messages.append({"role": "user", "content": user_prompt})
 
         # Determine provider
-        provider = (credential.get("provider") or credential.get("type", "unknown")).lower()
+        provider = (
+            credential.get("provider") or credential.get("type", "unknown")
+        ).lower()
         if provider == "ai_provider":
-             provider = credential.get("data", {}).get("provider", "unknown").lower()
-             
+            provider = credential.get("data", {}).get("provider", "unknown").lower()
+
         cred_data = credential.get("data", {})
         api_key = cred_data.get("api_key")
         base_url = cred_data.get("base_url")
@@ -695,66 +793,89 @@ Generate one complete workflow JSON that fully satisfies the user request and st
         # =========================================================================
         if provider == "gemini" or provider == "google_ai":
             access_token = cred_data.get("access_token")
-            
+
             # Combine formatting for Gemini
             combined_prompt = ""
             for msg in messages:
                 combined_prompt += f"{msg['role'].upper()}: {msg['content']}\n\n"
 
-            # 1. OAuth Access Token (Google AI Login)
+            # 1. OAuth Access Token (Google AI Login) - Using CLIProxyAPI
+            # CLIProxyAPI handles OAuth token refresh, request formatting, and endpoint fallback
             if access_token:
                 try:
-                    project_id = cred_data.get("project_id")
-                    target_model = model or "gemini-1.5-pro-002"
-                    if "/" in target_model: target_model = target_model.split("/")[-1]
+                    # Ensure CLIProxyAPI is running (auto-downloads and starts if needed)
+                    if not cliproxy_manager.is_cliproxy_running():
+                        logger.info("Starting CLIProxyAPI...")
+                        if not cliproxy_manager.start_cliproxy():
+                            raise ValueError(
+                                "Failed to start CLIProxyAPI. Please run 'fuse cliproxy-login' to set up Google OAuth."
+                            )
                     
-                    # Handle model name aliases/versions if using Antigravity
-                    if project_id and "latest" in target_model:
-                        target_model = "gemini-1.5-pro-002"
-
-                    if project_id:
-                         url = f"https://cloudcode-pa.googleapis.com/v1/projects/{project_id}/locations/global/models/{target_model}:generateContent"
-                         headers = {
-                            "Authorization": f"Bearer {access_token}", 
-                            "Content-Type": "application/json",
-                            "User-Agent": "antigravity/1.11.5 windows/amd64",
-                            "X-Goog-Api-Client": "google-cloud-sdk vscode_cloudshelleditor/0.1",
-                            "Client-Metadata": '{"ideType":"IDE_UNSPECIFIED","platform":"PLATFORM_UNSPECIFIED","pluginType":"GEMINI"}',
-                         }
-                    else:
-                         url = f"https://generativelanguage.googleapis.com/v1beta/models/{target_model}:generateContent"
-                         headers = {
-                            "Authorization": f"Bearer {access_token}", 
-                            "Content-Type": "application/json"
-                         }
-
-                    async with httpx.AsyncClient() as client:
+                    # Get CLIProxyAPI connection details
+                    CLIPROXY_URL = cliproxy_manager.get_cliproxy_url()
+                    CLIPROXY_API_KEY = cliproxy_manager.get_cliproxy_api_key()
+                    
+                    target_model = model or "gemini-3-pro-preview"
+                    if "/" in target_model:
+                        target_model = target_model.split("/")[-1]
+                    
+                    # Map model names to CLIProxyAPI model names
+                    # CLIProxyAPI uses "gemini-" prefix for Claude models via Antigravity
+                    model_mapping = {
+                        "claude-sonnet-4-5": "gemini-claude-sonnet-4-5",
+                        "claude-sonnet-4-5-thinking": "gemini-claude-sonnet-4-5-thinking",
+                        "claude-opus-4-5-thinking": "gemini-claude-opus-4-5-thinking",
+                        "gemini-3-pro": "gemini-3-pro-preview",
+                        "gemini-3-flash": "gemini-3-flash-preview",
+                    }
+                    proxy_model = model_mapping.get(target_model, target_model)
+                    
+                    logger.info(f"CLIProxyAPI request: model={proxy_model}")
+                    
+                    # OpenAI-compatible request to CLIProxyAPI
+                    async with httpx.AsyncClient(timeout=120.0) as client:
                         resp = await client.post(
-                            url,
-                            headers=headers,
-                            json={
-                                "contents": [{"parts": [{"text": combined_prompt}]}],
-                                "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens}
+                            f"{CLIPROXY_URL}/v1/chat/completions",
+                            headers={
+                                "Authorization": f"Bearer {CLIPROXY_API_KEY}",
+                                "Content-Type": "application/json",
                             },
-                            timeout=60.0
+                            json={
+                                "model": proxy_model,
+                                "messages": messages,
+                                "max_tokens": max_tokens,
+                                "temperature": temperature,
+                            },
                         )
+                        
                         if resp.status_code != 200:
-                             raise ValueError(f"Google AI OAuth Error ({resp.status_code}): {resp.text}")
+                            error_text = resp.text
+                            logger.error(f"CLIProxyAPI error ({resp.status_code}): {error_text[:300]}")
+                            raise ValueError(f"CLIProxyAPI error: {error_text[:200]}")
                         
                         resp_json = resp.json()
-                        content = resp_json.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                        content = resp_json.get("choices", [{}])[0].get("message", {}).get("content", "")
+                        usage = resp_json.get("usage", {})
+                        
                         return {
                             "content": content,
-                            "usage": {"total_tokens": 0} 
+                            "usage": {
+                                "prompt_tokens": usage.get("prompt_tokens", 0),
+                                "completion_tokens": usage.get("completion_tokens", 0),
+                                "total_tokens": usage.get("total_tokens", 0),
+                            },
                         }
+
                 except Exception as e:
-                    logger.error(f"Google AI OAuth Failed: {e}")
+                    logger.error(f"CLIProxyAPI Failed: {e}")
                     raise e
-            
+
             # 2. Existing API Key Flow
             client = genai.Client(api_key=api_key) if api_key else self.gemini_client
             if not client:
-                raise ValueError("Gemini API key not found and no OAuth token provided.")
+                raise ValueError(
+                    "Gemini API key not found and no OAuth token provided."
+                )
 
             response = client.models.generate_content(
                 model=model or "gemini-2.0-flash",
@@ -788,47 +909,51 @@ Generate one complete workflow JSON that fully satisfies the user request and st
         elif provider == "github_copilot":
             copilot_token = cred_data.get("copilot_token")
             if not copilot_token:
-                 raise ValueError("GitHub Copilot token missing. Please re-authenticate.")
-            
+                raise ValueError(
+                    "GitHub Copilot token missing. Please re-authenticate."
+                )
+
             headers = {
                 "Authorization": f"Bearer {copilot_token}",
                 "Editor-Version": "vscode/1.85.0",
                 "User-Agent": "GitHubCopilot/1.138.0",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
-            
+
             # Map standard model names to Copilot internal names?
             # Copilot usually supports 'gpt-4', 'gpt-3.5-turbo'.
             # If user sends 'openai/gpt-4', split it.
             copilot_model = model
             if "/" in model:
                 copilot_model = model.split("/")[-1]
-            
+
             # Copilot often defaults to specific models if not specified or different names.
             # But the API is OpenAI compatible.
-            
+
             payload = {
                 "messages": messages,
                 "model": copilot_model,
                 "temperature": temperature,
-                "max_tokens": max_tokens
+                "max_tokens": max_tokens,
             }
-            
+
             async with httpx.AsyncClient() as client:
                 resp = await client.post(
                     "https://api.githubcopilot.com/chat/completions",
                     headers=headers,
                     json=payload,
-                    timeout=60.0
+                    timeout=60.0,
                 )
-                
+
                 if resp.status_code != 200:
-                    raise ValueError(f"GitHub Copilot API Error ({resp.status_code}): {resp.text}")
-                
+                    raise ValueError(
+                        f"GitHub Copilot API Error ({resp.status_code}): {resp.text}"
+                    )
+
                 resp_json = resp.json()
                 return {
                     "content": resp_json["choices"][0]["message"]["content"],
-                    "usage": resp_json.get("usage", {})
+                    "usage": resp_json.get("usage", {}),
                 }
 
         elif provider == "openai" or (provider == "openrouter" and not base_url):
