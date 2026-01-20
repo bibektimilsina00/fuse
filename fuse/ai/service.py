@@ -553,10 +553,9 @@ Generate one complete workflow JSON that fully satisfies the user request and st
 
         if access_token:
             try:
-                # Ensure CLIProxyAPI is running
+                # Ensure CLIProxyAPI is running - DO NOT auto-start
                 if not cliproxy_manager.is_cliproxy_running():
-                    if not cliproxy_manager.start_cliproxy():
-                        raise ValueError("Failed to start CLIProxyAPI for Google OAuth.")
+                    raise ValueError("Google AI Plugin (Antigravity) is not running. Please start it from the Plugins page.")
                 
                 CLIPROXY_URL = cliproxy_manager.get_cliproxy_url()
                 CLIPROXY_API_KEY = cliproxy_manager.get_cliproxy_api_key()
