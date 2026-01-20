@@ -309,3 +309,21 @@ def get_cliproxy_status() -> dict:
         "port": CLIPROXY_PORT,
         "accounts": accounts,
     }
+
+
+def uninstall_cliproxy():
+    """Uninstall CLIProxyAPI by removing its directory."""
+    try:
+        if is_cliproxy_running():
+            stop_cliproxy()
+            
+        cliproxy_dir = get_cliproxy_dir()
+        if cliproxy_dir.exists():
+            shutil.rmtree(cliproxy_dir)
+            logger.info(f"Removed CLIProxyAPI directory: {cliproxy_dir}")
+            return True
+        return False
+    except Exception as e:
+        logger.error(f"Failed to uninstall CLIProxyAPI: {e}")
+        return False
+

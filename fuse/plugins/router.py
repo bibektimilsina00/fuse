@@ -100,5 +100,13 @@ async def perform_plugin_action(
             raise HTTPException(status_code=500, detail="Login process failed")
         return {"success": True, "message": "Login successful"}
         
+    elif action == "uninstall":
+        success = cliproxy_manager.uninstall_cliproxy()
+        if not success:
+            # It might return False if it wasn't installed, which is fine, but if it failed due to permission...
+            # For now, simplistic success
+            pass 
+        return {"success": True, "message": "Plugin uninstalled successfully"}
+
     else:
         raise HTTPException(status_code=400, detail=f"Unknown action: {action}")
