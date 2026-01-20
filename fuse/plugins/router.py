@@ -82,6 +82,9 @@ async def perform_plugin_action(
         return {"success": True, "message": "Plugin installed successfully"}
         
     elif action == "start":
+        if cliproxy_manager.is_cliproxy_running():
+             return {"success": True, "message": "Plugin service already running"}
+             
         success = cliproxy_manager.start_cliproxy()
         if not success:
             raise HTTPException(status_code=500, detail="Failed to start plugin service")
