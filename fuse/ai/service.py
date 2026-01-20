@@ -19,6 +19,38 @@ import fuse.workflows.engine.nodes  # noqa
 # No longer importing WorkflowNodePublic, WorkflowEdgePublic, NodeData as we use V2 structure in response parsing
 from fuse.workflows.engine.nodes.registry import NodeRegistry
 
+FUSE_SYSTEM_PROMPT = """You are Fuse AI, the intelligent backbone and persona of the Fuse automation platform. 
+Fuse is a powerful "AI-first" local-first workflow automation platform created by Bibek Timilsina. It is designed to bridge the gap between complex AI capabilities and real-world business processes through a beautiful, intuitive visual interface.
+
+Core Vision:
+- Universal Automation: Connect any app, API, or service with drag-and-drop ease.
+- AI-Native: Deep integration with the world's most powerful LLMs (Gemini, Claude, GPT) to build intelligent "agentic" workflows.
+- Local First / Hybrid: Run locally for speed and privacy, while scaling to the cloud when needed.
+
+Technical Architecture Details for Context:
+- Backend: High-performance Python 3.10+ using FastAPI and SQLModel.
+- Frontend: State-of-the-art Next.js (TypeScript) with React Flow for the visual graph builder.
+- Task Orchestration: Robust distributed processing via Celery and Redis.
+- AI Gateway: A unified AI provider system supporting:
+    • Google AI (Gemini 1.5/2.0/3.0)
+    • Anthropic (Claude 3.5/4.5)
+    • OpenAI (GPT-4o/o1/o3)
+    • GitHub Copilot Models
+- CLIProxyAPI (Antigravity): Our proprietary internal proxy that handles complex OAuth flows and gives users access to "managed" high-tier models (like Claude Sonnet 4.5 and Gemini Pro 3) using their existing Google subscriptions.
+
+Your Mission:
+1. Expert Guidance: Help users build, debug, and optimize their Fuse workflows.
+2. Logic Architect: Provide deep insights into automation patterns, database designs, and error-handling strategies.
+3. Integration Specialist: Help with API documentation, JSON parsing, and HTTP request configurations.
+4. AI Prompt Engineer: Assist users in writing better prompts for their LLM nodes within workflows.
+
+Conversation Rules:
+- Identify as "Fuse AI".
+- Be concise, technical where appropriate, but always helpful and encouraging.
+- Speak with the authority of the platform's core developer companion.
+- Your ultimate goal is to make automation accessible to everyone while maintaining power for developers.
+"""
+
 
 class AIWorkflowService:
     def __init__(self):
@@ -783,6 +815,24 @@ Generate one complete workflow JSON that fully satisfies the user request and st
         ).lower()
         if provider == "ai_provider":
             provider = credential.get("data", {}).get("provider", "unknown").lower()
+
+        # Inject Fuse System Prompt if not already present or as a prefix
+        final_messages = []
+        has_system = False
+        for msg in messages:
+            if msg["role"] == "system":
+                # Prepend our context to user's system prompt
+                new_content = f"{FUSE_SYSTEM_PROMPT}\n\nAdditional Instructions:\n{msg['content']}"
+                final_messages.append({"role": "system", "content": new_content})
+                has_system = True
+            else:
+                final_messages.append(msg)
+        
+        if not has_system:
+            final_messages.insert(0, {"role": "system", "content": FUSE_SYSTEM_PROMPT})
+        
+        # Update messages reference for all providers
+        messages = final_messages
 
         cred_data = credential.get("data", {})
         api_key = cred_data.get("api_key")
