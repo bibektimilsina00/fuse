@@ -553,41 +553,43 @@ Generate one complete workflow JSON that fully satisfies the user request and st
 
         if access_token:
             try:
-                from fuse.ai.antigravity import (
-                    ensure_project_context,
-                    make_antigravity_request,
-                )
-                from datetime import datetime
-
-                cred_data = credential_data.get("data", {}) if credential_data else {}
-                stored_refresh_token = cred_data.get(
-                    "stored_refresh_token"
-                ) or cred_data.get("refresh_token", "")
-                expires_at_str = cred_data.get("expires_at")
-                expires_at = (
-                    datetime.fromisoformat(expires_at_str) if expires_at_str else None
-                )
-
-                # Ensure we have a valid project context
-                context = await ensure_project_context(
-                    access_token=access_token,
-                    stored_refresh_token=stored_refresh_token,
-                    expires_at=expires_at,
-                )
-
-                # Make the API request
-                resp_json = await make_antigravity_request(
-                    access_token=context.access_token,
-                    project_id=context.effective_project_id,
-                    model="gemini-3-pro-low",
-                    contents=[{"role": "user", "parts": [{"text": prompt}]}],
-                )
-
-                return resp_json["candidates"][0]["content"]["parts"][0]["text"]
-
+                # Ensure CLIProxyAPI is running
+                if not cliproxy_manager.is_cliproxy_running():
+                    if not cliproxy_manager.start_cliproxy():
+                        raise ValueError("Failed to start CLIProxyAPI for Google OAuth.")
+                
+                CLIPROXY_URL = cliproxy_manager.get_cliproxy_url()
+                CLIPROXY_API_KEY = cliproxy_manager.get_cliproxy_api_key()
+                
+                # For basic generation, we use a capable default
+                proxy_model = "gemini-3-pro-preview"
+                
+                logger.info(f"CLIProxyAPI generation request: model={proxy_model}")
+                
+                async with httpx.AsyncClient(timeout=60.0) as client:
+                    resp = await client.post(
+                        f"{CLIPROXY_URL}/v1/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {CLIPROXY_API_KEY}",
+                            "Content-Type": "application/json",
+                        },
+                        json={
+                            "model": proxy_model,
+                            "messages": [
+                                {"role": "system", "content": FUSE_SYSTEM_PROMPT},
+                                {"role": "user", "content": prompt}
+                            ],
+                        },
+                    )
+                    
+                    if resp.status_code == 200:
+                        return resp.json().get("choices", [{}])[0].get("message", {}).get("content", "")
+                    else:
+                        logger.error(f"CLIProxyAPI generation failed ({resp.status_code}): {resp.text}")
+                        # Fallback to standard flow below
             except Exception as e:
-                logger.error(f"Antigravity request failed: {e}")
-                raise
+                logger.error(f"CLIProxyAPI generation exception: {e}")
+                # Fallback to standard flow below
 
         client = self.gemini_client
         if credential_data:
