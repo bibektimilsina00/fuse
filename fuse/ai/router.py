@@ -5,6 +5,7 @@ import logging
 from fuse.auth.dependencies import CurrentUser
 from fuse.workflows.schemas import AIWorkflowRequest, AIWorkflowResponse, AIChatRequest, AIChatResponse
 from fuse.ai.service import ai_service
+from fuse.ai import cliproxy_manager
 from fuse.credentials.service import get_full_credential_by_id, get_active_credential
 
 logger = logging.getLogger(__name__)
@@ -102,4 +103,27 @@ async def debug_get_credentials(
     if not credential_data:
         raise HTTPException(status_code=404, detail="Credential not found")
     return credential_data
+
+
+@router.get("/antigravity/status")
+async def get_antigravity_status(
+    current_user: CurrentUser,
+) -> Any:
+    """Get status of CLIProxyAPI and Google AI login."""
+    return cliproxy_manager.get_cliproxy_status()
+
+
+@router.post("/antigravity/login")
+async def start_antigravity_login(
+    current_user: CurrentUser,
+) -> Any:
+    """Start the Google AI OAuth login flow."""
+    try:
+        success = cliproxy_manager.run_antigravity_login()
+        if not success:
+            raise HTTPException(status_code=500, detail="Login process failed")
+        return {"success": True, "message": "Login successful"}
+    except Exception as e:
+        logger.error(f"Antigravity login failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 

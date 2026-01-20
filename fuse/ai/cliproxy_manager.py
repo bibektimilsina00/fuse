@@ -262,10 +262,15 @@ def run_antigravity_login() -> bool:
     
     binary_path = get_cliproxy_binary_path()
     
+    # Ensure config exists
+    config_path = get_cliproxy_config_path()
+    if not config_path.exists():
+        generate_config()
+    
     try:
         logger.info("Starting Antigravity OAuth login...")
         result = subprocess.run(
-            [str(binary_path), "-antigravity-login"],
+            [str(binary_path), "--config", str(config_path), "-antigravity-login"],
             cwd=str(get_cliproxy_dir()),
         )
         return result.returncode == 0
@@ -282,3 +287,25 @@ def get_cliproxy_url() -> str:
 def get_cliproxy_api_key() -> str:
     """Get the CLIProxyAPI API key."""
     return CLIPROXY_API_KEY
+
+
+def get_cliproxy_status() -> dict:
+    """Get detailed status of CLIProxyAPI."""
+    installed = is_cliproxy_installed()
+    running = is_cliproxy_running()
+    
+    # Check for OAuth tokens
+    auth_dir = Path.home() / ".cli-proxy-api"
+    accounts = []
+    if auth_dir.exists():
+        for f in auth_dir.glob("antigravity-*.json"):
+            accounts.append(f.name.replace("antigravity-", "").replace(".json", ""))
+    
+    return {
+        "installed": installed,
+        "running": running,
+        "binary_path": str(get_cliproxy_binary_path()) if installed else None,
+        "config_path": str(get_cliproxy_config_path()) if get_cliproxy_config_path().exists() else None,
+        "port": CLIPROXY_PORT,
+        "accounts": accounts,
+    }
