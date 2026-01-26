@@ -1,0 +1,26 @@
+{
+  "id": "ai.chat",
+  "name": "Ai Chat",
+  "version": "1.0.0",
+  "author": "Fuse Official",
+  "category": "ai",
+  "description": "Ai Chat node",
+  "tags": [
+    "ai"
+  ],
+  "icon": "cpu",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "min PythonVersion": "3.9"
+  },
+  "inputs": [],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

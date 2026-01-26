@@ -1,0 +1,26 @@
+{
+  "id": "ai.agent",
+  "name": "Ai Agent",
+  "version": "1.0.0",
+  "author": "Fuse Official",
+  "category": "ai",
+  "description": "Ai Agent node",
+  "tags": [
+    "ai"
+  ],
+  "icon": "cpu",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "min PythonVersion": "3.9"
+  },
+  "inputs": [],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

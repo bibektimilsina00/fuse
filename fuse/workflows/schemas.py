@@ -153,9 +153,9 @@ class AIWorkflowRequest(BaseModel):
 
 
 class AIWorkflowResponse(BaseModel):
-    message: str
-    # This now returns the full V2 structure
-    workflow: WorkflowV2
+    # Frontend expects these at top level
+    nodes: List[WorkflowNodeV2]
+    edges: List[WorkflowEdgeV2]
     suggestions: Optional[List[str]] = None
 
 

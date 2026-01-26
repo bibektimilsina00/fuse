@@ -1,0 +1,26 @@
+{
+  "id": "whatsapp.send",
+  "name": "Whatsapp Send",
+  "version": "1.0.0",
+  "author": "Fuse Official",
+  "category": "communication",
+  "description": "Whatsapp Send node",
+  "tags": [
+    "communication"
+  ],
+  "icon": "message-circle",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "min PythonVersion": "3.9"
+  },
+  "inputs": [],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

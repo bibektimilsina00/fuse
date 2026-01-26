@@ -1,0 +1,26 @@
+{
+  "id": "loop",
+  "name": "Loop",
+  "version": "1.0.0",
+  "author": "Fuse Official",
+  "category": "logic",
+  "description": "Loop node",
+  "tags": [
+    "logic"
+  ],
+  "icon": "git-branch",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "min PythonVersion": "3.9"
+  },
+  "inputs": [],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

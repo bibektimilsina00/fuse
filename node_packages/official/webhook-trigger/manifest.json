@@ -1,0 +1,26 @@
+{
+  "id": "webhook.trigger",
+  "name": "Webhook Trigger",
+  "version": "1.0.0",
+  "author": "Fuse Official",
+  "category": "triggers",
+  "description": "Webhook Trigger node",
+  "tags": [
+    "triggers"
+  ],
+  "icon": "zap",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "min PythonVersion": "3.9"
+  },
+  "inputs": [],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

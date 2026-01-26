@@ -1,0 +1,26 @@
+{
+  "id": "google.sheets",
+  "name": "Google Sheets",
+  "version": "1.0.0",
+  "author": "Fuse Official",
+  "category": "data",
+  "description": "Google Sheets node",
+  "tags": [
+    "data"
+  ],
+  "icon": "database",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "min PythonVersion": "3.9"
+  },
+  "inputs": [],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

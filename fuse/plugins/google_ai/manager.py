@@ -177,7 +177,7 @@ def is_cliproxy_running() -> bool:
     """Check if CLIProxyAPI is running by pinging the health endpoint."""
     try:
         with httpx.Client(timeout=2.0) as client:
-            resp = client.get(f"http://127.0.0.1:{CLIPROXY_PORT}/health")
+            resp = client.get(f"http://127.0.0.1:{CLIPROXY_PORT}/")
             return resp.status_code == 200
     except:
         return False

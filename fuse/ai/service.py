@@ -110,6 +110,41 @@ class AIWorkflowService:
             if project_id and access_token:
                 # CLIProxyAPI Mode - Models available through CLIProxyAPI
                 # These are the models registered by Antigravity OAuth login
+                try:
+                    if cliproxy_manager.is_cliproxy_running():
+                        CLIPROXY_URL = cliproxy_manager.get_cliproxy_url()
+                        
+                        async with httpx.AsyncClient(timeout=5.0) as client:
+                            resp = await client.get(f"{CLIPROXY_URL}/v1/models")
+                            if resp.status_code == 200:
+                                data = resp.json()
+                                # Handle OpenAI-compatible response { "data": [...] }
+                                model_list = data.get("data", []) if isinstance(data, dict) else data
+                                
+                                dynamic_models = []
+                                for m in model_list:
+                                    mid = m.get("id")
+                                    if mid:
+                                        # Determine provider label based on ID/owner
+                                        model_provider = "google"
+                                        if "claude" in mid:
+                                            model_provider = "anthropic"
+                                        elif "gpt" in mid:
+                                            model_provider = "openai"
+                                            
+                                        dynamic_models.append({
+                                            "id": mid,
+                                            "label": mid, # The ID is usually descriptive enough e.g. gemini-2.0-flash
+                                            "provider": model_provider,
+                                            "description": f"Managed via Antigravity" 
+                                        })
+                                
+                                if dynamic_models:
+                                    return dynamic_models
+                except Exception as e:
+                    logger.warning(f"Failed to fetch dynamic models from CLIProxy: {e}")
+
+                # Fallback to static list if dynamic fetch fails
                 return [
                     {
                         "id": "gemini-3-pro-preview",
@@ -309,9 +344,21 @@ class AIWorkflowService:
         # Override model provider if credential specifies one
         provider = model
         if credential_data:
-            provider = credential_data.get("provider")
-            if not provider:
-                provider = credential_data.get("type", model)
+            # Extract provider from credential type
+            cred_type = credential_data.get("type", "").lower()
+            cred_provider = credential_data.get("provider", "").lower()
+            
+            # github_copilot, google_ai, etc.
+            if cred_type in ["github_copilot", "google_ai", "gemini"]:
+                provider = cred_type
+            elif cred_provider:
+                provider = cred_provider
+            
+            logger.info(f"Using credential provider: {provider} (type={cred_type})")
+        
+        # Strip provider prefix from model if present (e.g., "openai/gpt-4" -> "gpt-4")
+        if "/" in model:
+            model = model.split("/")[-1]
 
         try:
             if provider == "gemini" or provider == "google_ai":
@@ -463,7 +510,11 @@ Trigger nodes have no incoming edges
 execution MUST include: mode ("sync" | "async"), timeout_seconds, retry.max_attempts, retry.strategy, concurrency
 
 📊 OBSERVABILITY RULES
-observability MUST include: logging, metrics, tracing
+observability MUST include ONLY these THREE BOOLEAN fields:
+- logging: true | false
+- metrics: true | false  
+- tracing: true | false
+DO NOT add nested objects or extra properties. ONLY booleans.
 
 🤖 AI METADATA RULES
 ai MUST include: generated_by, confidence, prompt_version
@@ -733,11 +784,28 @@ Generate one complete workflow JSON that fully satisfies the user request and st
                         elif key == "ai":
                             workflow_data[key] = {"generated_by": "workflow-llm"}
 
+                # Normalize observability fields to ensure they're simple booleans
+                if "observability" in workflow_data:
+                    obs = workflow_data["observability"]
+                    # Convert complex objects to simple booleans
+                    for field in ["logging", "metrics", "tracing"]:
+                        if field in obs:
+                            val = obs[field]
+                            # If it's a dict/object, extract 'enabled' or just set to True
+                            if isinstance(val, dict):
+                                obs[field] = val.get("enabled", True)
+                            # Ensure it's a boolean
+                            elif not isinstance(val, bool):
+                                obs[field] = bool(val)
+
+
+                # Extract nodes and edges for frontend compatibility
+                nodes = workflow_data.get("graph", {}).get("nodes", [])
+                edges = workflow_data.get("graph", {}).get("edges", [])
+
                 return {
-                    "message": workflow_data["meta"].get(
-                        "description", "Workflow generated by AI"
-                    ),
-                    "workflow": workflow_data,  # Return the full V2 object
+                    "nodes": nodes,  # Frontend expects this at top level
+                    "edges": edges,  # Frontend expects this at top level
                     "suggestions": [
                         "Configure credential fields",
                         "Test workflow execution",
@@ -878,8 +946,17 @@ Generate one complete workflow JSON that fully satisfies the user request and st
                         "claude-opus-4-5-thinking": "gemini-claude-opus-4-5-thinking",
                         "gemini-3-pro": "gemini-3-pro-preview",
                         "gemini-3-flash": "gemini-3-flash-preview",
+                        "gpt-4o": "gemini-3-pro-preview", # Fallback to best avail
+                        "gpt-4o-mini": "gemini-2.0-flash", # Fallback to fast avail
+                        "openai/gpt-4o-mini": "gemini-2.0-flash",
                     }
                     proxy_model = model_mapping.get(target_model, target_model)
+                    
+                    # If still unmapped and looks like GPT, default to a supported one
+                    if "gpt" in proxy_model and proxy_model not in model_mapping.values():
+                         proxy_model = "gemini-3-pro-preview" 
+                    
+
                     
                     logger.info(f"CLIProxyAPI request: model={proxy_model}")
                     
