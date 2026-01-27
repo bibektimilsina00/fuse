@@ -945,17 +945,10 @@ Generate one complete workflow JSON that fully satisfies the user request and st
             # CLIProxyAPI handles OAuth token refresh, request formatting, and endpoint fallback
             if access_token:
                 try:
-                    # Ensure CLIProxyAPI is running (auto-downloads and starts if needed)
-                    if not cliproxy_manager.is_cliproxy_running():
-                        logger.info("Starting CLIProxyAPI...")
-                        if not cliproxy_manager.start_cliproxy():
-                            raise ValueError(
-                                "Failed to start CLIProxyAPI. Please run 'fuse cliproxy-login' to set up Google OAuth."
-                            )
-                    
-                    # Get CLIProxyAPI connection details
-                    CLIPROXY_URL = cliproxy_manager.get_cliproxy_url()
-                    CLIPROXY_API_KEY = cliproxy_manager.get_cliproxy_api_key()
+                    # Ensure CLIProxyAPI is running - DO NOT auto-start from here
+                    # User should start it from the Plugins page
+                    if not await self._is_proxy_running():
+                        raise ValueError("Google AI Plugin (Antigravity) is not running. Please start it from the Plugins page.")
                     
                     target_model = model or "gemini-3-pro-preview"
                     if "/" in target_model:

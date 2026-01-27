@@ -11,9 +11,10 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlmodel import Session, select
 import httpx
-import logging
+import json
+import base64
+from fuse.plugins.registry import plugin_registry
 
-logger = logging.getLogger(__name__)
 
 from fuse.auth.dependencies import get_db, get_current_user
 from fuse.auth.models import User
@@ -278,21 +279,13 @@ import json
 import base64
 from urllib.parse import urlencode
 
-OAUTH_CONFIG = {
+STATIC_OAUTH_CONFIG = {
     "google_sheets": {
         "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
         "token_url": "https://oauth2.googleapis.com/token",
         "scopes": "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly",
         "client_id": settings.GOOGLE_CLIENT_ID,
         "client_secret": settings.GOOGLE_CLIENT_SECRET,
-    },
-    "google_ai": {
-        "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
-        "token_url": "https://oauth2.googleapis.com/token",
-        # Must match Antigravity plugin scopes for Pro tier features (Claude, etc.)
-        "scopes": "https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/cclog https://www.googleapis.com/auth/experimentsandconfigs",
-        "client_id": "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
-        "client_secret": "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",
     },
     "slack": {
         "auth_url": "https://slack.com/oauth/v2/authorize",
@@ -310,13 +303,31 @@ OAUTH_CONFIG = {
     },
 }
 
+def get_oauth_config(provider: str) -> Optional[dict]:
+    """Get OAuth config from static list or plugins."""
+    # 1. Check static config
+    if provider in STATIC_OAUTH_CONFIG:
+        return STATIC_OAUTH_CONFIG[provider]
+    
+    # 2. Check plugins
+    # Provider might be 'google_ai' but plugin id is 'google-ai-antigravity'
+    # We should look for a plugin that has oauth_config and matches provider ID
+    for pkg in plugin_registry.list_plugins():
+        manifest = pkg.manifest_data
+        if manifest.get("id") == provider or manifest.get("id").replace("-", "_") == provider:
+            if "oauth_config" in manifest:
+                return manifest["oauth_config"]
+    
+    return None
+
+
 
 @router.get("/oauth/{provider}/authorize")
 async def oauth_authorize(
     provider: str, current_user: User = Depends(get_current_user)
 ):
     """Initiate OAuth flow for a provider."""
-    config = OAUTH_CONFIG.get(provider)
+    config = get_oauth_config(provider)
     if not config:
         raise HTTPException(
             status_code=400, detail=f"OAuth not supported for {provider}"
@@ -371,7 +382,7 @@ async def oauth_callback(
     session: Session = Depends(get_db),
 ):
     """Handle OAuth callback and save credential."""
-    config = OAUTH_CONFIG.get(provider)
+    config = get_oauth_config(provider)
     if not config:
         raise HTTPException(status_code=400, detail="Invalid provider")
 
