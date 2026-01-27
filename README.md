@@ -1,240 +1,153 @@
-# 🚀 Fuse - Workflow Automation
+# 🚀 Fuse - The AI-Native Automation Engine
 
 [![PyPI version](https://badge.fury.io/py/fuse-io.svg)](https://badge.fury.io/py/fuse-io)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Fuse** is a powerful **local-first** workflow automation platform with visual builder, AI integration, and extensive node library. Build complex automations with a drag-and-drop interface, similar to n8n and Zapier, but optimized for local deployment and AI-powered workflows.
+**Fuse** is a powerful **local-first** workflow automation platform designed from the ground up for the agentic era. Build complex, intelligent automations with a beautiful visual builder, modular node system, and deep AI integration.
 
-> **"Keep your workflows in constant fuse"** ⚡
+> **"Bridging the gap between AI capabilities and real-world processes."** ⚡
+
+---
+
+## 🌟 Why Fuse?
+
+Unlike traditional automation tools, Fuse is built with an **AI-first** philosophy. It doesn't just "support" AI; it treats LLMs and Agents as first-class citizens of your workflow ecosystem.
+
+- **🔒 Local-First & Privacy-Centric**: Run your workflows locally. Your data, your rules.
+- **🤖 Agentic Orchestration**: Native support for autonomous AI Agents that can plan, execute, and iterate.
+- **🔌 Infinite Extensibility**: A modular architecture where every node and plugin is an isolated, versioned package.
+- **🌌 Antigravity Support**: Dynamic proxying to unlock pro-tier models (Claude 3.5/4.5, Gemini Pro) via local entitlements.
+
+---
 
 ## ✨ Features
 
 ### 🎨 Visual Workflow Builder
-- **Drag-and-drop** interface powered by React Flow
-- Real-time workflow execution with live log streaming
-- Support for parallel execution, loops, and conditional branching
-- **29+ pre-built nodes** including triggers, actions, AI, and logic nodes
+- **Intuitive Canvas**: Drag-and-drop interface powered by **React Flow**.
+- **Real-time Observability**: Live execution logs streamed directly to the UI via WebSockets.
+- **Advanced Logic**: Built-in support for parallel execution, loops, and conditional branching.
+- **40+ Pre-built Nodes**: A massive library of triggers and actions ready to use.
 
-### 🤖 AI-Powered Automation
-- Built-in **AI LLM nodes** supporting OpenAI, Anthropic, and Google AI
-- **AI Agent** nodes for autonomous task completion
-- AI-assisted workflow generation from natural language prompts
-- Token usage tracking and cost monitoring
+### 🤖 AI Native Capabilities
+- **Multi-LLM Support**: Seamless switching between OpenAI, Anthropic, and Google AI.
+- **AI-Assisted Creation**: Describe your goal in natural language and watch Fuse build the workflow for you.
+- **Cost Monitoring**: Automatic tracking of token usage and execution costs.
+- **Human-in-the-loop**: Pause execution for manual approval or input.
 
-### 🔌 Extensive Integration Library
-- **Triggers**: Manual, Cron, Webhook, Email, Form, RSS, WhatsApp
-- **Actions**: HTTP requests, Google Sheets, Slack, Discord, Email
-- **Logic**: Conditions, Switch/Case, Loops, Merge, Delay, Pause
-- **Data**: Transform, Store, Set Variables
-- **Code**: Python and JavaScript execution nodes
+### 🏗️ Modular Ecosystem
+- **`node_packages/`**: A standard for defining workflow nodes with isolated requirements and backend logic.
+- **`plugin_packages/`**: Extend the core platform with custom services, UI panels, and background processes.
 
-### 🔒 Security & Performance
-- **JWT-based authentication** with secure session management
-- **Rate limiting** and **circuit breaker** patterns for external API calls
-- **PostgreSQL** database with Alembic migrations
-- **Redis** for caching and Celery task queue
-- **WebSocket support** for real-time updates
+---
 
-## 📦 Installation
+## 📦 Getting Started
 
-### Quick Start
+The recommended way to install and run Fuse is using **[uv](https://github.com/astral-sh/uv)** for high-performance Python management.
+
+### 1. Installation
 
 ```bash
-pip install fuse-io
+uv pip install fuse-io
 ```
 
-### Initialize and Start
+### 2. Initialize Project
 
 ```bash
-# Initialize configuration
+# Set up your environment and initial database
 fuse init
+```
 
-# Start the server and builder
+### 3. Launch the Engine
+
+```bash
+# Start the backend server and frontend dashbard
 fuse start
 ```
 
-Then open your browser to `http://localhost:5678` 🎉
+Your dashboard will be available at **`http://localhost:5678`** 🚀
 
-### Custom Configuration
+---
 
-```bash
-fuse start --host 0.0.0.0 --port 3000 --workers 4 --reload
+## 🏗️ Architecture
+
+Fuse uses a decoupled, three-tier architecture designed for speed and reliability.
+
+```text
+┌──────────────────────────────────────────┐
+│          Dashboard (Next.js)             │
+│   - Visual Builder | Real-time Logs      │
+│   - Node Management | Credentials        │
+└───────────────────┬──────────────────────┘
+                    │ REST + WebSockets
+┌───────────────────▼──────────────────────┐
+│          Core Engine (FastAPI)           │
+│   - JWT Auth | Workflow Orchestrator     │
+│   - Plugin Discovery | Node Execution     │
+└─────────┬────────────────────────┬───────┘
+          │                        │
+┌─────────▼─────────┐    ┌─────────▼────────┐
+│    SQLModel DB    │    │  Redis + Celery  │
+│  (Workflows/Logs) │    │  (Async tasks)   │
+└───────────────────┘    └──────────────────┘
 ```
 
-## 🛠 Development Setup
+---
+
+## � The Antigravity Plugin
+
+The **Antigravity** plugin is Fuse's "secret sauce." It allows you to use high-tier models (like Claude 3.5 Sonnet or Gemini 1.5 Pro) using your existing Google AI entitlements by proxying requests through your local machine.
+
+- **Unlock Zero-Cost Pro Tier**: Leverages free-tier or paid entitlements directly through your browser's authenticated session.
+- **Local CLIProxyAPI**: A lightweight local server that bridges standard OpenAI/Anthropic API calls to the Antigravity proxy.
+
+---
+
+## 🛠️ Development Setup
+
+If you want to contribute to the core engine or build custom nodes:
 
 ### Prerequisites
-- Python 3.10 or higher
-- PostgreSQL 14+
-- Redis 6+
-- Node.js 18+ (for frontend development)
+- Python 3.10+
+- Node.js 18+
+- [uv](https://github.com/astral-sh/uv)
 
 ### Clone and Install
-
 ```bash
 git clone https://github.com/fuse-io/fuse.git
 cd fuse
 
-# Backend setup
+# Backend Setup
 cd fuse_backend
-pip install -e ".[dev]"
+uv venv
+source .venv/bin/activate
+uv pip install -e ".[dev]"
 
-# Frontend setup
+# Frontend Setup
 cd ../fuse_frontend
 npm install
 npm run dev
 ```
 
-### Environment Configuration
-
-Create a `.env` file in the `fuse_backend` directory:
-
-```bash
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/fuse
-
-# Redis
-REDIS_URL=redis://localhost:6379/0
-
-# Security
-SECRET_KEY=your-secret-key-change-in-production
-
-# AI API Keys (Optional)
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-GOOGLE_API_KEY=AIza...
-
-# OAuth (Optional)
-GOOGLE_OAUTH_CLIENT_ID=...
-GOOGLE_OAUTH_CLIENT_SECRET=...
-SLACK_OAUTH_CLIENT_ID=...
-SLACK_OAUTH_CLIENT_SECRET=...
-```
-
-### Run with Docker
-
-```bash
-docker-compose up --build
-```
-
-Access the application at `http://localhost:8000`
-
-## 📚 Usage Examples
-
-### Creating Your First Workflow
-
-1. **Add a Trigger**: Start with a Manual Trigger, Webhook, or Cron Schedule
-2. **Add Actions**: Connect HTTP Request, Google Sheets, or AI nodes
-3. **Add Logic**: Use conditions, loops, or parallel branches
-4. **Test & Deploy**: Click "Execute" to test, then activate for production
-
-### Example: AIowered Data Processing
-
-```python
-# Workflow structure:
-# Trigger (Manual) → HTTP Request → AI LLM → Transform → Google Sheets
-```
-
-1. Fetch data from an API
-2. Process with AI (summarize, classify, extract)
-3. Transform the results
-4. Save to Google Sheets
-
-### Example: Scheduled Report Generation
-
-```python
-# Workflow structure:
-# Cron Trigger → Read Sheets → Loop → AI Agent → Email
-```
-
-1. Run daily at 9 AM
-2. Read data from Google Sheets
-3. Loop through each row
-4. Generate insights with AI
-5. Send email report
-
-## 🏗 Architecture
-
-```
-┌─────────────────────────────────────────┐
-│         Frontend (Next.js)              │
-│   - React Flow Workflow Builder         │
-│   - Real-time Logs (WebSocket)          │
-│   - Node Configuration UI                │
-└──────────────────┬──────────────────────┘
-                   │ HTTP + WebSocket
-┌──────────────────▼──────────────────────┐
-│         Backend (FastAPI)               │
-│   - REST API (JWT Auth)                 │
-│   - WebSocket for live logs             │
-│   - Workflow Engine                     │
-└──────────────────┬──────────────────────┘
-                   │
-        ┌──────────┴──────────┐
-        │                     │
-┌───────▼────────┐   ┌────────▼─────────┐
-│   PostgreSQL   │   │   Redis + Celery │
-│  (Workflows &  │   │  (Task Queue &   │
-│   Executions)  │   │     Cache)       │
-└────────────────┘   └──────────────────┘
-```
-
-## 🚀 CLI Commands
-
-```bash
-# Start server
-fuse start [--host HOST] [--port PORT] [--workers N] [--reload]
-
-# Initialize project
-fuse init
-
-# Show version
-fuse version
-
-# Help
-fuse --help
-```
-
-## 🔐 Security Best Practices
-
-1. **Change default SECRET_KEY** in production
-2. Use **environment variables** for sensitive data
-3. Enable **rate limiting** for public endpoints
-4. Use **HTTPS** in production deployments
-5. Regularly **rotate API keys** and credentials
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+We love contributions! Whether it's a new node, a bug fix, or a feature request, feel free to open a PR.
 
-### Development Workflow
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Inspired by [n8n](https://n8n.io/) and [Zapier](https://zapier.com/)
-- Built with [FastAPI](https://fastapi.tiangolo.com/)
-- UI powered by [React Flow](https://reactflow.dev/)
-- Based on [full-stack-fastapi-template](https://github.com/tiangolo/full-stack-fastapi-template)
-
-## 📞 Support
-
-- 📖 [Documentation](https://github.com/fuse-io/fuse#readme)
-- 🐛 [Issue Tracker](https://github.com/fuse-io/fuse/issues)
-- 💬 [Discussions](https://github.com/fuse-io/fuse/discussions)
+1. Fork the repo.
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4. Push to the branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
 
 ---
 
-**Made with ⚡ by [Bibek Timilsina](https://github.com/bibektimilsina)**
+## 📄 License
 
-*Fuse - Keep your workflows in constant fuse* 🌊
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+**Built with ⚡ by [Bibek Timilsina](https://github.com/bibektimilsina)**
+*Keep your workflows in constant fuse* 🌊
