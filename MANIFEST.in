@@ -9,6 +9,8 @@ recursive-exclude fuse/__pycache__ *
 
 recursive-include docs *.md
 recursive-include scripts *.sh
+recursive-include node_packages *
+recursive-include plugin_packages *
 
 global-exclude __pycache__
 global-exclude *.py[co]
