@@ -1,21 +1,41 @@
 {
-  "id": "code.executor",
-  "name": "Code Executor",
+  "id": "code.python",
+  "name": "Python Code",
   "version": "1.0.0",
   "author": "Fuse Official",
   "category": "utilities",
-  "description": "Code Executor node",
+  "description": "Execute custom Python code with access to workflow data",
   "tags": [
+    "code",
+    "python",
+    "custom",
+    "script",
     "utilities"
   ],
-  "icon": "tool",
+  "icon": "code",
   "runtime": {
-    "type": "internal",
+    "type": "code",
     "language": "python",
-    "min PythonVersion": "3.9"
+    "minPythonVersion": "3.9"
   },
-  "inputs": [],
-  "outputs": [],
+  "inputs": [
+    {
+      "name": "code",
+      "type": "code",
+      "label": "Python Code",
+      "required": true,
+      "default": "# Python Script\n# Available variables:\n# - input_data: Data from previous node\n# - context: Workflow context\n\nresult = {\n    \"message\": \"Hello from Python!\",\n    \"input\": input_data,\n    \"processed\": True\n}\n\nreturn result",
+      "description": "Python code to execute (use 'return' to output data)"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "type": "json",
+      "label": "Result",
+      "description": "Output from the Python code"
+    }
+  ],
   "credentials": null,
   "pricing": {
     "model": "free",

@@ -109,10 +109,17 @@ class WorkflowService:
         # Graph - Nodes
         nodes = []
         for node in workflow.nodes:
+            # Get node package from registry
+            node_package = NodeRegistry.get_node(node.node_type)
+            
             # Determine kind (trigger, action, logic)
-            node_class = NodeRegistry.get_node(node.node_type)
-            node_instance = node_class() if node_class else None
-            kind = node_instance.schema.type if node_instance else "action"
+            kind = "action"
+            if node_package:
+                category = node_package.manifest.get("category", "")
+                if category == "triggers":
+                    kind = "trigger"
+                elif category in ["logic", "flow"]:
+                    kind = "logic"
             
             # Ensure spec is valid V2 (Rule 7)
             spec = node.spec or {}
@@ -121,8 +128,7 @@ class WorkflowService:
             
             if "runtime" not in spec:
                 runtime_type = "internal"
-                if node_instance:
-                    runtime_type = node_instance.schema.runtime.value
+                # If we had special runtime support in manifest, we could read it here
                 spec["runtime"] = {"type": runtime_type}
             
             if "config" not in spec:
@@ -134,6 +140,7 @@ class WorkflowService:
                 "ui": {
                     "label": node.label,
                     "icon": node.icon,
+                    "icon_svg": node_package.manifest.get("icon_svg") if node_package else None,
                     "position": {"x": node.position_x, "y": node.position_y}
                 },
                 "spec": spec

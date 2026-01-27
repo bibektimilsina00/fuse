@@ -1,0 +1,15 @@
+{
+    "id": "google-ai-antigravity",
+    "name": "Google AI / Antigravity",
+    "description": "Unlock high-tier models (Claude Sonnet 3.5/4.5, Gemini 3 Pro) using your Google AI entitlement. Proxies requests via your local machine.",
+    "version": "6.7.15",
+    "author": "Bibek Timilsina",
+    "category": "ai-proxy",
+    "capabilities": {
+        "can_install": true,
+        "can_start": true,
+        "can_stop": true,
+        "can_login": true,
+        "can_uninstall": true
+    }
+}

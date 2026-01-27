@@ -16,3 +16,6 @@ api_router.include_router(credentials_router, prefix="/credentials", tags=["cred
 
 from fuse.plugins.router import router as plugins_router
 api_router.include_router(plugins_router, prefix="/plugins", tags=["plugins"])
+
+from fuse.nodes.router import router as nodes_router
+api_router.include_router(nodes_router, prefix="/nodes", tags=["nodes"])

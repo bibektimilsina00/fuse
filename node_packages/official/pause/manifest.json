@@ -1,18 +1,21 @@
 {
-  "id": "pause",
+  "id": "logic.pause",
   "name": "Pause",
   "version": "1.0.0",
   "author": "Fuse Official",
   "category": "logic",
-  "description": "Pause node",
+  "description": "Pause workflow execution until manually resumed.",
   "tags": [
+    "pause",
+    "wait",
+    "manual",
     "logic"
   ],
-  "icon": "git-branch",
+  "icon": "pause",
   "runtime": {
     "type": "internal",
     "language": "python",
-    "min PythonVersion": "3.9"
+    "minPythonVersion": "3.9"
   },
   "inputs": [],
   "outputs": [],

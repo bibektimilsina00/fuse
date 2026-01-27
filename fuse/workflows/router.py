@@ -278,7 +278,8 @@ def _get_node_types_cached() -> List[Dict[str, Any]]:
     from fuse.workflows.engine.nodes.registry import NodeRegistry
 
     schemas = NodeRegistry.get_all_schemas()
-    return [schema.model_dump() for schema in schemas]
+    # New registry returns dicts, not Pydantic models
+    return [s if isinstance(s, dict) else s.model_dump() for s in schemas]
 
 
 @router.get("/nodes/types", response_model=List[Dict[str, Any]])
@@ -308,25 +309,34 @@ async def get_node_options(
     logger.debug(f"get_node_options called with: {request}")
     from fuse.workflows.engine.nodes.registry import NodeRegistry
 
-    node_cls = NodeRegistry.get_node(request.node_type)
-    if not node_cls:
+    node_pkg = NodeRegistry.get_node(request.node_type)
+    if not node_pkg:
         logger.debug(f"Unknown node type {request.node_type}")
         raise HTTPException(
             status_code=400, detail=f"Unknown node type: {request.node_type}"
         )
 
-    node_instance = node_cls()
+    # In new system, helper functions are in the same module as execute()
+    # We can access them via the function's globals (module namespace)
+    method_name = request.method_name
+    execute_fn = node_pkg.execute_fn
+    
+    if not execute_fn or not hasattr(execute_fn, "__globals__"):
+         raise HTTPException(
+            status_code=500, detail="Cannot inspect node module"
+        )
+        
+    method = execute_fn.__globals__.get(method_name)
 
-    if not hasattr(node_instance, request.method_name):
+    if not method:
         raise HTTPException(
             status_code=400,
-            detail=f"Method {request.method_name} not found on node {request.node_type}",
+            detail=f"Method {method_name} not found on node {request.node_type}",
         )
 
-    method = getattr(node_instance, request.method_name)
     if not callable(method):
         raise HTTPException(
-            status_code=400, detail=f"Attribute {request.method_name} is not callable"
+            status_code=400, detail=f"Attribute {method_name} is not callable"
         )
 
     # Construct minimal context if needed, mostly for logging or user ID
@@ -454,8 +464,9 @@ async def execute_node(
 
     from fuse.workflows.engine.nodes.registry import NodeRegistry
 
-    node_cls = NodeRegistry.get_node(node.node_type)
-    if not node_cls:
+    # Verify node type exists
+    node_pkg = NodeRegistry.get_node(node.node_type)
+    if not node_pkg:
         raise HTTPException(
             status_code=400, detail=f"Unknown node type: {node.node_type}"
         )
@@ -464,8 +475,6 @@ async def execute_node(
     config_override = request.config
 
     try:
-        node_instance = node_cls()
-
         # Use config override if provided, otherwise fallback to DB spec
         node_config = (
             config_override
@@ -481,15 +490,14 @@ async def execute_node(
         logger.debug(f"Input: {input_data}")
         logger.debug(f"Config: {node_config}")
 
-        context = {
-            "workflow_id": str(workflow.id),
-            "node_id": node.node_id,
-            "node_config": node_config,
-            "is_test": True,
-        }
-
-        # Execute node
-        result = await node_instance.execute(context, input_data)
+        # Execute node logic
+        result = await NodeRegistry.execute_node(
+            node_id=node.node_type,
+            config=node_config,
+            inputs=input_data,
+            credentials=None  # Test execution might need credential lookup logic if we supported it
+        )
+        
         return ExecuteNodeResponse(
             status="completed",
             result=result if isinstance(result, dict) else {"_output": result},

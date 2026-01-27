@@ -1,0 +1,68 @@
+{
+  "id": "google.sheets.read",
+  "name": "Google Sheets Read",
+  "version": "1.0.0",
+  "author": "Fuse Official",
+  "category": "data",
+  "description": "Read rows from a Google Sheet.",
+  "tags": [
+    "google",
+    "sheets",
+    "spreadsheet",
+    "data",
+    "read"
+  ],
+  "icon": "sheet",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "minPythonVersion": "3.9"
+  },
+  "inputs": [
+    {
+      "name": "auth",
+      "type": "credential",
+      "label": "Google Account",
+      "credential_type": "google_sheets",
+      "required": true,
+      "description": "Select your Google Sheets account"
+    },
+    {
+      "name": "spreadsheet_id",
+      "type": "select",
+      "label": "Spreadsheet",
+      "required": true,
+      "description": "Select a spreadsheet",
+      "dynamic_options": "list_spreadsheets",
+      "dynamic_dependencies": [
+        "auth"
+      ]
+    },
+    {
+      "name": "range",
+      "type": "string",
+      "label": "Range",
+      "default": "Sheet1!A1:Z50",
+      "required": true,
+      "description": "Range to read (e.g. 'Sheet1!A1:B10')"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "rows",
+      "type": "array",
+      "label": "Rows",
+      "description": "Array of row values"
+    }
+  ],
+  "credentials": {
+    "type": "google_sheets",
+    "optional": false
+  },
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

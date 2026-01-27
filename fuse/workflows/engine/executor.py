@@ -115,11 +115,11 @@ async def run_node_logic(execution_id: uuid.UUID, node_execution_id: uuid.UUID):
         )
 
     try:
-        node_cls = NodeRegistry.get_node(node.node_type)
-        if not node_cls:
+        # Check if node exists in new registry
+        node_pkg = NodeRegistry.get_node(node.node_type)
+        if not node_pkg:
             raise ValueError(f"Unknown node type: {node.node_type}")
 
-        node_instance = node_cls()
         context = {
             "workflow_id": str(workflow_id),
             "execution_id": str(execution_id),
@@ -130,15 +130,29 @@ async def run_node_logic(execution_id: uuid.UUID, node_execution_id: uuid.UUID):
 
         logger.info(f"Executing node {node.node_id} ({node.node_type})...")
 
+        # Wrapper to adapt new execute_node to RetryHandler signature
+        async def _execute_pro(ctx_: Dict, inp_: Any):
+            return await NodeRegistry.execute_node(
+                node_id=node.node_type,
+                config=node_config,
+                inputs=inp_,
+                credentials=None
+            )
+
         # Execute with retry support if configured
         if max_retries > 0:
             result, attempts = await RetryHandler.execute_with_retry(
-                node_instance.execute, context, input_data, max_retries=max_retries
+                _execute_pro, context, input_data, max_retries=max_retries
             )
             if attempts > 1:
                 logger.info(f"Node {node.node_id} succeeded after {attempts} attempts")
         else:
-            result = await node_instance.execute(context, input_data)
+            result = await NodeRegistry.execute_node(
+                node_id=node.node_type,
+                config=node_config,
+                inputs=input_data,
+                credentials=None
+            )
 
         with Session(db_engine) as session:
             state.update_node_status(

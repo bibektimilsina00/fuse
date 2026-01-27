@@ -1,69 +1,19 @@
-# Trigger nodes
-from fuse.workflows.engine.nodes.triggers.manual import ManualTriggerNode
-from fuse.workflows.engine.nodes.triggers.whatsapp import WhatsAppTriggerNode
-from fuse.workflows.engine.nodes.triggers.schedule import ScheduleTriggerNode
-from fuse.workflows.engine.nodes.triggers.webhook import WebhookTriggerNode
-from fuse.workflows.engine.nodes.triggers.email import EmailTriggerNode
-from fuse.workflows.engine.nodes.triggers.form import FormTriggerNode
-from fuse.workflows.engine.nodes.triggers.rss import RSSFeedTriggerNode
+"""
+Workflow Nodes Package
 
-# Action nodes
-from fuse.workflows.engine.nodes.actions.http_request import HTTPRequestNode
-from fuse.workflows.engine.nodes.actions.code import CodeNode, JSCodeNode
-from fuse.workflows.engine.nodes.actions.whatsapp import WhatsAppActionNode
-from fuse.workflows.engine.nodes.actions.discord import DiscordSendNode
-from fuse.workflows.engine.nodes.actions.email import EmailNode
-from fuse.workflows.engine.nodes.actions.slack import SlackNode
-from fuse.workflows.engine.nodes.actions.google_sheets import GoogleSheetsReadNode, GoogleSheetsWriteNode
-from fuse.workflows.engine.nodes.actions.data import DataTransformNode, DataSetNode, DataStoreNode
-from fuse.workflows.engine.nodes.actions.utility import NoOpNode
+Dynamic package-based node system for workflow automation.
 
-# Logic nodes
-from fuse.workflows.engine.nodes.logic.if_node import IfNode
-from fuse.workflows.engine.nodes.logic.switch import SwitchNode
-from fuse.workflows.engine.nodes.logic.merge import MergeNode
-from fuse.workflows.engine.nodes.logic.loop import LoopNode
-from fuse.workflows.engine.nodes.logic.delay import DelayNode
-from fuse.workflows.engine.nodes.logic.parallel import ParallelNode
-from fuse.workflows.engine.nodes.logic.pause import PauseNode
+Nodes are loaded from node_packages/ directory as modular, self-contained packages.
+This replaces the old class-based node system.
+"""
 
-# AI nodes
-from fuse.workflows.engine.nodes.ai.llm import LLMNode
-from fuse.workflows.engine.nodes.ai.agent import AgentNode
+from .loader import NodePackageLoader, NodePackage, get_node_loader, initialize_node_loader
+from .registry import NodeRegistry
 
-# This ensures all nodes are registered when this package is imported
 __all__ = [
-    # Triggers
-    "ManualTriggerNode",
-    "WhatsAppTriggerNode",
-    "ScheduleTriggerNode",
-    "WebhookTriggerNode",
-    "EmailTriggerNode",
-    "FormTriggerNode",
-    "RSSFeedTriggerNode",
-    # Actions
-    "HTTPRequestNode",
-    "CodeNode",
-    "JSCodeNode",
-    "WhatsAppActionNode",
-    "DiscordSendNode",
-    "EmailNode",
-    "SlackNode",
-    "GoogleSheetsReadNode",
-    "GoogleSheetsWriteNode",
-    "DataTransformNode",
-    "DataSetNode",
-    "DataStoreNode",
-    "NoOpNode",
-    # Logic
-    "IfNode",
-    "SwitchNode",
-    "MergeNode",
-    "LoopNode",
-    "DelayNode",
-    "ParallelNode",
-    "PauseNode",
-    # AI
-    "LLMNode",
-    "AgentNode",
+    "NodePackageLoader",
+    "NodePackage", 
+    "NodeRegistry",
+    "get_node_loader",
+    "initialize_node_loader"
 ]

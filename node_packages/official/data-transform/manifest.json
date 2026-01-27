@@ -1,21 +1,41 @@
 {
   "id": "data.transform",
-  "name": "Data Transform",
+  "name": "Transform Data",
   "version": "1.0.0",
   "author": "Fuse Official",
   "category": "utilities",
-  "description": "Data Transform node",
+  "description": "Map, filter, merge, or transform data using Jinja2 templates",
   "tags": [
+    "data",
+    "transform",
+    "map",
+    "filter",
     "utilities"
   ],
-  "icon": "tool",
+  "icon": "shuffle",
   "runtime": {
     "type": "internal",
     "language": "python",
-    "min PythonVersion": "3.9"
+    "minPythonVersion": "3.9"
   },
-  "inputs": [],
-  "outputs": [],
+  "inputs": [
+    {
+      "name": "mapping",
+      "type": "json",
+      "label": "Field Mappings",
+      "required": false,
+      "default": {},
+      "description": "JSON object defining how to transform input data (key: output field, value: template or path)"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "type": "json",
+      "label": "Transformed Data",
+      "description": "The transformed/mapped output data"
+    }
+  ],
   "credentials": null,
   "pricing": {
     "model": "free",

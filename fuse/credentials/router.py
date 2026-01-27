@@ -421,58 +421,15 @@ async def oauth_callback(
 
         token_data = response.json()
 
-        # Fetch Google AI Project ID (Antigravity) with auto-provisioning
+        # Google AI (Antigravity) handling 
+        # Logic removed to decouple core from plugin specifics. 
+        # The plugin itself should handle project provisioning if needed via its own Login flow.
         if provider == "google_ai":
-            try:
-                from fuse.ai.antigravity import (
-                    load_managed_project,
-                    extract_managed_project_id,
-                    onboard_managed_project,
-                    get_default_tier_id,
-                    format_refresh_parts,
-                    RefreshTokenParts,
-                    ANTIGRAVITY_DEFAULT_PROJECT_ID,
-                )
-
-                access_token = token_data.get("access_token")
-                refresh_token = token_data.get("refresh_token")
-
-                # Try to load managed project
-                load_payload = await load_managed_project(access_token)
-                managed_project_id = extract_managed_project_id(load_payload)
-
-                if not managed_project_id:
-                    # No managed project - auto-provision one
-                    logger.info("No managed project found, auto-provisioning...")
-                    tier_id = get_default_tier_id(
-                        load_payload.get("allowedTiers") if load_payload else None
-                    )
-                    managed_project_id = await onboard_managed_project(
-                        access_token,
-                        tier_id,
-                    )
-
-                if managed_project_id:
-                    logger.info(f"Antigravity managed project: {managed_project_id}")
-                    token_data["project_id"] = managed_project_id
-                    token_data["managed_project_id"] = managed_project_id
-
-                    # Store refresh token in proper format: refreshToken|projectId|managedProjectId
-                    if refresh_token:
-                        parts = RefreshTokenParts(
-                            refresh_token=refresh_token,
-                            managed_project_id=managed_project_id,
-                        )
-                        token_data["stored_refresh_token"] = format_refresh_parts(parts)
-                else:
-                    logger.warning(
-                        "Failed to provision managed project, using fallback"
-                    )
-                    token_data["project_id"] = ANTIGRAVITY_DEFAULT_PROJECT_ID
-
-            except Exception as e:
-                logger.error(f"Error fetching Google AI Project ID: {e}")
-                token_data["project_id"] = "rising-fact-p41fc"
+            # Just default to trying to find a project ID if present, or leave empty
+            # The standard token response usually doesn't have project_id unless we asked for it specifically?
+            # Actually, standard Google OAuth response is just tokens.
+            # We will let the plugin manage its own "login" state if it needs complex provisioning.
+            pass
 
         # Encrypt sensitive fields
         encrypted_data = encrypt_credential_data(token_data)

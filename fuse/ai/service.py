@@ -8,7 +8,6 @@ from google import genai
 from openai import OpenAI
 from fuse.config import settings
 from fuse.utils.circuit_breaker import CircuitBreakerOpenError, CircuitBreakers
-from fuse.plugins.google_ai import manager as cliproxy_manager
 import httpx
 import uuid
 
@@ -18,6 +17,10 @@ import fuse.workflows.engine.nodes  # noqa
 
 # No longer importing WorkflowNodePublic, WorkflowEdgePublic, NodeData as we use V2 structure in response parsing
 from fuse.workflows.engine.nodes.registry import NodeRegistry
+
+# Constants for decoupled plugin integration
+CLIPROXY_URL = "http://127.0.0.1:8317"
+CLIPROXY_API_KEY = "fuse-local-dev-key"
 
 FUSE_SYSTEM_PROMPT = """You are Fuse AI, the intelligent backbone and persona of the Fuse automation platform. 
 Fuse is a powerful "AI-first" local-first workflow automation platform created by Bibek Timilsina. It is designed to bridge the gap between complex AI capabilities and real-world business processes through a beautiful, intuitive visual interface.
@@ -85,6 +88,15 @@ class AIWorkflowService:
                 },
             )
 
+    async def _is_proxy_running(self) -> bool:
+        """Check if CLIProxyAPI is running by hitting its root endpoint."""
+        try:
+            async with httpx.AsyncClient(timeout=1.0) as client:
+                resp = await client.get(f"{CLIPROXY_URL}/")
+                return resp.status_code == 200
+        except Exception:
+            return False
+
     async def get_available_models(
         self, credential_data: Dict[str, Any]
     ) -> List[Dict[str, str]]:
@@ -111,8 +123,7 @@ class AIWorkflowService:
                 # CLIProxyAPI Mode - Models available through CLIProxyAPI
                 # These are the models registered by Antigravity OAuth login
                 try:
-                    if cliproxy_manager.is_cliproxy_running():
-                        CLIPROXY_URL = cliproxy_manager.get_cliproxy_url()
+                    if await self._is_proxy_running():
                         
                         async with httpx.AsyncClient(timeout=5.0) as client:
                             resp = await client.get(f"{CLIPROXY_URL}/v1/models")
@@ -429,10 +440,25 @@ class AIWorkflowService:
         )
 
         for schema in schemas:
-            inputs_desc = ", ".join([f"{i.name} ({i.type})" for i in schema.inputs])
-            nodes_desc += f"- {schema.name} (Kind: {schema.type})\n  Description: {schema.description}\n"
-            if inputs_desc:
-                nodes_desc += f"  Config Inputs: {inputs_desc}\n"
+            try:
+                inputs = schema.get("inputs", [])
+                inputs_list = []
+                for i in inputs:
+                    if isinstance(i, dict):
+                         inputs_list.append(f"{i.get('name')} ({i.get('type')})")
+                
+                inputs_desc = ", ".join(inputs_list)
+                
+                name = schema.get("name")
+                kind = schema.get("type", "action")
+                description = schema.get("description", "")
+                
+                nodes_desc += f"- {name} (Kind: {kind})\n  Description: {description}\n"
+                if inputs_desc:
+                    nodes_desc += f"  Config Inputs: {inputs_desc}\n"
+            except Exception as e:
+                logger.warning(f"Error formatting schema for AI prompt: {e}")
+                continue
 
         return f"""ROLE
 You are a workflow architect AI that generates strictly valid JSON workflows for a low-code automation platform.
@@ -605,11 +631,8 @@ Generate one complete workflow JSON that fully satisfies the user request and st
         if access_token:
             try:
                 # Ensure CLIProxyAPI is running - DO NOT auto-start
-                if not cliproxy_manager.is_cliproxy_running():
+                if not await self._is_proxy_running():
                     raise ValueError("Google AI Plugin (Antigravity) is not running. Please start it from the Plugins page.")
-                
-                CLIPROXY_URL = cliproxy_manager.get_cliproxy_url()
-                CLIPROXY_API_KEY = cliproxy_manager.get_cliproxy_api_key()
                 
                 # For basic generation, we use a capable default
                 proxy_model = "gemini-3-pro-preview"

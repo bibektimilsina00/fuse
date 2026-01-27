@@ -1,21 +1,51 @@
 {
-  "id": "switch",
+  "id": "condition.switch",
   "name": "Switch",
   "version": "1.0.0",
   "author": "Fuse Official",
   "category": "logic",
-  "description": "Switch node",
+  "description": "Multi-way branching based on value matching.",
   "tags": [
-    "logic"
+    "switch",
+    "branch",
+    "logic",
+    "route",
+    "match"
   ],
-  "icon": "git-branch",
+  "icon": "git-merge",
   "runtime": {
     "type": "internal",
     "language": "python",
-    "min PythonVersion": "3.9"
+    "minPythonVersion": "3.9"
   },
-  "inputs": [],
-  "outputs": [],
+  "inputs": [
+    {
+      "name": "value",
+      "type": "string",
+      "label": "Value to Switch",
+      "required": true,
+      "description": "The value to check against cases (supports templates)"
+    },
+    {
+      "name": "cases",
+      "type": "json",
+      "label": "Cases",
+      "required": true,
+      "default": {
+        "case1": "val1",
+        "default": "fallback"
+      },
+      "description": "JSON object mapping case names to expected values. Returns the key of matched value."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "matched",
+      "type": "string",
+      "label": "Matched Case",
+      "description": "The key of the matched case (or 'default')"
+    }
+  ],
   "credentials": null,
   "pricing": {
     "model": "free",

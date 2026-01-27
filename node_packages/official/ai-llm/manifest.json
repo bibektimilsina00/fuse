@@ -1,22 +1,67 @@
 {
   "id": "ai.llm",
-  "name": "Ai Llm",
+  "name": "Text Generation (LLM)",
   "version": "1.0.0",
   "author": "Fuse Official",
   "category": "ai",
-  "description": "Ai Llm node",
+  "description": "Generate text using an LLM (Simple completion).",
   "tags": [
-    "ai"
+    "ai",
+    "llm",
+    "text",
+    "generation",
+    "completion"
   ],
-  "icon": "cpu",
+  "icon": "type",
   "runtime": {
     "type": "internal",
     "language": "python",
-    "min PythonVersion": "3.9"
+    "minPythonVersion": "3.9"
   },
-  "inputs": [],
-  "outputs": [],
-  "credentials": null,
+  "inputs": [
+    {
+      "name": "credential",
+      "type": "credential",
+      "label": "AI Provider",
+      "credential_type": "ai_provider,google_ai,github_copilot",
+      "required": true
+    },
+    {
+      "name": "model",
+      "type": "select",
+      "label": "Model",
+      "required": true,
+      "dynamic_options": "get_models",
+      "dynamic_dependencies": [
+        "credential"
+      ]
+    },
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true,
+      "description": "Text prompt to send to the model"
+    },
+    {
+      "name": "temperature",
+      "type": "number",
+      "label": "Temperature",
+      "default": 0.7
+    }
+  ],
+  "outputs": [
+    {
+      "name": "text",
+      "type": "string",
+      "label": "Generated Text",
+      "description": "The model's response"
+    }
+  ],
+  "credentials": {
+    "type": "multi",
+    "optional": false
+  },
   "pricing": {
     "model": "free",
     "price": 0
