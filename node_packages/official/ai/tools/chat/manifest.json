@@ -4,9 +4,9 @@
   "version": 2,
   "nodeVersion": "1.0.0",
   "author": "Fuse Official",
-  "category": "AI",
+  "category": "AI_CHAT_MODEL",
   "service": "core",
-  "connectionType": "flow",
+  "connectionType": "auxiliary",
   "description": "Configure a Chat Model (LLM) for use in agents.",
   "tags": [
     "ai",

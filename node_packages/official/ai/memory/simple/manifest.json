@@ -1,0 +1,34 @@
+{
+    "id": "ai.memory.simple",
+    "name": "Window Buffer Memory",
+    "version": 2,
+    "nodeVersion": "1.0.0",
+    "author": "Fuse Official",
+    "category": "AI_MEMORY",
+    "service": "core",
+    "connectionType": "auxiliary",
+    "description": "Simple sliding window memory for AI agents.",
+    "tags": [
+        "ai",
+        "memory",
+        "buffer"
+    ],
+    "icon": "database",
+    "inputs": [
+        {
+            "name": "window_size",
+            "type": "number",
+            "label": "Window Size",
+            "default": 5,
+            "description": "Number of previous interactions to remember"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "memory",
+            "type": "ai_memory",
+            "label": "Memory",
+            "description": "Memory configuration"
+        }
+    ]
+}

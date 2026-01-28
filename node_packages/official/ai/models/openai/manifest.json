@@ -4,10 +4,10 @@
   "version": 2,
   "nodeVersion": "1.0.0",
   "author": "Fuse Official",
-  "category": "AI",
+  "category": "AI_CHAT_MODEL",
   "service": "openai",
-  "connectionType": "flow",
-  "description": "Generate text using an LLM (Simple completion).",
+  "connectionType": "auxiliary",
+  "description": "GPT and other Chat Models to power AI Agents.",
   "tags": [
     "ai",
     "llm",

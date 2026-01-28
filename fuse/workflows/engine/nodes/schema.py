@@ -10,6 +10,8 @@ class NodeCategory(str, Enum):
     UTILITY = "UTILITY"
     AI = "AI"
     AI_TOOL = "AI_TOOL"
+    AI_MEMORY = "AI_MEMORY"
+    AI_CHAT_MODEL = "AI_CHAT_MODEL"
     AI_ADAPTER = "AI_ADAPTER"
 
 class ConnectionType(str, Enum):
