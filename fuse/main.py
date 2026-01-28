@@ -86,7 +86,7 @@ if static_dir.exists():
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
     # Serve index.html for all non-API routes (SPA fallback)
-    @app.get("/{full_path:path}")
+    @app.api_route("/{full_path:path}", methods=["GET", "HEAD"])
     async def serve_frontend(full_path: str):
         """Serve the frontend application for all non-API routes."""
         # If path starts with api/v1, it should have been handled by API router

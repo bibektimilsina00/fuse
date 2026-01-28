@@ -114,6 +114,12 @@ def read_workflows(
     )
 
 
+@router.get("/new")
+def read_new_workflow():
+    """Handle 'new' placeholder to avoid UUID validation errors."""
+    raise HTTPException(status_code=404, detail="Workflow template not found")
+
+
 @router.get("/{id}", response_model=WorkflowPublic)
 def read_workflow(
     id: uuid.UUID,
