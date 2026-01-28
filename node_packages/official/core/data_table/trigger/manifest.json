@@ -1,0 +1,78 @@
+{
+    "id": "core.data_table.trigger",
+    "name": "Data Table Trigger",
+    "displayName": "Data Table Trigger",
+    "version": 2,
+    "nodeVersion": "1.0.0",
+    "author": "Fuse Official",
+    "category": "TRIGGER",
+    "service": "core",
+    "connectionType": "flow",
+    "description": "Trigger workflows when a row in a data table is created, updated, or deleted.",
+    "tags": [
+        "data",
+        "table",
+        "trigger",
+        "database"
+    ],
+    "icon": "database",
+    "inputs": [
+        {
+            "name": "table_id",
+            "type": "select",
+            "label": "Data Table",
+            "required": true,
+            "typeOptions": {
+                "loadOptionsMethod": "get_table_options"
+            },
+            "description": "Select the data table to monitor"
+        },
+        {
+            "name": "event_type",
+            "type": "select",
+            "label": "Event Type",
+            "default": "any",
+            "options": [
+                {
+                    "label": "Any Change",
+                    "value": "any"
+                },
+                {
+                    "label": "Row Created",
+                    "value": "row_created"
+                },
+                {
+                    "label": "Row Updated",
+                    "value": "row_updated"
+                },
+                {
+                    "label": "Row Deleted",
+                    "value": "row_deleted"
+                }
+            ],
+            "description": "The type of change to trigger on"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "table_id",
+            "type": "string",
+            "label": "Table ID"
+        },
+        {
+            "name": "row_id",
+            "type": "string",
+            "label": "Row ID"
+        },
+        {
+            "name": "data",
+            "type": "collection",
+            "label": "Row Data"
+        },
+        {
+            "name": "action",
+            "type": "string",
+            "label": "Action"
+        }
+    ]
+}

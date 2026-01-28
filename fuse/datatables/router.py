@@ -91,11 +91,7 @@ def create_table_row(
     if not db_table or db_table.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Table not found")
     
-    db_obj = data_table_row.model(**obj_in.model_dump(), table_id=table_id)
-    session.add(db_obj)
-    session.commit()
-    session.refresh(db_obj)
-    return db_obj
+    return data_table_row.create_with_event(session=session, obj_in=obj_in, table_id=table_id)
 
 @router.patch("/{table_id}/rows/{row_id}", response_model=DataTableRowResponse)
 def update_table_row(
@@ -110,7 +106,7 @@ def update_table_row(
     if not db_obj or db_obj.table_id != table_id:
         raise HTTPException(status_code=404, detail="Row not found")
         
-    return data_table_row.update(session=session, db_obj=db_obj, obj_in=obj_in)
+    return data_table_row.update_with_event(session=session, db_obj=db_obj, obj_in=obj_in)
 
 @router.delete("/{table_id}/rows/{row_id}")
 def delete_table_row(
@@ -125,5 +121,5 @@ def delete_table_row(
     if not db_obj or db_obj.table_id != table_id:
         raise HTTPException(status_code=404, detail="Row not found")
         
-    data_table_row.remove(session=session, id=row_id)
+    data_table_row.remove_with_event(session=session, id=row_id)
     return {"status": "success"}

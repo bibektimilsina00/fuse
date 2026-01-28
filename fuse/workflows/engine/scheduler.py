@@ -185,7 +185,7 @@ class WorkflowScheduler:
             for target_id, data in next_nodes_to_schedule:
                 # Rule: Handle Fan-in/Merge synchronization
                 target_node = WorkflowGraph.get_node_by_id(workflow.nodes, target_id)
-                if target_node and (target_node.node_type == "logic.merge" or target_node.label == "Fan In"):
+                if target_node and (target_node.node_type == "logic.merge" or target_node.node_type == "ai.agent" or target_node.label == "Fan In"):
                     # 1. Identify all potential source IDs for this merge
                     incoming_edges = [e for e in workflow.edges if e.target == target_id]
                     source_ids = [e.source for e in incoming_edges]

@@ -39,8 +39,9 @@ class NodeManagementService:
             
             nodes.append({
                 "id": node_id,
-                "name": manifest.get("name", node_id),
-                "version": manifest.get("version", "1.0.0"),
+                "name": manifest.get("displayName") or manifest.get("name") or node_id,
+                "version": manifest.get("version", 1),
+                "nodeVersion": manifest.get("nodeVersion", "1.0.0"),
                 "category": manifest.get("category", "unknown"),
                 "description": manifest.get("description", ""),
                 "manifest": manifest,
@@ -106,7 +107,7 @@ class NodeManagementService:
             # Write manifest.json
             manifest_path = os.path.join(node_dir, "manifest.json")
             with open(manifest_path, "w") as f:
-                json.dump(request.manifest.dict(), f, indent=2)
+                json.dump(request.manifest.model_dump(), f, indent=2)
                 
             # Write execute.py
             code_path = os.path.join(node_dir, "backend", "execute.py")
@@ -145,7 +146,7 @@ class NodeManagementService:
                 manifest_path = os.path.join(package.package_dir, "manifest.json")
                 with open(manifest_path, "w") as f:
                     # Merge? Or replace? Assuming replace for now but should preserve some fields maybe
-                    json.dump(request.manifest.dict(), f, indent=2)
+                    json.dump(request.manifest.model_dump(), f, indent=2)
             
             if request.code:
                 code_path = os.path.join(package.package_dir, "backend", "execute.py")

@@ -1,0 +1,50 @@
+{
+    "id": "core.data_table.add_row",
+    "name": "Add Table Row",
+    "displayName": "Add Table Row",
+    "version": 2,
+    "nodeVersion": "1.0.0",
+    "author": "Fuse Official",
+    "category": "ACTION",
+    "service": "core",
+    "connectionType": "flow",
+    "description": "Add a new row to a data table.",
+    "tags": [
+        "data",
+        "table",
+        "row",
+        "insert"
+    ],
+    "icon": "plus-square",
+    "inputs": [
+        {
+            "name": "table_id",
+            "type": "select",
+            "label": "Data Table",
+            "required": true,
+            "typeOptions": {
+                "loadOptionsMethod": "get_table_options"
+            },
+            "description": "Select the data table to add a row to"
+        },
+        {
+            "name": "row_data",
+            "type": "json",
+            "label": "Row Data",
+            "required": true,
+            "description": "JSON object containing the row data"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "row_id",
+            "type": "string",
+            "label": "New Row ID"
+        },
+        {
+            "name": "data",
+            "type": "collection",
+            "label": "Inserted Data"
+        }
+    ]
+}

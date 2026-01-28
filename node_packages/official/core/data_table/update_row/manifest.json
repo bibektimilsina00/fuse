@@ -1,0 +1,57 @@
+{
+    "id": "core.data_table.update_row",
+    "name": "Update Table Row",
+    "displayName": "Update Table Row",
+    "version": 2,
+    "nodeVersion": "1.0.0",
+    "author": "Fuse Official",
+    "category": "ACTION",
+    "service": "core",
+    "connectionType": "flow",
+    "description": "Update an existing row in a data table.",
+    "tags": [
+        "data",
+        "table",
+        "row",
+        "update"
+    ],
+    "icon": "edit",
+    "inputs": [
+        {
+            "name": "table_id",
+            "type": "select",
+            "label": "Data Table",
+            "required": true,
+            "typeOptions": {
+                "loadOptionsMethod": "get_table_options"
+            },
+            "description": "Select the data table"
+        },
+        {
+            "name": "row_id",
+            "type": "string",
+            "label": "Row ID",
+            "required": true,
+            "description": "The ID of the row to update"
+        },
+        {
+            "name": "row_data",
+            "type": "json",
+            "label": "New Row Data",
+            "required": true,
+            "description": "JSON object containing the updated row data"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "row_id",
+            "type": "string",
+            "label": "Row ID"
+        },
+        {
+            "name": "data",
+            "type": "collection",
+            "label": "Updated Data"
+        }
+    ]
+}

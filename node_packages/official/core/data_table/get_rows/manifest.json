@@ -1,0 +1,45 @@
+{
+    "id": "core.data_table.get_rows",
+    "name": "Get Table Rows",
+    "displayName": "Get Table Rows",
+    "version": 2,
+    "nodeVersion": "1.0.0",
+    "author": "Fuse Official",
+    "category": "ACTION",
+    "service": "core",
+    "connectionType": "flow",
+    "description": "Retrieve rows from a data table with optional filtering.",
+    "tags": [
+        "data",
+        "table",
+        "rows",
+        "query"
+    ],
+    "icon": "list",
+    "inputs": [
+        {
+            "name": "table_id",
+            "type": "select",
+            "label": "Data Table",
+            "required": true,
+            "typeOptions": {
+                "loadOptionsMethod": "get_table_options"
+            },
+            "description": "Select the data table to query"
+        },
+        {
+            "name": "limit",
+            "type": "number",
+            "label": "Limit",
+            "default": 100,
+            "description": "Maximum number of rows to return"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "rows",
+            "type": "collection",
+            "label": "Table Rows"
+        }
+    ]
+}

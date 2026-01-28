@@ -1,0 +1,39 @@
+{
+    "id": "ai.tool.calculator",
+    "name": "Calculator",
+    "version": 2,
+    "nodeVersion": "1.0.0",
+    "author": "Fuse Official",
+    "category": "AI_TOOL",
+    "service": "core",
+    "connectionType": "auxiliary",
+    "description": "A math tool that allows the agent to perform calculations.",
+    "tags": [
+        "ai",
+        "tool",
+        "math",
+        "calculator"
+    ],
+    "icon": "calculator",
+    "runtime": {
+        "type": "internal",
+        "language": "python",
+        "minPythonVersion": "3.9"
+    },
+    "inputs": [],
+    "outputs": [
+        {
+            "name": "tool",
+            "type": "ai_tool",
+            "label": "Tool Config",
+            "description": "Tool definition for the AI Agent"
+        }
+    ],
+    "credentials": null,
+    "pricing": {
+        "model": "free",
+        "price": 0
+    },
+    "visibility": "public",
+    "license": "MIT"
+}

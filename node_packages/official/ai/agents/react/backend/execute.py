@@ -17,48 +17,38 @@ async def execute(context: NodeContext) -> List[WorkflowItem]:
     Execute autonomous agent.
     """
     config = context.resolve_config()
-    inputs = context.input_data # List[WorkflowItem] or Dict
+    inputs = context.input_data # Main flow input
     
-    # 1. Find Model Config in Inputs
-    model_config = None
-    
-    # Helper to scan a list of items for model definition
-    def find_model_config(items):
-        for item in items:
-            data = item.json_data if isinstance(item, WorkflowItem) else item
-            if isinstance(data, dict):
-                if "model" in data:
-                    return data["model"]
-                # Also check if the item itself IS the model config (legacy or simplified)
-                if "model_name" in data and "credential_id" in data:
-                    return data
-        return None
+    # 1. Resolve Dependencies via specific handles
+    model_configs = context.get_inputs_by_handle("chat_model")
+    memory_configs = context.get_inputs_by_handle("memory")
+    tool_configs = context.get_inputs_by_handle("tools")
 
-    if isinstance(inputs, list):
-        model_config = find_model_config(inputs)
-    elif isinstance(inputs, dict):
-         # Try specific key first
-        if "chat_model" in inputs:
-            val = inputs["chat_model"]
-            if isinstance(val, list):
-                 model_config = find_model_config(val)
-            elif isinstance(val, dict):
-                 model_config = val.get("model") or val
+    # Handle multiple tool connections by collecting all 'tool' definitions
+    tools = []
+    for tc in tool_configs:
+        if isinstance(tc, dict) and "tool" in tc:
+            tools.append(tc["tool"])
+        elif isinstance(tc, list):
+             # Handle case where tool node returns a list of items
+             for item in tc:
+                 data = item.json_data if hasattr(item, "json_data") else item
+                 if isinstance(data, dict) and "tool" in data:
+                     tools.append(data["tool"])
+
+    # Resolve model config
+    model_config = None
+    if model_configs:
+        first_model = model_configs[0]
+        # Recursively find model dict in case it's wrapped in WorkflowItem or list
+        if isinstance(first_model, list) and first_model:
+            first_model = first_model[0]
         
-        # Fallback to values
-        if not model_config:
-             for val in inputs.values():
-                 if isinstance(val, list):
-                     found = find_model_config(val)
-                     if found:
-                         model_config = found
-                         break
-                 elif isinstance(val, dict) and "model" in val:
-                     model_config = val["model"]
-                     break
+        data = first_model.json_data if hasattr(first_model, "json_data") else first_model
+        model_config = data.get("model") or data
     
     if not model_config or not isinstance(model_config, dict):
-        raise RuntimeError("Chat Model not connected or invalid configuration.")
+        raise RuntimeError("Chat Model not connected to 'Chat Model' handle.")
         
     cred_id = model_config.get("credential_id")
     model_name = model_config.get("model_name")
@@ -75,18 +65,25 @@ async def execute(context: NodeContext) -> List[WorkflowItem]:
     goal = config.get("goal")
     input_text = config.get("input_text")
     
-    # If input_text not specified, use the raw inputs as data context
+    # If input_text not specified, use the raw inputs as data context (from main flow)
     if not input_text:
-        # Serialize first input item
         if isinstance(inputs, list) and inputs:
             input_text = str(inputs[0].json_data)
         elif isinstance(inputs, dict):
             input_text = str(inputs)
-        
+    
+    tools_desc = ""
+    if tools:
+        tools_desc = "\n\nYou have the following tools available:\n"
+        for t in tools:
+            tools_desc += f"- {t.get('name')}: {t.get('description')}\n"
+
     system_instruction = (
         "You are an autonomous AI agent. Your goal is to process the input data and achieve the specified objective. "
         "Think step by step. Provide a final comprehensive result."
     )
+    if tools:
+        system_instruction += f"\n\nTOOLS AVAILABLE:\n{tools_desc}"
     
     prompt = f"GOAL: {goal}\n\nCONTEXT DATA: {input_text}\n\nPlease analyze the data and fulfill the goal."
 

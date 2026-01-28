@@ -1,0 +1,45 @@
+{
+    "id": "core.data_table.delete_row",
+    "name": "Delete Table Row",
+    "displayName": "Delete Table Row",
+    "version": 2,
+    "nodeVersion": "1.0.0",
+    "author": "Fuse Official",
+    "category": "ACTION",
+    "service": "core",
+    "connectionType": "flow",
+    "description": "Delete a row from a data table.",
+    "tags": [
+        "data",
+        "table",
+        "row",
+        "delete"
+    ],
+    "icon": "trash-2",
+    "inputs": [
+        {
+            "name": "table_id",
+            "type": "select",
+            "label": "Data Table",
+            "required": true,
+            "typeOptions": {
+                "loadOptionsMethod": "get_table_options"
+            },
+            "description": "Select the data table"
+        },
+        {
+            "name": "row_id",
+            "type": "string",
+            "label": "Row ID",
+            "required": true,
+            "description": "The ID of the row to delete"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "success",
+            "type": "boolean",
+            "label": "Success"
+        }
+    ]
+}

@@ -1,0 +1,63 @@
+{
+    "id": "ai.tool.search",
+    "name": "Web Search",
+    "version": 2,
+    "nodeVersion": "1.0.0",
+    "author": "Fuse Official",
+    "category": "AI_TOOL",
+    "service": "core",
+    "connectionType": "auxiliary",
+    "description": "A tool that allows the agent to search the web for fresh information.",
+    "tags": [
+        "ai",
+        "tool",
+        "search",
+        "web",
+        "google"
+    ],
+    "icon": "search",
+    "runtime": {
+        "type": "internal",
+        "language": "python",
+        "minPythonVersion": "3.9"
+    },
+    "inputs": [
+        {
+            "name": "engine",
+            "type": "select",
+            "label": "Search Engine",
+            "default": "tavily",
+            "options": [
+                {
+                    "label": "Tavily (Optimized for AI)",
+                    "value": "tavily"
+                },
+                {
+                    "label": "Google",
+                    "value": "google"
+                }
+            ]
+        },
+        {
+            "name": "max_results",
+            "type": "number",
+            "label": "Max Results",
+            "default": 5
+        }
+    ],
+    "outputs": [
+        {
+            "name": "tool",
+            "type": "ai_tool",
+            "label": "Tool Config",
+            "description": "Tool definition for the AI Agent"
+        }
+    ],
+    "credentials": null,
+    "pricing": {
+        "model": "free",
+        "price": 0
+    },
+    "visibility": "public",
+    "license": "MIT"
+}

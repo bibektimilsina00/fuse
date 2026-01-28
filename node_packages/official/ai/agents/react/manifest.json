@@ -23,38 +23,48 @@
   },
   "inputs": [
     {
-      "name": "chat_model",
-      "type": "ai_model",
-      "label": "Chat Model",
-      "required": true,
-      "description": "Connect a Chat Model node here"
-    },
-    {
-      "name": "memory",
-      "type": "ai_memory",
-      "label": "Memory",
-      "required": false,
-      "description": "Connect a Memory node (optional)"
-    },
-    {
-      "name": "tools",
-      "type": "ai_tool",
-      "label": "Tools",
-      "required": false,
-      "description": "Connect Tool nodes (optional)"
+      "name": "prompt_source",
+      "type": "select",
+      "label": "Prompt Source",
+      "default": "static",
+      "options": [
+        {
+          "label": "Static Text",
+          "value": "static"
+        },
+        {
+          "label": "Dynamic Input",
+          "value": "dynamic"
+        }
+      ],
+      "description": "Where to get the goal/prompt from"
     },
     {
       "name": "goal",
       "type": "string",
-      "label": "Goal / System Prompt",
+      "label": "Prompt",
       "required": true,
-      "description": "What is the agent supposed to do? (Supports templates)"
+      "description": "Static prompt/goal for the agent",
+      "displayOptions": {
+        "show": {
+          "prompt_source": [
+            "static"
+          ]
+        }
+      }
     },
     {
       "name": "input_text",
       "type": "string",
-      "label": "Input Data",
-      "description": "Data to process (optional, defaults to all inputs)"
+      "label": "Input Data Map",
+      "description": "Data to process (optional, defaults to all inputs)",
+      "displayOptions": {
+        "hide": {
+          "prompt_source": [
+            "dynamic"
+          ]
+        }
+      }
     }
   ],
   "outputs": [

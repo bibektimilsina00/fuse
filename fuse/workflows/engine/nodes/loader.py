@@ -287,9 +287,10 @@ class NodePackageLoader:
     
     def _infer_type_from_category(self, category: str) -> str:
         """Map category to node type"""
-        if category == "triggers":
+        cat = category.lower()
+        if cat in ["trigger", "triggers"]:
             return "trigger"
-        elif category in ["logic", "flow"]:
+        elif cat in ["logic", "flow", "logic_node"]:
             return "logic"
         else:
             return "action"

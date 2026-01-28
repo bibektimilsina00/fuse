@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 
 class NodeInputSchema(BaseModel):
@@ -16,15 +16,14 @@ class NodeOutputSchema(BaseModel):
     label: str
     description: Optional[str] = None
 
-class NodeManifestCreate(BaseModel):
-    id: str = Field(..., description="Unique node ID (e.g. 'my.custom.node')")
-    name: str
-    version: str = "1.0.0"
-    category: str = "custom"
-    description: str = ""
-    inputs: List[NodeInputSchema] = []
-    outputs: List[NodeOutputSchema] = []
-    tags: List[str] = []
+from fuse.workflows.engine.nodes.schema import NodeInput, NodeOutput, NodeManifest
+
+class NodeManifestCreate(NodeManifest):
+    """
+    V2 Manifest for creation.
+    Inherits all strict V2 fields from engine schema.
+    """
+    pass
 
 class NodeCreateRequest(BaseModel):
     manifest: NodeManifestCreate
@@ -37,7 +36,8 @@ class NodeUpdateRequest(BaseModel):
 class NodeResponse(BaseModel):
     id: str
     name: str
-    version: str
+    version: Union[int, str]
+    nodeVersion: Optional[str] = None
     category: str
     description: str
     manifest: Dict[str, Any]

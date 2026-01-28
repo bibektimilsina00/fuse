@@ -130,6 +130,7 @@ async def run_node_logic(execution_id: uuid.UUID, node_execution_id: uuid.UUID):
             config=node_config,
             input_data=input_data,
             results_map=results_map,
+            edges=workflow.edges,
             env=dict(os.environ)
         )
         

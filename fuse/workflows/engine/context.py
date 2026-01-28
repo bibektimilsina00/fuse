@@ -19,6 +19,7 @@ class NodeContext:
         config: Dict[str, Any], 
         input_data: Any, # Can be Dict (V1) or List[WorkflowItem] (V2)
         results_map: Dict[str, Any],
+        edges: List[Any] = None,
         env: Dict[str, str] = None
     ):
         self.execution_id = execution_id
@@ -26,6 +27,8 @@ class NodeContext:
         self.node_id = node_id
         self.raw_config = config
         self.input_data = input_data
+        self.results_map = results_map
+        self.edges = edges or []
         
         # Build the context dictionary for Jinja2
         # Structure:
@@ -78,3 +81,23 @@ class NodeContext:
         Returns the inputs with all expressions resolved.
         """
         return self.resolver.resolve(self.input_data)
+
+    def get_inputs_by_handle(self, handle_id: str) -> List[Any]:
+        """
+        Retrieves outputs from all nodes connected to a specific target handle.
+        Useful for nodes with multiple specialized input handles (e.g. tools, memory).
+        """
+        if not self.edges or not self.results_map:
+            return []
+            
+        source_node_ids = [
+            edge.source for edge in self.edges 
+            if edge.target == self.node_id and str(edge.target_handle).lower() == str(handle_id).lower()
+        ]
+        
+        outputs = []
+        for nid in source_node_ids:
+            if nid in self.results_map:
+                outputs.append(self.results_map[nid])
+                
+        return outputs
