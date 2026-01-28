@@ -1,0 +1,31 @@
+{
+  "id": "logic.merge",
+  "name": "Merge",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "LOGIC",
+  "service": "core",
+  "connectionType": "flow",
+  "description": "Wait for multiple branches to finish and merge their data",
+  "tags": [
+    "logic",
+    "merge",
+    "join"
+  ],
+  "icon": "git-merge",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "minPythonVersion": "3.9"
+  },
+  "inputs": [],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

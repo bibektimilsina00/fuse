@@ -26,14 +26,16 @@ class NodeManagementService:
 
     def list_nodes(self) -> List[Dict[str, Any]]:
         """List all available nodes with detailed metadata."""
-        # Ensure registry is initialized
-        if not NodeRegistry._nodes:
-            NodeRegistry.initialize()
+        nodes_dict = NodeRegistry.list_nodes()
             
         nodes = []
-        for node_id, package in NodeRegistry._nodes.items():
+        for node_id, node_data in nodes_dict.items():
+            package = NodeRegistry.get_node(node_id)
+            if not package:
+                continue
+                
             manifest = package.manifest
-            is_custom = "custom" in package.path  # Simple heuristic
+            is_custom = "custom" in str(package.package_dir)  # Simple heuristic
             
             nodes.append({
                 "id": node_id,
@@ -43,27 +45,24 @@ class NodeManagementService:
                 "description": manifest.get("description", ""),
                 "manifest": manifest,
                 "is_custom": is_custom,
-                "path": package.path,
+                "path": str(package.package_dir),
                 "has_icon": manifest.get("icon_svg") is not None
             })
         return nodes
 
     def get_node(self, node_id: str) -> Dict[str, Any]:
         """Get details of a specific node, including code if custom."""
-        if not NodeRegistry._nodes:
-            NodeRegistry.initialize()
-            
         package = NodeRegistry.get_node(node_id)
         if not package:
             raise HTTPException(status_code=404, detail=f"Node {node_id} not found")
             
         manifest = package.manifest
-        is_custom = "custom" in package.path
+        is_custom = "custom" in str(package.package_dir)
         
         code = None
         if is_custom:
             try:
-                code_path = os.path.join(package.path, "backend", "execute.py")
+                code_path = os.path.join(package.package_dir, "backend", "execute.py")
                 if os.path.exists(code_path):
                     with open(code_path, "r") as f:
                         code = f.read()
@@ -75,7 +74,7 @@ class NodeManagementService:
             "manifest": manifest,
             "code": code,
             "is_custom": is_custom,
-            "path": package.path
+            "path": str(package.package_dir)
         }
 
     def create_node(self, request: NodeCreateRequest) -> Dict[str, Any]:
@@ -136,20 +135,20 @@ class NodeManagementService:
         if not package:
             raise HTTPException(status_code=404, detail=f"Node {node_id} not found")
             
-        if "custom" not in package.path:
+        if "custom" not in str(package.package_dir):
             raise HTTPException(status_code=403, detail="Only custom nodes can be modified")
             
         try:
             if request.manifest:
                 # Update manifest.json
                 # Be careful not to change ID if possible, or handle rename
-                manifest_path = os.path.join(package.path, "manifest.json")
+                manifest_path = os.path.join(package.package_dir, "manifest.json")
                 with open(manifest_path, "w") as f:
                     # Merge? Or replace? Assuming replace for now but should preserve some fields maybe
                     json.dump(request.manifest.dict(), f, indent=2)
             
             if request.code:
-                code_path = os.path.join(package.path, "backend", "execute.py")
+                code_path = os.path.join(package.package_dir, "backend", "execute.py")
                 with open(code_path, "w") as f:
                     f.write(request.code)
 
@@ -168,11 +167,11 @@ class NodeManagementService:
         if not package:
             raise HTTPException(status_code=404, detail=f"Node {node_id} not found")
             
-        if "custom" not in package.path:
+        if "custom" not in str(package.package_dir):
             raise HTTPException(status_code=403, detail="Only custom nodes can be deleted")
             
         try:
-            shutil.rmtree(package.path)
+            shutil.rmtree(package.package_dir)
             NodeRegistry.initialize()
             return {"status": "success", "message": f"Node {node_id} deleted"}
         except Exception as e:
@@ -185,14 +184,14 @@ class NodeManagementService:
         if not package:
             raise HTTPException(status_code=404, detail=f"Node {node_id} not found")
             
-        if "custom" not in package.path:
+        if "custom" not in str(package.package_dir):
             raise HTTPException(status_code=403, detail="Only custom nodes can accept icon uploads via API")
             
         if not file.filename.endswith(".svg"):
              raise HTTPException(status_code=400, detail="Only .svg files are supported")
              
         try:
-            icon_path = os.path.join(package.path, "frontend", "icon.svg")
+            icon_path = os.path.join(package.package_dir, "frontend", "icon.svg")
             os.makedirs(os.path.dirname(icon_path), exist_ok=True)
             
             content = await file.read()

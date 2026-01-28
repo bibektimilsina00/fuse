@@ -25,7 +25,22 @@ class WorkflowScheduler:
             self.state.update_execution_status(session, "running", trigger_data)
             self.logger.log_workflow_start()
 
+            # Rule 4 & 6: Validate DAG Structure before execution
+            # This prevents infinite loops in malformed workflows
+            try:
+                WorkflowGraph.get_execution_order(workflow.nodes, workflow.edges)
+            except ValueError as e:
+                self.logger.log_workflow_failed(f"Invalid Workflow Structure: {str(e)}")
+                self.state.update_execution_status(session, "failed")
+                return
+
             start_nodes = WorkflowGraph.get_start_nodes(workflow.nodes, workflow.edges)
+            
+            if not start_nodes:
+                self.logger.log_workflow_failed("No start nodes found (orphaned graph)")
+                self.state.update_execution_status(session, "failed")
+                return
+
             for node in start_nodes:
                 self.schedule_node(node.node_id, trigger_data)
 
@@ -64,9 +79,18 @@ class WorkflowScheduler:
             
             # 1. Condition/Choice Nodes (1 Match Only)
             if node_type in ["logic.if", "condition.if", "condition.switch", "if", "switch"]:
-                # Ensure output_data is a dictionary
-                data_dict = output_data if isinstance(output_data, dict) else {}
-                
+                # Ensure output_data is usable (handle WorkflowItem list)
+                data_dict = {}
+                if isinstance(output_data, dict):
+                    data_dict = output_data
+                elif isinstance(output_data, list) and output_data:
+                    # V2: Use first item for logic decision (unless loop)
+                    first_item = output_data[0]
+                    if hasattr(first_item, "json_data"):
+                        data_dict = first_item.json_data
+                    elif isinstance(first_item, dict):
+                        data_dict = first_item
+
                 # Determine which branch to take
                 if node_type in ["condition.switch", "switch"]:
                     matched_branch = str(data_dict.get("matched", "default")).lower()
@@ -75,10 +99,13 @@ class WorkflowScheduler:
                     res = data_dict.get("result")
                     if res is None:
                         res = data_dict.get("matched")
+                    
+                    # Convert result to branch label
                     matched_branch = "true" if res else "false"
                 
                 # Allow nodes to specify data to pass, or pass the full output
-                data_to_pass = data_dict.get("data", output_data)
+                # In V2, we pass the full List[WorkflowItem] usually
+                data_to_pass = output_data
                 
                 found_match = False
                 outgoing_edges = [e for e in workflow.edges if e.source == node_execution.node_id]
@@ -110,13 +137,26 @@ class WorkflowScheduler:
             # 2. Iteration Nodes (Fan-out)
             elif node_type in ["logic.loop", "loop", "data.loop"]:
                 # Support fanning out executions for each item in the loop
-                data_dict = output_data if isinstance(output_data, dict) else {}
-                items = data_dict.get("items", [])
+                items = []
                 
-                if not items and "data" in data_dict:
-                    items = data_dict.get("data", [])
+                # V2: Handle List[WorkflowItem] directly
+                if isinstance(output_data, list):
+                    for item in output_data:
+                        if hasattr(item, "json_data"):
+                            items.append(item.json_data)
+                        else:
+                            items.append(item)
+                
+                # Fallback for old Dict structure
+                elif isinstance(output_data, dict):
+                     data_dict = output_data
+                     items = data_dict.get("items", []) or data_dict.get("data", [])
+                     if not isinstance(items, list) and items:
+                         items = [items]
+
+                # Ensure we have a list
                 if not isinstance(items, list):
-                    items = [items] if items else []
+                    items = []
 
                 logger.info(f"Loop Node {node_execution.node_id} fanning out {len(items)} executions.")
                 

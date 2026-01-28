@@ -1,0 +1,29 @@
+{
+  "id": "utility",
+  "name": "Utility",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "UTILITY",
+  "service": "core",
+  "connectionType": "flow",
+  "description": "Utility node",
+  "tags": [
+    "utilities"
+  ],
+  "icon": "tool",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "min PythonVersion": "3.9"
+  },
+  "inputs": [],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

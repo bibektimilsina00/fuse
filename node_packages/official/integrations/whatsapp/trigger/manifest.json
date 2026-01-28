@@ -1,0 +1,24 @@
+{
+  "id": "whatsapp.trigger",
+  "name": "Whatsapp Trigger",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "TRIGGER",
+  "service": "whatsapp",
+  "connectionType": "flow",
+  "description": "Whatsapp Trigger node (Placeholder)",
+  "tags": [
+    "trigger",
+    "whatsapp"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "credentials": [],
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

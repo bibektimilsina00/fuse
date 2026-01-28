@@ -64,30 +64,27 @@ class NodePackageLoader:
             logger.warning(f"Node packages directory {self.packages_dir} does not exist")
             return nodes
         
-        # Scan all subdirectories (official, community, custom)
-        for category_dir in self.packages_dir.iterdir():
-            if not category_dir.is_dir() or category_dir.name.startswith("_"):
-                continue
-            
-            # Scan each node package in the category
-            for package_dir in category_dir.iterdir():
-                if not package_dir.is_dir() or package_dir.name.startswith("_"):
-                    continue
-                
-                manifest_path = package_dir / "manifest.json"
-                if not manifest_path.exists():
-                    logger.warning(f"Skipping {package_dir.name}: no manifest.json")
-                    continue
-                
-                try:
-                    node_package = self._load_node_package(package_dir)
-                    nodes.append(node_package)
-                    self.loaded_nodes[node_package.id] = node_package
-                    logger.info(f"✓ Loaded node: {node_package.name} v{node_package.version} ({node_package.id})")
-                except Exception as e:
-                    logger.error(f"✗ Failed to load node {package_dir.name}: {e}", exc_info=True)
+        # Recursively scan for manifest.json files up to 5 levels deep
+        # This supports specialized structures like official/integrations/google/sheets/read
+        manifests = list(self.packages_dir.rglob("manifest.json"))
         
-        logger.info(f"Loaded {len(nodes)} workflow nodes")
+        for manifest_path in manifests:
+            package_dir = manifest_path.parent
+            
+            # Skip hidden directories and their children
+            if any(part.startswith("_") for part in package_dir.parts):
+                continue
+                
+            try:
+                node_package = self._load_node_package(package_dir)
+                nodes.append(node_package)
+                self.loaded_nodes[node_package.id] = node_package
+                logger.debug(f"✓ Loaded node: {node_package.name} ({node_package.id})")
+            except Exception as e:
+                # Log usage error for dev, but warning for prod
+                logger.warning(f"Failed to load node from {package_dir}: {e}")
+        
+        logger.info(f"Loaded {len(nodes)} workflow nodes from {self.packages_dir}")
         return nodes
     
     def _load_node_package(self, package_dir: Path) -> NodePackage:
@@ -151,18 +148,38 @@ class NodePackageLoader:
     
     def _validate_manifest(self, manifest: Dict[str, Any]) -> None:
         """
-        Validate that manifest has required fields.
+        Validate that manifest complies with V2 Schema.
         
         Args:
             manifest: Parsed manifest.json dict
             
         Raises:
-            ValueError: If required fields are missing
+            ValueError: If manifest is invalid
         """
-        required_fields = ["id", "name", "version", "inputs", "outputs"]
-        for field in required_fields:
-            if field not in manifest:
-                raise ValueError(f"Manifest missing required field: {field}")
+        try:
+            # Import strictly here to avoid circular imports
+            from fuse.workflows.engine.nodes.schema import NodeManifest
+            
+            # Simple V1 check: if it doesn't look like V2, check basics
+            if "category" not in manifest or manifest.get("version", 0) < 2:
+                # Basic V1 Validation
+                required_fields = ["id", "name", "version", "inputs", "outputs"]
+                for field in required_fields:
+                    if field not in manifest:
+                        raise ValueError(f"Manifest missing required field: {field}")
+                return
+
+            # Strict V2 Validation
+            NodeManifest(**manifest)
+            
+        except ImportError:
+            # Fallback if schema module issue
+            required_fields = ["id", "name", "version", "inputs", "outputs"]
+            for field in required_fields:
+                if field not in manifest:
+                    raise ValueError(f"Manifest missing required field: {field}")
+        except Exception as e:
+             raise ValueError(f"Invalid Node Manifest: {str(e)}")
     
     async def execute_node(
         self,

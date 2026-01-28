@@ -1,0 +1,55 @@
+{
+  "id": "discord.send",
+  "name": "Discord Send",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "ACTION",
+  "service": "discord",
+  "connectionType": "flow",
+  "description": "Send messages to Discord via Webhook.",
+  "tags": [
+    "discord",
+    "message",
+    "notification",
+    "chat",
+    "communication",
+    "webhook"
+  ],
+  "inputs": [
+    {
+      "name": "webhook_url",
+      "type": "string",
+      "label": "Webhook URL",
+      "required": true,
+      "description": "Discord Webhook URL (starts with https://discord.com/api/webhooks/...)"
+    },
+    {
+      "name": "content",
+      "type": "string",
+      "label": "Message Content",
+      "required": true,
+      "description": "The message content (supports Jinja2 like {{input.value}})"
+    },
+    {
+      "name": "username",
+      "type": "string",
+      "label": "Bot Name",
+      "description": "Override the bot username (optional)"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "success",
+      "type": "boolean",
+      "label": "Success"
+    }
+  ],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

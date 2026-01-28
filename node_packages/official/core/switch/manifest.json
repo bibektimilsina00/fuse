@@ -1,0 +1,56 @@
+{
+  "id": "condition.switch",
+  "name": "Switch",
+  "version": 2,
+  "author": "Fuse Official",
+  "category": "LOGIC",
+  "description": "Multi-way branching based on value matching.",
+  "tags": [
+    "switch",
+    "branch",
+    "logic",
+    "route",
+    "match"
+  ],
+  "icon": "git-merge",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "minPythonVersion": "3.9"
+  },
+  "inputs": [
+    {
+      "name": "value",
+      "type": "string",
+      "label": "Value to Switch",
+      "required": true,
+      "description": "The value to check against cases (supports templates)"
+    },
+    {
+      "name": "cases",
+      "type": "json",
+      "label": "Cases",
+      "required": true,
+      "default": {
+        "case1": "val1",
+        "default": "fallback"
+      },
+      "description": "JSON object mapping case names to expected values. Returns the key of matched value."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "matched",
+      "type": "string",
+      "label": "Matched Case",
+      "description": "The key of the matched case (or 'default')"
+    }
+  ],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

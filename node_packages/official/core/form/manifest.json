@@ -1,0 +1,31 @@
+{
+  "id": "form.trigger",
+  "name": "Form Trigger",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "TRIGGER",
+  "service": "core",
+  "connectionType": "flow",
+  "description": "Trigger workflows from a user form submission",
+  "tags": [
+    "triggers",
+    "form",
+    "input"
+  ],
+  "icon": "zap",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "min PythonVersion": "3.9"
+  },
+  "inputs": [],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

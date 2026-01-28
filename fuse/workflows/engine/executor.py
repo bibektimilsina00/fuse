@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 import uuid
 from datetime import datetime
 from typing import Any, Dict, Optional
@@ -16,6 +17,7 @@ from fuse.workflows.engine.error_handler import (
 )
 from fuse.workflows.engine.nodes.registry import NodeRegistry
 from fuse.workflows.engine.state import WorkflowState
+from fuse.workflows.engine.context import NodeContext
 from fuse.workflows.logger import WorkflowExecutorLogger
 from fuse.workflows.models import NodeExecution, Workflow, WorkflowExecution
 from fuse.workflows.types import TriggerDataDict
@@ -120,11 +122,29 @@ async def run_node_logic(execution_id: uuid.UUID, node_execution_id: uuid.UUID):
         if not node_pkg:
             raise ValueError(f"Unknown node type: {node.node_type}")
 
+        # V2: Initialize Node Context and Resolve Expressions
+        node_ctx = NodeContext(
+            execution_id=str(execution_id),
+            workflow_id=str(workflow_id),
+            node_id=node.node_id,
+            config=node_config,
+            input_data=input_data,
+            results_map=results_map,
+            env=dict(os.environ)
+        )
+        
+        # Resolve configuration and inputs dynamically
+        resolved_config = node_ctx.resolve_config()
+        # For now, inputs are usually raw JSON from previous node, but we could resolve strings inside them if needed.
+        # But 'input_data' is usually the *data* to process, not expressions. 
+        # Expressions usually live in 'config'. 
+        # However, for some nodes, inputs might contain templates. Let's resolve config for sure.
+        
         context = {
             "workflow_id": str(workflow_id),
             "execution_id": str(execution_id),
             "node_id": node.node_id,
-            "node_config": node_config,
+            "node_config": resolved_config, # Pass resolved config
             "results": results_map,
         }
 
@@ -134,7 +154,7 @@ async def run_node_logic(execution_id: uuid.UUID, node_execution_id: uuid.UUID):
         async def _execute_pro(ctx_: Dict, inp_: Any):
             return await NodeRegistry.execute_node(
                 node_id=node.node_type,
-                config=node_config,
+                config=resolved_config, # Use resolved config
                 inputs=inp_,
                 credentials=None
             )

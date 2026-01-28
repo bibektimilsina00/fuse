@@ -1,0 +1,55 @@
+{
+  "id": "condition.if",
+  "name": "If Condition",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "LOGIC",
+  "service": "core",
+  "connectionType": "flow",
+  "description": "Conditional branching - split workflow into True/False paths",
+  "tags": [
+    "condition",
+    "if",
+    "branch",
+    "logic",
+    "flow-control"
+  ],
+  "icon": "git-branch",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "minPythonVersion": "3.9"
+  },
+  "inputs": [
+    {
+      "name": "condition",
+      "type": "string",
+      "label": "Condition Expression",
+      "required": true,
+      "default": "input.status == 'active'",
+      "description": "Expression to evaluate (supports Jinja2 templates)"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "boolean",
+      "label": "Evaluation Result",
+      "description": "True or False result of the condition"
+    },
+    {
+      "name": "branch_taken",
+      "type": "string",
+      "label": "Branch Taken",
+      "description": "'true' or 'false' - which branch was taken"
+    }
+  ],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

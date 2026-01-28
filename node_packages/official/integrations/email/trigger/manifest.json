@@ -1,0 +1,24 @@
+{
+  "id": "email.trigger",
+  "name": "Email Trigger",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "TRIGGER",
+  "service": "email",
+  "connectionType": "flow",
+  "description": "Email Trigger node (Placeholder)",
+  "tags": [
+    "trigger",
+    "email"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "credentials": [],
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

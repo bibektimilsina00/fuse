@@ -1,0 +1,57 @@
+{
+  "id": "whatsapp.send",
+  "name": "Whatsapp Send",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "ACTION",
+  "service": "whatsapp",
+  "connectionType": "flow",
+  "description": "Send messages via Whatsapp Cloud API.",
+  "tags": [
+    "whatsapp",
+    "meta",
+    "message",
+    "chat",
+    "communication"
+  ],
+  "inputs": [
+    {
+      "name": "auth",
+      "type": "credential",
+      "label": "Whatsapp Account",
+      "credential_type": "whatsapp",
+      "required": true,
+      "description": "Select Whatsapp Cloud API credentials"
+    },
+    {
+      "name": "to",
+      "type": "string",
+      "label": "To (Phone Number)",
+      "required": true,
+      "description": "Recipient phone number (with country code)"
+    },
+    {
+      "name": "text",
+      "type": "string",
+      "label": "Message Text",
+      "required": true,
+      "description": "Message content"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "success",
+      "type": "boolean",
+      "label": "Success"
+    },
+    {
+      "name": "response",
+      "type": "json",
+      "label": "API Response"
+    }
+  ],
+  "credentials": [
+    "whatsapp"
+  ]
+}

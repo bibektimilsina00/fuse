@@ -1,0 +1,133 @@
+{
+    "id": "email.send",
+    "name": "Send Email",
+    "version": 2,
+    "nodeVersion": "1.0.0",
+    "author": "Fuse Official",
+    "category": "ACTION",
+    "service": "email",
+    "connectionType": "flow",
+    "description": "Send emails via SMTP provider (Gmail, Outlook, custom servers)",
+    "tags": [
+        "email",
+        "smtp",
+        "notification",
+        "communication"
+    ],
+    "inputs": [
+        {
+            "name": "auth",
+            "type": "credential",
+            "label": "SMTP Account",
+            "credential_type": "smtp",
+            "required": true,
+            "description": "Select SMTP credentials"
+        },
+        {
+            "name": "to",
+            "type": "string",
+            "label": "To (Recipients)",
+            "required": true,
+            "description": "Email recipients (comma-separated)"
+        },
+        {
+            "name": "subject",
+            "type": "string",
+            "label": "Subject",
+            "required": true,
+            "description": "Email subject line"
+        },
+        {
+            "name": "body",
+            "type": "string",
+            "label": "Email Body",
+            "required": true,
+            "description": "Email content (plain text or HTML)"
+        },
+        {
+            "name": "from_email",
+            "type": "string",
+            "label": "From Email",
+            "required": false,
+            "description": "Sender email address (uses SMTP user if not provided)"
+        },
+        {
+            "name": "from_name",
+            "type": "string",
+            "label": "From Name",
+            "required": false,
+            "description": "Sender display name"
+        },
+        {
+            "name": "cc",
+            "type": "string",
+            "label": "CC",
+            "required": false,
+            "description": "CC recipients (comma-separated)"
+        },
+        {
+            "name": "bcc",
+            "type": "string",
+            "label": "BCC",
+            "required": false,
+            "description": "BCC recipients (comma-separated)"
+        },
+        {
+            "name": "html",
+            "type": "boolean",
+            "label": "HTML Email",
+            "default": false,
+            "description": "Send as HTML email"
+        },
+        {
+            "name": "smtp_host",
+            "type": "string",
+            "label": "SMTP Host",
+            "default": "smtp.gmail.com",
+            "description": "SMTP server hostname (Override)"
+        },
+        {
+            "name": "smtp_port",
+            "type": "number",
+            "label": "SMTP Port",
+            "default": 587,
+            "description": "SMTP server port (Override)"
+        },
+        {
+            "name": "use_tls",
+            "type": "boolean",
+            "label": "Use TLS",
+            "default": true,
+            "description": "Use TLS encryption"
+        }
+    ],
+    "outputs": [
+        {
+            "name": "success",
+            "type": "boolean",
+            "label": "Success",
+            "description": "Whether the email was sent successfully"
+        },
+        {
+            "name": "message_id",
+            "type": "string",
+            "label": "Message ID",
+            "description": "Email message ID"
+        },
+        {
+            "name": "recipients",
+            "type": "array",
+            "label": "Recipients",
+            "description": "List of all recipients (to, cc, bcc)"
+        }
+    ],
+    "credentials": [
+        "smtp"
+    ],
+    "pricing": {
+        "model": "free",
+        "price": 0
+    },
+    "visibility": "public",
+    "license": "MIT"
+}

@@ -1,0 +1,39 @@
+{
+  "id": "logic.loop",
+  "name": "Loop",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "LOGIC",
+  "service": "core",
+  "connectionType": "flow",
+  "description": "Iterate over a list of items",
+  "tags": [
+    "logic",
+    "loop",
+    "iterator"
+  ],
+  "icon": "repeat",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "minPythonVersion": "3.9"
+  },
+  "inputs": [
+    {
+      "name": "batchSize",
+      "label": "Batch Size",
+      "type": "number",
+      "default": 1,
+      "description": "Number of items to process in parallel (1 = sequential)"
+    }
+  ],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

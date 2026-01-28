@@ -1,0 +1,30 @@
+
+{
+  "id": "parallel",
+  "name": "Parallel",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "LOGIC",
+  "service": "core",
+  "connectionType": "flow",
+  "description": "Parallel node",
+  "tags": [
+    "logic"
+  ],
+  "icon": "git-branch",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "min PythonVersion": "3.9"
+  },
+  "inputs": [],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

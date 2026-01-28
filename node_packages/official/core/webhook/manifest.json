@@ -1,0 +1,133 @@
+{
+  "id": "webhook.receive",
+  "name": "Webhook Trigger",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "TRIGGER",
+  "service": "core",
+  "connectionType": "flow",
+  "description": "Trigger workflows when an external HTTP request is received at a webhook URL",
+  "tags": [
+    "webhook",
+    "http",
+    "api",
+    "trigger",
+    "integration"
+  ],
+  "icon": "webhook",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "minPythonVersion": "3.9"
+  },
+  "inputs": [
+    {
+      "name": "path",
+      "type": "string",
+      "label": "Endpoint Path",
+      "required": true,
+      "description": "Custom path for the webhook URL (e.g., 'my-webhook')"
+    },
+    {
+      "name": "method",
+      "type": "select",
+      "label": "HTTP Method",
+      "default": "POST",
+      "options": [
+        {
+          "label": "GET",
+          "value": "GET"
+        },
+        {
+          "label": "POST",
+          "value": "POST"
+        },
+        {
+          "label": "PUT",
+          "value": "PUT"
+        },
+        {
+          "label": "PATCH",
+          "value": "PATCH"
+        },
+        {
+          "label": "DELETE",
+          "value": "DELETE"
+        }
+      ],
+      "description": "Allowed HTTP method for the webhook"
+    },
+    {
+      "name": "authentication",
+      "type": "select",
+      "label": "Authentication",
+      "default": "none",
+      "options": [
+        {
+          "label": "None",
+          "value": "none"
+        },
+        {
+          "label": "API Key",
+          "value": "api_key"
+        },
+        {
+          "label": "Bearer Token",
+          "value": "bearer"
+        },
+        {
+          "label": "Basic Auth",
+          "value": "basic"
+        }
+      ],
+      "description": "Authentication method for webhook security"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "body",
+      "type": "json",
+      "label": "Request Body",
+      "description": "The JSON or form data sent in the request body"
+    },
+    {
+      "name": "headers",
+      "type": "json",
+      "label": "Request Headers",
+      "description": "HTTP headers from the request"
+    },
+    {
+      "name": "query",
+      "type": "json",
+      "label": "Query Parameters",
+      "description": "URL query parameters"
+    },
+    {
+      "name": "method",
+      "type": "string",
+      "label": "HTTP Method",
+      "description": "The HTTP method used (GET, POST, etc.)"
+    },
+    {
+      "name": "webhook_url",
+      "type": "string",
+      "label": "Webhook URL",
+      "description": "The full webhook URL that was called"
+    },
+    {
+      "name": "received_at",
+      "type": "string",
+      "label": "Received At",
+      "description": "Timestamp when the webhook was received"
+    }
+  ],
+  "credentials": null,
+  "trigger_group": "webhook",
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}

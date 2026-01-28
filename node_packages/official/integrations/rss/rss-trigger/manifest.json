@@ -1,0 +1,41 @@
+{
+  "id": "rss.read",
+  "name": "Read RSS Feed",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "ACTION",
+  "service": "rss",
+  "connectionType": "flow",
+  "description": "Fetch and parse an RSS/Atom feed.",
+  "tags": [
+    "rss",
+    "feed",
+    "atom",
+    "xml",
+    "read"
+  ],
+  "inputs": [
+    {
+      "name": "url",
+      "type": "string",
+      "label": "Feed URL",
+      "required": true,
+      "description": "URL of the RSS or Atom feed"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "items",
+      "type": "array",
+      "label": "Feed Items",
+      "description": "List of feed entries"
+    },
+    {
+      "name": "feed",
+      "type": "json",
+      "label": "Feed Metadata",
+      "description": "Feed title, description, etc."
+    }
+  ]
+}

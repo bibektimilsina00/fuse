@@ -1,0 +1,102 @@
+{
+  "id": "http.request",
+  "version": 2,
+  "nodeVersion": "2.0.0",
+  "name": "HTTP Request",
+  "description": "Make HTTP requests to external APIs and services",
+  "category": "UTILITY",
+  "service": "core",
+  "connectionType": "flow",
+  "icon": "globe",
+  "inputs": [
+    {
+      "name": "url",
+      "type": "string",
+      "label": "URL",
+      "required": true,
+      "description": "The URL to send the request to",
+      "placeholder": "https://api.example.com"
+    },
+    {
+      "name": "method",
+      "type": "select",
+      "label": "HTTP Method",
+      "default": "GET",
+      "required": true,
+      "options": [
+        {
+          "label": "GET",
+          "value": "GET"
+        },
+        {
+          "label": "POST",
+          "value": "POST"
+        },
+        {
+          "label": "PUT",
+          "value": "PUT"
+        },
+        {
+          "label": "PATCH",
+          "value": "PATCH"
+        },
+        {
+          "label": "DELETE",
+          "value": "DELETE"
+        }
+      ]
+    },
+    {
+      "name": "headers",
+      "type": "json",
+      "label": "Headers",
+      "default": {},
+      "required": false,
+      "description": "HTTP headers to send"
+    },
+    {
+      "name": "body",
+      "type": "json",
+      "label": "Request Body",
+      "default": {},
+      "required": false,
+      "description": "Request body (for POST, PUT, PATCH)",
+      "displayOptions": {
+        "show": {
+          "method": [
+            "POST",
+            "PUT",
+            "PATCH"
+          ]
+        }
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "name": "status",
+      "type": "number",
+      "label": "Status Code",
+      "description": "HTTP response status code"
+    },
+    {
+      "name": "data",
+      "type": "json",
+      "label": "Response Data",
+      "description": "Response body (parsed JSON or text)"
+    },
+    {
+      "name": "headers",
+      "type": "json",
+      "label": "Response Headers",
+      "description": "HTTP response headers"
+    }
+  ],
+  "tags": [
+    "http",
+    "api",
+    "request",
+    "webhook"
+  ],
+  "author": "Fuse Official"
+}

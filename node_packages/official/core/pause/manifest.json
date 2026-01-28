@@ -1,0 +1,33 @@
+
+{
+  "id": "logic.pause",
+  "name": "Pause",
+  "version": 2,
+  "nodeVersion": "1.0.0",
+  "author": "Fuse Official",
+  "category": "UTILITY",
+  "service": "core",
+  "connectionType": "flow",
+  "description": "Pause workflow execution until manually resumed.",
+  "tags": [
+    "pause",
+    "wait",
+    "manual",
+    "logic"
+  ],
+  "icon": "pause",
+  "runtime": {
+    "type": "internal",
+    "language": "python",
+    "minPythonVersion": "3.9"
+  },
+  "inputs": [],
+  "outputs": [],
+  "credentials": null,
+  "pricing": {
+    "model": "free",
+    "price": 0
+  },
+  "visibility": "public",
+  "license": "MIT"
+}
