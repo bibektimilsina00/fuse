@@ -9,8 +9,38 @@ if TYPE_CHECKING:
 from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import TypeDecorator
 
 from apps.api.app.models.base import Base
+
+
+def utc_now() -> datetime:
+    """Return the current time as a timezone-aware UTC datetime."""
+    return datetime.now(UTC)
+
+
+class UTCDateTime(TypeDecorator):
+    """Execution timestamp type that always returns timezone-aware UTC datetimes."""
+
+    impl = DateTime
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        return dialect.type_descriptor(DateTime(timezone=True))
+
+    def process_bind_param(self, value: datetime | None, dialect) -> datetime | None:
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
+
+    def process_result_value(self, value: datetime | None, dialect) -> datetime | None:
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
 
 
 class Workflow(Base):
@@ -59,8 +89,8 @@ class Execution(Base):
     trigger_type: Mapped[str] = mapped_column(String, nullable=False)  # manual, webhook, cron
     input_data: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     output_data: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    started_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
 
     workflow: Mapped["Workflow"] = relationship("Workflow", back_populates="executions")
     logs: Mapped[list["ExecutionLog"]] = relationship(
@@ -77,8 +107,6 @@ class ExecutionLog(Base):
     level: Mapped[str] = mapped_column(String, default="info")  # info, warn, error
     message: Mapped[str] = mapped_column(String, nullable=False)
     payload: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    timestamp: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None)
-    )
+    timestamp: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now)
 
     execution: Mapped["Execution"] = relationship("Execution", back_populates="logs")

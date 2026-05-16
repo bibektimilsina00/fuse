@@ -18,7 +18,8 @@
     /* Path aliases */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@fuse/*": ["../../packages/*/src"]
     },
 
     /* Linting */

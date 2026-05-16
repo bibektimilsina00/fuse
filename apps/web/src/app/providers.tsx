@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConfirmProvider } from '@/components/ui/confirm-modal'
 import { useTheme } from '@/hooks/use-theme'

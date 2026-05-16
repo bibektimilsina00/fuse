@@ -4,6 +4,7 @@ import { requestJson } from '@/lib/api/client'
 import { ExecutionSchema, type Execution } from '@/lib/api/contracts'
 import { z } from 'zod'
 import { useCallback, useEffect } from 'react'
+import { useExecutionStream } from '@/features/workflow-editor/hooks/use-execution-stream'
 import { useExecutionStore } from '@/stores/execution-store'
 import { useWorkflowStore } from '@/stores/workflow-store'
 
@@ -28,6 +29,9 @@ export function useExecution() {
   } = useExecutionStore()
   const { nodes, edges } = useWorkflowStore()
   const queryClient = useQueryClient()
+
+  // WebSocket Streaming
+  const { isRunning: isStreaming } = useExecutionStream(currentExecutionId)
 
   const runMutation = useMutation({
     mutationFn: async () => {
@@ -65,7 +69,7 @@ export function useExecution() {
     },
   })
 
-  // Sync polling data into run history
+  // Sync polling data into run history (fallback and initial load)
   useEffect(() => {
     if (executionQuery.data && currentExecutionId) {
       updateRun(currentExecutionId, executionQuery.data.logs, executionQuery.data.status)
@@ -77,7 +81,7 @@ export function useExecution() {
   }, [runMutation])
 
   const status = executionQuery.data?.status
-  const isRunning = runMutation.isPending || status === 'running' || status === 'pending'
+  const isRunning = runMutation.isPending || isStreaming || status === 'running' || status === 'pending'
 
   return {
     run,

@@ -8,14 +8,13 @@ from apps.api.app.core.logger import get_logger
 logger = get_logger(__name__)
 
 
-@celery_app.task(name="execute_workflow", bind=True, max_retries=3)
-def execute_workflow(self, execution_id: str, workflow_id: str, graph: dict, trigger_data: dict):
+@celery_app.task(name="execute_workflow")
+def execute_workflow(execution_id: str, workflow_id: str, graph: dict, trigger_data: dict):
     """Main workflow execution task. Runs async WorkflowRunner in sync Celery context."""
     try:
         asyncio.run(_run_workflow(execution_id, workflow_id, graph, trigger_data))
     except Exception as e:
         logger.error(f"execute_workflow task failed: {e}", exc_info=True)
-        raise self.retry(exc=e, countdown=2**self.request.retries) from e
 
 
 async def _run_workflow(execution_id: str, workflow_id: str, graph: dict, trigger_data: dict):
@@ -23,12 +22,13 @@ async def _run_workflow(execution_id: str, workflow_id: str, graph: dict, trigge
 
     from apps.api.app.core.database import AsyncSessionLocal
     from apps.api.app.credential_manager.encryption.aes import encryption_service
+    from apps.api.app.execution_engine.engine.event_emitter import RedisEventEmitter
     from apps.api.app.execution_engine.engine.workflow_runner import WorkflowRunner
     from apps.api.app.repositories.credential_repository import CredentialRepository
     from apps.api.app.repositories.execution_repository import ExecutionRepository
     from apps.api.app.repositories.workflow_repository import WorkflowRepository
 
-    # 1. Setup Phase: Mark running and Load Context
+    emitter = RedisEventEmitter(execution_id)
     credentials_list = []
     async with AsyncSessionLocal() as db:
         exec_repo = ExecutionRepository(db)
@@ -37,6 +37,8 @@ async def _run_workflow(execution_id: str, workflow_id: str, graph: dict, trigge
 
         await exec_repo.update_status(uuid.UUID(execution_id), "running")
         await exec_repo.add_log(uuid.UUID(execution_id), "Workflow execution started", level="info")
+
+        await emitter.emit("execution_started", {})
 
         # Fetch user_id from workflow
         workflow = await wf_repo.get_by_id(uuid.UUID(workflow_id))
@@ -58,7 +60,12 @@ async def _run_workflow(execution_id: str, workflow_id: str, graph: dict, trigge
                         {"id": str(cred.id), "type": cred.type, "data": decrypted_data}
                     )
                 except Exception as e:
-                    logger.error(f"Failed to decrypt credential {cred.id}: {str(e)}", exc_info=True)
+                    logger.error(
+                        f"Failed to decrypt credential {cred.id} ({cred.type}). "
+                        "This usually means the ENCRYPTION_KEY has changed. "
+                        "Please delete and re-add this Slack account in the settings. "
+                        f"Error: {str(e)}"
+                    )
         else:
             logger.error(f"Workflow {workflow_id} not found when fetching credentials")
 
@@ -82,6 +89,7 @@ async def _run_workflow(execution_id: str, workflow_id: str, graph: dict, trigge
                 db=db,
                 on_log=on_log,
                 credentials=credentials_list,
+                emitter=emitter,
             )
             output = await runner.run(trigger_data)
 
@@ -92,11 +100,14 @@ async def _run_workflow(execution_id: str, workflow_id: str, graph: dict, trigge
             await repo.add_log(
                 uuid.UUID(execution_id), "Workflow execution completed", level="info"
             )
+            await emitter.emit("execution_completed", {"status": "completed", "output": output})
 
     except Exception as e:
-        logger.error(f"Workflow {workflow_id} failed: {e}", exc_info=True)
+        error_msg = str(e)
+        logger.error(f"Workflow {workflow_id} failed: {error_msg}")
         async with AsyncSessionLocal() as db:
             repo = ExecutionRepository(db)
             await repo.update_status(uuid.UUID(execution_id), "failed")
-            await repo.add_log(uuid.UUID(execution_id), f"Workflow failed: {str(e)}", level="error")
+            await repo.add_log(uuid.UUID(execution_id), error_msg, level="error")
+            await emitter.emit("execution_failed", {"status": "failed", "error": error_msg})
         raise

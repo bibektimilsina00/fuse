@@ -13,10 +13,11 @@ TEMPLATE_PATTERN = re.compile(r"\{\{([^}]+)\}\}")
 class TemplateResolver:
     """Resolves {{node_id.output.field}} templates against execution context."""
 
-    def __init__(self, node_outputs: dict[str, dict[str, Any]], trigger_data: dict[str, Any]):
-        # context: { "trigger": {"output": {...}}, "node_1": {"output": {...}}, ... }
+    def __init__(self, node_outputs: dict[str, dict[str, Any]], trigger_data: dict[str, Any], variables: dict[str, Any]):
+        # context: { "trigger": {"output": {...}}, "node_1": {"output": {...}}, "variables": {...} }
         self._context = {
             "trigger": {"output": trigger_data},
+            "variables": variables,
             **{node_id: {"output": output} for node_id, output in node_outputs.items()},
         }
 

@@ -87,6 +87,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
       }
 
       // 4. Boundary Shifting (Horizontal)
+      let aTop: number
+      let aLeft: number
+
       if (finalSide === 'top' || finalSide === 'bottom') {
         if (left < 8) left = 8
         if (left + tooltipRect.width > viewportWidth - 8) left = viewportWidth - tooltipRect.width - 8

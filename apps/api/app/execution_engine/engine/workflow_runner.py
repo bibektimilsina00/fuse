@@ -18,6 +18,7 @@ class WorkflowRunner:
         db: AsyncSession | None = None,
         on_log: Any = None,
         credentials: list[dict[str, Any]] | None = None,
+        emitter: Any = None,  # Avoid circular import by using Any or string ref
     ):
         self.workflow_id = workflow_id
         self.execution_id = execution_id
@@ -30,8 +31,15 @@ class WorkflowRunner:
         self.credentials = credentials or []
         self.db = db
         self.on_log = on_log
+        self.emitter = emitter
+        self.variables: dict[str, Any] = {}
         self.failed = False
         self.error_message = None
+
+    async def _emit(self, event_type: str, data: dict[str, Any]) -> None:
+        """Helper to emit execution events via the injected emitter."""
+        if self.emitter:
+            await self.emitter.emit(event_type, data)
 
     async def _log(
         self, message: str, level: str = "info", node_id: str | None = None, payload: Any = None
@@ -75,7 +83,7 @@ class WorkflowRunner:
         node_data = self.nodes[node_id]
         label = node_data.get("data", {}).get("label") or node_data["type"]
 
-        await self._log(f"Executing node: {label}", node_id=node_id)
+        await self._log(label, node_id=node_id)
 
         # Resolve templates in properties BEFORE executing
         from apps.api.app.execution_engine.engine.template_resolver import TemplateResolver
@@ -83,6 +91,7 @@ class WorkflowRunner:
         resolver = TemplateResolver(
             node_outputs=self.node_outputs,
             trigger_data=self.trigger_data,
+            variables=self.variables,
         )
         raw_properties = node_data.get("data", {}).get("properties", {})
         resolved_properties = resolver.resolve_properties(raw_properties)
@@ -95,10 +104,15 @@ class WorkflowRunner:
             execution_id=self.execution_id,
             workflow_id=self.workflow_id,
             node_id=node_id,
-            variables={},  # To be populated from state
+            variables=self.variables,  # Use persistent state
             credentials=self.credentials,
             http_client=http_client,
             db=self.db,
+        )
+
+        # Emit NODE_STARTED
+        await self._emit(
+            "node_started", {"node_id": node_id, "node_type": node_data.get("type"), "label": label}
         )
 
         result = await node_executor.execute_node(
@@ -121,8 +135,17 @@ class WorkflowRunner:
             # Store output for future interpolation
             self.node_outputs[node_id] = result.output_data
 
+            # Emit NODE_COMPLETED
+            await self._emit(
+                "node_completed",
+                {
+                    "node_id": node_id,
+                    "output": result.output_data,
+                },
+            )
+
             await self._log(
-                f"Node {label} executed successfully",
+                label,
                 node_id=node_id,
                 payload={
                     "input": resolved_properties,
@@ -152,8 +175,17 @@ class WorkflowRunner:
                 "error": result.error,
             }
 
+            # Emit NODE_FAILED
+            await self._emit(
+                "node_failed",
+                {
+                    "node_id": node_id,
+                    "error": result.error,
+                },
+            )
+
             await self._log(
-                f"Node {label} failed: {result.error}",
+                label,
                 level="error",
                 node_id=node_id,
                 payload=error_payload,
@@ -169,5 +201,6 @@ class WorkflowRunner:
             else:
                 # No error handler -> workflow fails
                 self.failed = True
-                self.error_message = f"Node {label} failed: {result.error}"
+                error = result.error or "Unknown error"
+                self.error_message = error if "Node" in error else f"Node {label} failed: {error}"
                 logger.error(f"Execution failed at node {node_id}: {result.error}")

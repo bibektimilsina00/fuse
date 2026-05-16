@@ -57,7 +57,20 @@ class NodeExecutor:
             result = await node_instance.execute(input_data, context)
             return result
         except Exception as e:
-            logger.error(f"Error executing node {node_id}: {str(e)}")
+            # Handle Pydantic validation errors gracefully
+            from pydantic import ValidationError
+
+            if isinstance(e, ValidationError):
+                errors = []
+                for error in e.errors():
+                    field = ".".join(str(loc) for loc in error["loc"])
+                    msg = error["msg"]
+                    errors.append(f"{field}: {msg}")
+                error_msg = f"Configuration Error: {', '.join(errors)}"
+                logger.warning(f"Node {node_id} validation failed: {error_msg}")
+                return NodeResult(success=False, error=error_msg, logs=[error_msg])
+
+            logger.error(f"Error executing node {node_id}: {str(e)}", exc_info=True)
             return NodeResult(success=False, error=str(e), logs=[f"System Error: {str(e)}"])
 
 

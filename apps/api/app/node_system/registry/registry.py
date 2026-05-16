@@ -6,6 +6,10 @@ from apps.api.app.node_system.nodes.common.delay.delay import DelayNode
 from apps.api.app.node_system.nodes.common.trigger.manual import TriggerNode
 from apps.api.app.node_system.nodes.http.request.request import HttpRequestNode
 from apps.api.app.node_system.nodes.http.webhook.webhook import WebhookTriggerNode
+from apps.api.app.node_system.nodes.common.json_transform.json_transform import JsonTransformNode
+from apps.api.app.node_system.nodes.common.merge.merge import MergeNode
+from apps.api.app.node_system.nodes.common.set_variable.set_variable import SetVariableNode
+from apps.api.app.node_system.nodes.common.switch.switch import SwitchNode
 from apps.api.app.node_system.nodes.slack.slack_node import SlackNode
 from apps.api.app.node_system.nodes.slack.slack_trigger import SlackTriggerNode
 
@@ -37,3 +41,7 @@ node_registry.register(DelayNode)
 node_registry.register(ConditionNode)
 node_registry.register(SlackNode)
 node_registry.register(SlackTriggerNode)
+node_registry.register(SetVariableNode)
+node_registry.register(JsonTransformNode)
+node_registry.register(MergeNode)
+node_registry.register(SwitchNode)

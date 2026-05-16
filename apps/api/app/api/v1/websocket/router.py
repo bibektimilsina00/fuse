@@ -1,37 +1,116 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+import json
+from contextlib import suppress
+from datetime import UTC, datetime
+from uuid import UUID
 
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from starlette.websockets import WebSocketState
+
+from apps.api.app.core.database import AsyncSessionLocal
+from apps.api.app.core.logger import get_logger
+from apps.api.app.core.redis import get_redis
+from apps.api.app.core.security import get_current_user_from_token
+from apps.api.app.repositories.execution_repository import ExecutionRepository
+
+logger = get_logger(__name__)
 router = APIRouter()
 
 
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: dict[str, list[WebSocket]] = {}
-
-    async def connect(self, execution_id: str, websocket: WebSocket):
-        await websocket.accept()
-        if execution_id not in self.active_connections:
-            self.active_connections[execution_id] = []
-        self.active_connections[execution_id].append(websocket)
-
-    def disconnect(self, execution_id: str, websocket: WebSocket):
-        if execution_id in self.active_connections:
-            self.active_connections[execution_id].remove(websocket)
-
-    async def broadcast_to_execution(self, execution_id: str, message: dict):
-        if execution_id in self.active_connections:
-            for connection in self.active_connections[execution_id]:
-                await connection.send_json(message)
-
-
-manager = ConnectionManager()
-
-
-@router.websocket("/{execution_id}")
-async def websocket_endpoint(websocket: WebSocket, execution_id: str):
-    await manager.connect(execution_id, websocket)
+@router.websocket("/executions/{execution_id}")
+async def execution_websocket(
+    websocket: WebSocket,
+    execution_id: UUID,
+    token: str = Query(...),
+):
+    """
+    WebSocket endpoint for streaming execution events.
+    Verifies the user via JWT token before accepting.
+    Subscribes to Redis pub/sub for the specific execution.
+    """
     try:
-        while True:
-            # Keep connection alive
-            await websocket.receive_text()
-    except WebSocketDisconnect:
-        manager.disconnect(execution_id, websocket)
+        # 1. Verify token
+        # We use a separate helper because Depends() doesn't work well with websockets in all FastAPI versions
+        user = await get_current_user_from_token(token)
+        if not user:
+            await websocket.close(code=4001)  # Unauthorized
+            return
+
+        await websocket.accept()
+        logger.info(f"WebSocket connected for execution {execution_id}")
+
+        terminal_status: str | None = None
+
+        # Send initial catch-up data from DB.
+        async with AsyncSessionLocal() as db:
+            repo = ExecutionRepository(db)
+            execution = await repo.get_by_id(execution_id)
+            if execution:
+                terminal_status = (
+                    execution.status if execution.status in ("completed", "failed") else None
+                )
+                for log in execution.logs:
+                    # Ensure timestamp is UTC and has 'Z' for consistent JS parsing
+                    ts = log.timestamp.isoformat()
+                    if not ts.endswith("Z") and "+00:00" not in ts:
+                        ts += "Z"
+
+                    await websocket.send_json(
+                        {
+                            "type": "log_synced",
+                            "id": str(log.id),
+                            "execution_id": str(execution_id),
+                            "timestamp": ts,
+                            "node_id": log.node_id,
+                            "level": log.level,
+                            "message": log.message,
+                            "payload": log.payload,
+                        }
+                    )
+
+        if terminal_status:
+            await websocket.send_json(
+                {
+                    "type": f"execution_{terminal_status}",
+                    "execution_id": str(execution_id),
+                    "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                    "status": terminal_status,
+                }
+            )
+            logger.info(f"Execution {execution_id} already finished, closing websocket")
+            await websocket.close(code=1000)
+            return
+
+        redis = await get_redis()
+        pubsub = redis.pubsub()
+        channel = f"execution:{execution_id}"
+
+        await pubsub.subscribe(channel)
+        logger.info(f"Subscribed to Redis channel: {channel}")
+
+        try:
+            async for message in pubsub.listen():
+                if message["type"] == "message":
+                    # Forward the Redis message directly to the WebSocket
+                    await websocket.send_text(message["data"])
+
+                    # Optional: Break if we see completion events
+                    try:
+                        data = json.loads(message["data"])
+                        if data.get("type") in ("execution_completed", "execution_failed"):
+                            logger.info(f"Execution {execution_id} finished, closing websocket")
+                            break
+                    except Exception:
+                        pass
+        except WebSocketDisconnect:
+            logger.info(f"WebSocket disconnected for execution {execution_id}")
+        except Exception as e:
+            logger.error(f"WebSocket error for {execution_id}: {e}", exc_info=True)
+        finally:
+            await pubsub.unsubscribe(channel)
+            if websocket.client_state != WebSocketState.DISCONNECTED:
+                await websocket.close(code=1000)
+
+    except Exception as e:
+        logger.error(f"Failed to initialize WebSocket for {execution_id}: {e}", exc_info=True)
+        with suppress(Exception):
+            await websocket.close(code=1011)

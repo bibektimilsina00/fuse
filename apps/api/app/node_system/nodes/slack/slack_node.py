@@ -312,6 +312,7 @@ class SlackNode(BaseNode[SlackProperties]):
             outputs=1,
             outputs_schema=[
                 {"label": "ok", "type": "boolean"},
+                {"label": "error", "type": "string"},
                 {"label": "ts", "type": "string"},
                 {"label": "channel", "type": "string"},
                 {"label": "message", "type": "object"},
@@ -320,6 +321,7 @@ class SlackNode(BaseNode[SlackProperties]):
                 {"label": "members", "type": "array"},
                 {"label": "view", "type": "object"},
             ],
+            allow_error=True,
             credential_type="slack_oauth",
         )
 
@@ -363,19 +365,21 @@ class SlackNode(BaseNode[SlackProperties]):
                     return NodeResult(
                         success=False, error="Channel/User is required for send_message"
                     )
-                
+
                 is_blocks = self.props.messageFormat == "blocks"
                 if is_blocks:
                     if not self.props.blocks:
                         return NodeResult(
-                            success=False, error="Blocks JSON is required when Message Format is 'blocks'"
+                            success=False,
+                            error="Blocks JSON is required when Message Format is 'blocks'",
                         )
                     text = None
                     blocks = self.props.blocks
                 else:
                     if not self.props.text:
                         return NodeResult(
-                            success=False, error="Message Text is required when Message Format is 'text'"
+                            success=False,
+                            error="Message Text is required when Message Format is 'text'",
                         )
                     text = self.props.text
                     blocks = None
@@ -412,16 +416,22 @@ class SlackNode(BaseNode[SlackProperties]):
                         success=False,
                         error="Channel and Timestamp (ts) are required for update_message",
                     )
-                
+
                 is_blocks = self.props.messageFormat == "blocks"
                 if is_blocks:
                     if not self.props.blocks:
-                        return NodeResult(success=False, error="Blocks JSON is required when Message Format is 'blocks'")
+                        return NodeResult(
+                            success=False,
+                            error="Blocks JSON is required when Message Format is 'blocks'",
+                        )
                     text = None
                     blocks = self.props.blocks
                 else:
                     if not self.props.text:
-                        return NodeResult(success=False, error="Message Text is required when Message Format is 'text'")
+                        return NodeResult(
+                            success=False,
+                            error="Message Text is required when Message Format is 'text'",
+                        )
                     text = self.props.text
                     blocks = None
 
@@ -445,16 +455,22 @@ class SlackNode(BaseNode[SlackProperties]):
                         success=False,
                         error="Channel/User and Recipient (user) are required for send_ephemeral",
                     )
-                
+
                 is_blocks = self.props.messageFormat == "blocks"
                 if is_blocks:
                     if not self.props.blocks:
-                        return NodeResult(success=False, error="Blocks JSON is required when Message Format is 'blocks'")
+                        return NodeResult(
+                            success=False,
+                            error="Blocks JSON is required when Message Format is 'blocks'",
+                        )
                     text = None
                     blocks = self.props.blocks
                 else:
                     if not self.props.text:
-                        return NodeResult(success=False, error="Message Text is required when Message Format is 'text'")
+                        return NodeResult(
+                            success=False,
+                            error="Message Text is required when Message Format is 'text'",
+                        )
                     text = self.props.text
                     blocks = None
 
@@ -587,7 +603,17 @@ class SlackNode(BaseNode[SlackProperties]):
                 return NodeResult(success=False, error=f"Unsupported operation: {op}")
 
             return NodeResult(success=True, output_data=output)
-
+        except ValueError as e:
+            error_msg = str(e)
+            if "Slack API error:" in error_msg:
+                return NodeResult(
+                    success=True,
+                    output_data={
+                        "ok": False,
+                        "error": error_msg.replace("Slack API error: ", ""),
+                    },
+                )
+            return NodeResult(success=False, error=error_msg)
         except Exception as e:
             logger.error(f"SlackNode failed: {e}", exc_info=True)
             return NodeResult(success=False, error=str(e))

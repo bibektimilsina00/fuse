@@ -18,6 +18,8 @@ interface ExecutionState {
   runs: ExecutionRun[]
   addRun: (id: string) => void
   updateRun: (id: string, logs: ExecutionLog[], status: string) => void
+  addLog: (id: string, log: ExecutionLog) => void
+  updateRunStatus: (id: string, status: string) => void
   clearRuns: () => void
 }
 
@@ -38,7 +40,25 @@ export const useExecutionStore = create<ExecutionState>((set) => ({
     })),
   updateRun: (id, logs, status) =>
     set((state) => ({
-      runs: state.runs.map((r) => (r.id === id ? { ...r, logs, status } : r)),
+      runs: state.runs.map((r) => {
+        if (r.id !== id) return r
+        // Merge logs, keeping existing ones and adding new ones, avoiding duplicates by ID
+        const existingIds = new Set(r.logs.map((l) => l.id))
+        const newLogs = logs.filter((l) => !existingIds.has(l.id))
+        return { ...r, logs: [...r.logs, ...newLogs], status }
+      }),
+    })),
+  addLog: (id, log) =>
+    set((state) => ({
+      runs: state.runs.map((r) => {
+        if (r.id !== id) return r
+        if (r.logs.some((l) => l.id === log.id)) return r
+        return { ...r, logs: [...r.logs, log] }
+      }),
+    })),
+  updateRunStatus: (id, status) =>
+    set((state) => ({
+      runs: state.runs.map((r) => (r.id === id ? { ...r, status } : r)),
     })),
   clearRuns: () => set({ runs: [], selectedLogId: null }),
 }))
