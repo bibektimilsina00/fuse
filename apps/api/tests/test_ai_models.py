@@ -1,11 +1,12 @@
 import pytest
 
 from apps.api.app.api.v1.ai.router import (
-    MODEL_PROVIDERS,
     _google_model_options,
     _model_options_from_items,
     list_ai_models,
+    list_ai_providers,
 )
+from apps.api.app.credential_manager.api_keys import get_ai_provider_ids
 
 
 @pytest.fixture
@@ -14,7 +15,28 @@ def anyio_backend() -> str:
 
 
 def test_ai_model_providers_cover_supported_agent_providers():
-    assert {"openai", "anthropic", "google", "groq"} == MODEL_PROVIDERS
+    assert {"openai", "anthropic", "google", "groq"} == get_ai_provider_ids()
+
+
+@pytest.mark.anyio
+async def test_list_ai_providers_uses_api_key_catalog():
+    result = await list_ai_providers()
+
+    assert result["ok"] is True
+    assert {provider["value"] for provider in result["data"]} == {
+        "openai",
+        "anthropic",
+        "google",
+        "groq",
+    }
+    assert {
+        provider["value"]: provider["credentialType"] for provider in result["data"]
+    } == {
+        "openai": "openai_api_key",
+        "anthropic": "anthropic_api_key",
+        "google": "google_api_key",
+        "groq": "groq_api_key",
+    }
 
 
 def test_openai_compatible_model_options_are_sorted_and_labeled_by_id():

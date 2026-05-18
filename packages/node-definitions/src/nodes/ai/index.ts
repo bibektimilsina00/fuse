@@ -1,12 +1,5 @@
 import type { NodeDefinition, NodeProperty } from '../../types'
 
-const DEFAULT_MODELS = {
-  openai: 'gpt-4o-mini',
-  anthropic: 'claude-3-5-sonnet-latest',
-  google: 'gemini-1.5-flash',
-  groq: 'llama-3.1-8b-instant',
-}
-
 const credentialProperties: NodeProperty[] = [
   {
     name: 'openaiCredential',
@@ -55,22 +48,17 @@ export const AgentDefinition: NodeDefinition = {
     {
       name: 'provider',
       label: 'Provider',
-      type: 'options',
+      type: 'string',
       default: 'openai',
       required: true,
-      options: [
-        { label: 'OpenAI', value: 'openai' },
-        { label: 'Anthropic', value: 'anthropic' },
-        { label: 'Google Gemini', value: 'google' },
-        { label: 'Groq', value: 'groq' },
-      ],
+      placeholder: 'Type or select an AI provider',
+      loadOptions: '/ai/providers',
     },
     ...credentialProperties,
     {
       name: 'model',
       label: 'Model',
       type: 'string',
-      default: DEFAULT_MODELS.openai,
       required: true,
       placeholder: 'Type or select a model ID',
       loadOptions: '/ai/models',

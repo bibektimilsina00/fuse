@@ -10,8 +10,12 @@ from apps.api.app.node_system.nodes.ai.agent.agent import AgentNode
 
 def test_agent_model_field_uses_generic_dynamic_options_contract():
     metadata = AgentNode.get_metadata()
+    provider_property = next(prop for prop in metadata.properties if prop["name"] == "provider")
     model_property = next(prop for prop in metadata.properties if prop["name"] == "model")
 
+    assert provider_property["type"] == "string"
+    assert provider_property["loadOptions"] == "/ai/providers"
+    assert "options" not in provider_property
     assert model_property["type"] == "string"
     assert model_property["loadOptions"] == "/ai/models"
     assert model_property["loadOptionsDependsOn"] == [

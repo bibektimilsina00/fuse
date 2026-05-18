@@ -5,6 +5,7 @@ import httpx
 from pydantic import BaseModel, Field
 
 from apps.api.app.core.logger import get_logger
+from apps.api.app.credential_manager.api_keys import get_ai_provider, get_ai_providers
 from apps.api.app.node_system.base.base_node import BaseNode
 from apps.api.app.node_system.base.node_context import NodeContext
 from apps.api.app.node_system.base.node_metadata import NodeMetadata
@@ -20,18 +21,11 @@ GOOGLE_GENERATE_CONTENT_URL = "https://generativelanguage.googleapis.com/v1beta/
 ProviderId = Literal["openai", "anthropic", "google", "groq"]
 MemoryType = Literal["none", "workflow"]
 
-PROVIDER_CREDENTIALS: dict[str, tuple[str, str, str]] = {
-    "openai": ("openaiCredential", "openai_api_key", "OpenAI"),
-    "anthropic": ("anthropicCredential", "anthropic_api_key", "Anthropic"),
-    "google": ("googleCredential", "google_api_key", "Google Gemini"),
-    "groq": ("groqCredential", "groq_api_key", "Groq"),
-}
-
-DEFAULT_MODELS: dict[str, str] = {
-    "openai": "gpt-4o-mini",
-    "anthropic": "claude-3-5-sonnet-latest",
-    "google": "gemini-1.5-flash",
-    "groq": "llama-3.1-8b-instant",
+PROVIDER_CREDENTIAL_FIELDS: dict[str, str] = {
+    "openai": "openaiCredential",
+    "anthropic": "anthropicCredential",
+    "google": "googleCredential",
+    "groq": "groqCredential",
 }
 
 
@@ -47,10 +41,10 @@ class AgentProperties(BaseModel):
     googleCredential: str | None = None
     groqCredential: str | None = None
     model: str | None = None
-    openaiModel: str = DEFAULT_MODELS["openai"]
-    anthropicModel: str = DEFAULT_MODELS["anthropic"]
-    googleModel: str = DEFAULT_MODELS["google"]
-    groqModel: str = DEFAULT_MODELS["groq"]
+    openaiModel: str | None = None
+    anthropicModel: str | None = None
+    googleModel: str | None = None
+    groqModel: str | None = None
     messages: list[AgentMessage] | str | None = Field(default_factory=list)
     tools: list[dict[str, Any]] | str | None = Field(default_factory=list)
     toolChoice: str = "auto"
@@ -70,13 +64,6 @@ class AgentNode(BaseNode[AgentProperties]):
 
     @classmethod
     def get_metadata(cls) -> NodeMetadata:
-        provider_options = [
-            {"label": "OpenAI", "value": "openai"},
-            {"label": "Anthropic", "value": "anthropic"},
-            {"label": "Google Gemini", "value": "google"},
-            {"label": "Groq", "value": "groq"},
-        ]
-
         return NodeMetadata(
             type="action.agent",
             name="Agent",
@@ -88,17 +75,17 @@ class AgentNode(BaseNode[AgentProperties]):
                 {
                     "name": "provider",
                     "label": "Provider",
-                    "type": "options",
+                    "type": "string",
                     "default": "openai",
-                    "options": provider_options,
                     "required": True,
+                    "placeholder": "Type or select an AI provider",
+                    "loadOptions": "/ai/providers",
                 },
                 *cls._provider_credential_properties(),
                 {
                     "name": "model",
                     "label": "Model",
                     "type": "string",
-                    "default": DEFAULT_MODELS["openai"],
                     "required": True,
                     "placeholder": "Type or select a model ID",
                     "loadOptions": "/ai/models",
@@ -206,7 +193,7 @@ class AgentNode(BaseNode[AgentProperties]):
 
     @classmethod
     def _provider_credential_properties(cls) -> list[dict[str, Any]]:
-        return [
+        credential_properties = [
             {
                 "name": "openaiCredential",
                 "label": "OpenAI API Key",
@@ -240,12 +227,22 @@ class AgentNode(BaseNode[AgentProperties]):
                 "condition": {"field": "provider", "value": "groq"},
             },
         ]
+        catalog_by_provider = {
+            provider.ai_provider_id: provider for provider in get_ai_providers()
+        }
+        for prop in credential_properties:
+            provider_id = prop["condition"]["value"]
+            catalog_provider = catalog_by_provider.get(provider_id)
+            if catalog_provider:
+                prop["label"] = f"{catalog_provider.name} API Key"
+                prop["credentialType"] = catalog_provider.id
+        return credential_properties
 
     async def execute(self, input_data: dict[str, Any], context: NodeContext) -> NodeResult:
         try:
             api_key = self._get_api_key(context)
             if not api_key:
-                provider_name = PROVIDER_CREDENTIALS[self.props.provider][2]
+                provider_name = self._provider_name()
                 return NodeResult(success=False, error=f"{provider_name} API key credential is required.")
 
             messages = self._normalize_messages(input_data)
@@ -437,7 +434,12 @@ class AgentNode(BaseNode[AgentProperties]):
         return response.json()
 
     def _get_api_key(self, context: NodeContext) -> str | None:
-        credential_field, credential_type, _provider_name = PROVIDER_CREDENTIALS[self.props.provider]
+        ai_provider = get_ai_provider(self.props.provider)
+        if not ai_provider:
+            return None
+
+        credential_field = PROVIDER_CREDENTIAL_FIELDS[self.props.provider]
+        credential_type = ai_provider.id
         selected_credential_id = getattr(self.props, credential_field)
         credentials = context.credentials or []
 
@@ -467,7 +469,14 @@ class AgentNode(BaseNode[AgentProperties]):
             return self.props.model
         field_name = f"{self.props.provider}Model"
         model = getattr(self.props, field_name)
-        return model or DEFAULT_MODELS[self.props.provider]
+        if model:
+            return model
+        ai_provider = get_ai_provider(self.props.provider)
+        return ai_provider.default_model if ai_provider and ai_provider.default_model else ""
+
+    def _provider_name(self) -> str:
+        ai_provider = get_ai_provider(self.props.provider)
+        return ai_provider.name if ai_provider else self.props.provider
 
     def _google_model_path(self, model: str) -> str:
         return model.removeprefix("models/")
@@ -745,7 +754,7 @@ class AgentNode(BaseNode[AgentProperties]):
         return output
 
     def _extract_provider_error(self, response: httpx.Response) -> str:
-        provider_name = PROVIDER_CREDENTIALS[self.props.provider][2]
+        provider_name = self._provider_name()
         try:
             body = response.json()
             if isinstance(body, dict):

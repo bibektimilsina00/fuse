@@ -9,6 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.api.app.api.v1.auth.dependencies import get_current_user
 from apps.api.app.core.database import get_db
 from apps.api.app.core.logger import get_logger
+from apps.api.app.credential_manager.api_keys import (
+    get_ai_provider,
+    get_ai_provider_ids,
+    get_ai_providers,
+)
 from apps.api.app.credential_manager.encryption.aes import AESEncryptionService
 from apps.api.app.models.user import User
 from apps.api.app.repositories.credential_repository import CredentialRepository
@@ -16,19 +21,28 @@ from apps.api.app.repositories.credential_repository import CredentialRepository
 router = APIRouter()
 logger = get_logger(__name__)
 
-MODEL_PROVIDERS = {"openai", "anthropic", "google", "groq"}
-
-PROVIDER_CREDENTIAL_TYPES = {
-    "openai": "openai_api_key",
-    "anthropic": "anthropic_api_key",
-    "google": "google_api_key",
-    "groq": "groq_api_key",
-}
-
 
 @router.get("/")
 async def ai_status():
     return {"status": "ok"}
+
+
+@router.get("/providers")
+async def list_ai_providers():
+    return {
+        "ok": True,
+        "data": [
+            {
+                "label": provider.name,
+                "value": provider.ai_provider_id,
+                "credentialType": provider.id,
+                "defaultModel": provider.default_model,
+                "supportsTools": provider.supports_tools,
+                "supportsResponseFormat": provider.supports_response_format,
+            }
+            for provider in get_ai_providers()
+        ],
+    }
 
 
 @router.get("/models")
@@ -42,7 +56,7 @@ async def list_ai_models(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    provider_id = provider if provider in MODEL_PROVIDERS else "openai"
+    provider_id = provider if provider in get_ai_provider_ids() else "openai"
     selected_credential = credential or {
         "openai": openaiCredential,
         "anthropic": anthropicCredential,
@@ -76,7 +90,11 @@ async def list_ai_models(
 async def _get_api_key_for_credential(
     db: AsyncSession, current_user: User, credential: str, provider: str
 ) -> str | None:
-    credential_type = PROVIDER_CREDENTIAL_TYPES[provider]
+    ai_provider = get_ai_provider(provider)
+    if not ai_provider:
+        return None
+
+    credential_type = ai_provider.id
     repo = CredentialRepository(db)
     cred = await repo.get_by_id_and_user(uuid.UUID(credential), current_user.id)
     if not cred or cred.type != credential_type:
