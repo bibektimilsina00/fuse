@@ -1,39 +1,4 @@
-import type { NodeDefinition, NodeProperty } from '../../types'
-
-const credentialProperties: NodeProperty[] = [
-  {
-    name: 'openaiCredential',
-    label: 'OpenAI API Key',
-    type: 'credential',
-    credentialType: 'openai_api_key',
-    required: { field: 'provider', value: 'openai' },
-    condition: { field: 'provider', value: 'openai' },
-  },
-  {
-    name: 'anthropicCredential',
-    label: 'Anthropic API Key',
-    type: 'credential',
-    credentialType: 'anthropic_api_key',
-    required: { field: 'provider', value: 'anthropic' },
-    condition: { field: 'provider', value: 'anthropic' },
-  },
-  {
-    name: 'googleCredential',
-    label: 'Google API Key',
-    type: 'credential',
-    credentialType: 'google_api_key',
-    required: { field: 'provider', value: 'google' },
-    condition: { field: 'provider', value: 'google' },
-  },
-  {
-    name: 'groqCredential',
-    label: 'Groq API Key',
-    type: 'credential',
-    credentialType: 'groq_api_key',
-    required: { field: 'provider', value: 'groq' },
-    condition: { field: 'provider', value: 'groq' },
-  },
-]
+import type { NodeDefinition } from '../../types'
 
 export const AgentDefinition: NodeDefinition = {
   type: 'action.agent',
@@ -54,7 +19,28 @@ export const AgentDefinition: NodeDefinition = {
       placeholder: 'Type or select an AI provider',
       loadOptions: '/ai/providers',
     },
-    ...credentialProperties,
+    {
+      name: 'credential',
+      label: 'Provider Credential',
+      type: 'credential',
+      required: true,
+      dependsOn: ['provider'],
+      credentialTypeByField: {
+        field: 'provider',
+        values: {
+          openai: 'openai_api_key',
+          anthropic: 'anthropic_api_key',
+          google: 'google_api_key',
+          groq: 'groq_api_key',
+          openrouter: 'openrouter_api_key',
+          deepseek: 'deepseek_api_key',
+          mistral: 'mistral_api_key',
+          xai: 'xai_api_key',
+          together: 'together_api_key',
+          fireworks: 'fireworks_api_key',
+        },
+      },
+    },
     {
       name: 'model',
       label: 'Model',
@@ -64,6 +50,7 @@ export const AgentDefinition: NodeDefinition = {
       loadOptions: '/ai/models',
       loadOptionsDependsOn: [
         'provider',
+        'credential',
         'openaiCredential',
         'anthropicCredential',
         'googleCredential',

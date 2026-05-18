@@ -23,6 +23,7 @@ export interface NodeProperty {
   placeholder?: string;
   condition?: any;
   credentialType?: string;
+  credentialTypeByField?: { field: string; values: Record<string, string> };
   /**
    * Fields that must be non-empty before this field is enabled.
    * - Array: all listed fields must have values (AND logic)

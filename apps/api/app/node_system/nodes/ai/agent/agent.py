@@ -13,20 +13,7 @@ from apps.api.app.node_system.base.node_result import NodeResult
 
 logger = get_logger(__name__)
 
-OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions"
-GROQ_CHAT_COMPLETIONS_URL = "https://api.groq.com/openai/v1/chat/completions"
-ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages"
-GOOGLE_GENERATE_CONTENT_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-
-ProviderId = Literal["openai", "anthropic", "google", "groq"]
 MemoryType = Literal["none", "workflow"]
-
-PROVIDER_CREDENTIAL_FIELDS: dict[str, str] = {
-    "openai": "openaiCredential",
-    "anthropic": "anthropicCredential",
-    "google": "googleCredential",
-    "groq": "groqCredential",
-}
 
 
 class AgentMessage(BaseModel):
@@ -35,7 +22,8 @@ class AgentMessage(BaseModel):
 
 
 class AgentProperties(BaseModel):
-    provider: ProviderId = "openai"
+    provider: str = "openai"
+    credential: str | None = None
     openaiCredential: str | None = None
     anthropicCredential: str | None = None
     googleCredential: str | None = None
@@ -83,6 +71,17 @@ class AgentNode(BaseNode[AgentProperties]):
                 },
                 *cls._provider_credential_properties(),
                 {
+                    "name": "credential",
+                    "label": "Provider Credential",
+                    "type": "credential",
+                    "required": True,
+                    "dependsOn": ["provider"],
+                    "credentialTypeByField": {
+                        "field": "provider",
+                        "values": cls._credential_type_by_provider(),
+                    },
+                },
+                {
                     "name": "model",
                     "label": "Model",
                     "type": "string",
@@ -91,6 +90,7 @@ class AgentNode(BaseNode[AgentProperties]):
                     "loadOptions": "/ai/models",
                     "loadOptionsDependsOn": [
                         "provider",
+                        "credential",
                         "openaiCredential",
                         "anthropicCredential",
                         "googleCredential",
@@ -236,7 +236,16 @@ class AgentNode(BaseNode[AgentProperties]):
             if catalog_provider:
                 prop["label"] = f"{catalog_provider.name} API Key"
                 prop["credentialType"] = catalog_provider.id
+            prop["visibility"] = "hidden"
         return credential_properties
+
+    @classmethod
+    def _credential_type_by_provider(cls) -> dict[str, str]:
+        return {
+            provider.ai_provider_id: provider.id
+            for provider in get_ai_providers()
+            if provider.ai_provider_id
+        }
 
     async def execute(self, input_data: dict[str, Any], context: NodeContext) -> NodeResult:
         try:
@@ -256,44 +265,42 @@ class AgentNode(BaseNode[AgentProperties]):
             client = context.http_client or httpx.AsyncClient(timeout=timeout_seconds)
 
             try:
-                if self.props.provider == "openai":
+                ai_provider = get_ai_provider(self.props.provider)
+                if not ai_provider:
+                    return NodeResult(success=False, error=f"Unsupported AI provider: {self.props.provider}")
+
+                if ai_provider.ai_api_type == "openai_compatible":
                     data = await self._execute_openai_compatible(
                         client=client,
-                        url=OPENAI_CHAT_COMPLETIONS_URL,
+                        url=ai_provider.chat_completions_url or "",
                         api_key=api_key,
                         model=model,
                         messages=messages,
                         tools=tools,
                     )
                     output = self._build_openai_compatible_output(data, model)
-                elif self.props.provider == "groq":
-                    data = await self._execute_openai_compatible(
-                        client=client,
-                        url=GROQ_CHAT_COMPLETIONS_URL,
-                        api_key=api_key,
-                        model=model,
-                        messages=messages,
-                        tools=tools,
-                    )
-                    output = self._build_openai_compatible_output(data, model)
-                elif self.props.provider == "anthropic":
+                elif ai_provider.ai_api_type == "anthropic":
                     data = await self._execute_anthropic(
                         client=client,
+                        url=ai_provider.chat_completions_url or "",
                         api_key=api_key,
                         model=model,
                         messages=messages,
                         tools=tools,
                     )
                     output = self._build_anthropic_output(data, model)
-                else:
+                elif ai_provider.ai_api_type == "google":
                     data = await self._execute_google(
                         client=client,
+                        url_template=ai_provider.chat_completions_url or "",
                         api_key=api_key,
                         model=model,
                         messages=messages,
                         tools=tools,
                     )
                     output = self._build_google_output(data, model)
+                else:
+                    return NodeResult(success=False, error=f"Unsupported AI provider: {self.props.provider}")
             finally:
                 if not context.http_client:
                     await client.aclose()
@@ -356,6 +363,7 @@ class AgentNode(BaseNode[AgentProperties]):
     async def _execute_anthropic(
         self,
         client: httpx.AsyncClient,
+        url: str,
         api_key: str,
         model: str,
         messages: list[dict[str, str]],
@@ -380,7 +388,7 @@ class AgentNode(BaseNode[AgentProperties]):
                 payload["tool_choice"] = {"type": "auto"}
 
         response = await client.post(
-            ANTHROPIC_MESSAGES_URL,
+            url,
             headers={
                 "x-api-key": api_key,
                 "anthropic-version": "2023-06-01",
@@ -395,6 +403,7 @@ class AgentNode(BaseNode[AgentProperties]):
     async def _execute_google(
         self,
         client: httpx.AsyncClient,
+        url_template: str,
         api_key: str,
         model: str,
         messages: list[dict[str, str]],
@@ -424,7 +433,7 @@ class AgentNode(BaseNode[AgentProperties]):
             payload["tools"] = [{"functionDeclarations": [self._to_google_tool(tool) for tool in tools]}]
 
         response = await client.post(
-            GOOGLE_GENERATE_CONTENT_URL.format(model=self._google_model_path(model)),
+            url_template.format(model=self._google_model_path(model)),
             params={"key": api_key},
             headers={"Content-Type": "application/json"},
             json=payload,
@@ -438,9 +447,8 @@ class AgentNode(BaseNode[AgentProperties]):
         if not ai_provider:
             return None
 
-        credential_field = PROVIDER_CREDENTIAL_FIELDS[self.props.provider]
         credential_type = ai_provider.id
-        selected_credential_id = getattr(self.props, credential_field)
+        selected_credential_id = self.props.credential or self._legacy_selected_credential()
         credentials = context.credentials or []
 
         credential = None
@@ -463,6 +471,14 @@ class AgentNode(BaseNode[AgentProperties]):
             return None
         api_key = data.get("api_key")
         return api_key if isinstance(api_key, str) and api_key.strip() else None
+
+    def _legacy_selected_credential(self) -> str | None:
+        return {
+            "openai": self.props.openaiCredential,
+            "anthropic": self.props.anthropicCredential,
+            "google": self.props.googleCredential,
+            "groq": self.props.groqCredential,
+        }.get(self.props.provider)
 
     def _selected_model(self) -> str:
         if self.props.model:

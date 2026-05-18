@@ -39,6 +39,7 @@ async def list_ai_providers():
                 "defaultModel": provider.default_model,
                 "supportsTools": provider.supports_tools,
                 "supportsResponseFormat": provider.supports_response_format,
+                "apiType": provider.ai_api_type,
             }
             for provider in get_ai_providers()
         ],
@@ -57,12 +58,13 @@ async def list_ai_models(
     current_user: User = Depends(get_current_user),
 ):
     provider_id = provider if provider in get_ai_provider_ids() else "openai"
-    selected_credential = credential or {
-        "openai": openaiCredential,
-        "anthropic": anthropicCredential,
-        "google": googleCredential,
-        "groq": groqCredential,
-    }[provider_id]
+    selected_credential = credential or _legacy_provider_credential(
+        provider_id=provider_id,
+        openai_credential=openaiCredential,
+        anthropic_credential=anthropicCredential,
+        google_credential=googleCredential,
+        groq_credential=groqCredential,
+    )
 
     if not selected_credential:
         return {
@@ -107,26 +109,22 @@ async def _get_api_key_for_credential(
 
 
 async def _fetch_provider_models(provider: str, api_key: str) -> list[dict[str, str]]:
+    ai_provider = get_ai_provider(provider)
+    if not ai_provider or not ai_provider.models_url:
+        return []
+
     async with httpx.AsyncClient(timeout=10.0) as client:
-        if provider == "openai":
+        if ai_provider.ai_api_type == "openai_compatible":
             response = await client.get(
-                "https://api.openai.com/v1/models",
+                ai_provider.models_url,
                 headers={"Authorization": f"Bearer {api_key}"},
             )
             response.raise_for_status()
             return _model_options_from_items(response.json().get("data", []))
 
-        if provider == "groq":
+        if ai_provider.ai_api_type == "anthropic":
             response = await client.get(
-                "https://api.groq.com/openai/v1/models",
-                headers={"Authorization": f"Bearer {api_key}"},
-            )
-            response.raise_for_status()
-            return _model_options_from_items(response.json().get("data", []))
-
-        if provider == "anthropic":
-            response = await client.get(
-                "https://api.anthropic.com/v1/models",
+                ai_provider.models_url,
                 headers={
                     "x-api-key": api_key,
                     "anthropic-version": "2023-06-01",
@@ -135,15 +133,30 @@ async def _fetch_provider_models(provider: str, api_key: str) -> list[dict[str, 
             response.raise_for_status()
             return _model_options_from_items(response.json().get("data", []))
 
-        if provider == "google":
+        if ai_provider.ai_api_type == "google":
             response = await client.get(
-                "https://generativelanguage.googleapis.com/v1beta/models",
+                ai_provider.models_url,
                 params={"key": api_key},
             )
             response.raise_for_status()
             return _google_model_options(response.json().get("models", []))
 
     return []
+
+
+def _legacy_provider_credential(
+    provider_id: str,
+    openai_credential: str | None,
+    anthropic_credential: str | None,
+    google_credential: str | None,
+    groq_credential: str | None,
+) -> str | None:
+    return {
+        "openai": openai_credential,
+        "anthropic": anthropic_credential,
+        "google": google_credential,
+        "groq": groq_credential,
+    }.get(provider_id)
 
 
 def _model_options_from_items(items: list[dict[str, Any]]) -> list[dict[str, str]]:

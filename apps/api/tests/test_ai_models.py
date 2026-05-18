@@ -15,7 +15,18 @@ def anyio_backend() -> str:
 
 
 def test_ai_model_providers_cover_supported_agent_providers():
-    assert {"openai", "anthropic", "google", "groq"} == get_ai_provider_ids()
+    assert {
+        "openai",
+        "anthropic",
+        "google",
+        "groq",
+        "openrouter",
+        "deepseek",
+        "mistral",
+        "xai",
+        "together",
+        "fireworks",
+    } == get_ai_provider_ids()
 
 
 @pytest.mark.anyio
@@ -28,6 +39,12 @@ async def test_list_ai_providers_uses_api_key_catalog():
         "anthropic",
         "google",
         "groq",
+        "openrouter",
+        "deepseek",
+        "mistral",
+        "xai",
+        "together",
+        "fireworks",
     }
     assert {
         provider["value"]: provider["credentialType"] for provider in result["data"]
@@ -36,6 +53,12 @@ async def test_list_ai_providers_uses_api_key_catalog():
         "anthropic": "anthropic_api_key",
         "google": "google_api_key",
         "groq": "groq_api_key",
+        "openrouter": "openrouter_api_key",
+        "deepseek": "deepseek_api_key",
+        "mistral": "mistral_api_key",
+        "xai": "xai_api_key",
+        "together": "together_api_key",
+        "fireworks": "fireworks_api_key",
     }
 
 

@@ -45,6 +45,12 @@ export const PropertyField: React.FC<PropertyFieldProps> = (props) => {
   const { disabled, tooltip } = useDependsOnGate(prop, properties, canonicalIndex, canonicalModes)
 
   const onChange = (val: any) => handlePropertyChange(prop.name, val)
+  const credentialType =
+    prop.credentialType
+    || (prop.credentialTypeByField
+      ? prop.credentialTypeByField.values?.[properties[prop.credentialTypeByField.field]]
+      : undefined)
+    || definition?.credentialType
 
   const renderInput = () => {
     switch (prop.type) {
@@ -101,7 +107,7 @@ export const PropertyField: React.FC<PropertyFieldProps> = (props) => {
           <CredentialPicker
             value={currentValue}
             onChange={onChange}
-            credentialType={prop.credentialType || definition?.credentialType}
+            credentialType={credentialType}
             placeholder={prop.placeholder}
           />
         )

@@ -11,15 +11,19 @@ from apps.api.app.node_system.nodes.ai.agent.agent import AgentNode
 def test_agent_model_field_uses_generic_dynamic_options_contract():
     metadata = AgentNode.get_metadata()
     provider_property = next(prop for prop in metadata.properties if prop["name"] == "provider")
+    credential_property = next(prop for prop in metadata.properties if prop["name"] == "credential")
     model_property = next(prop for prop in metadata.properties if prop["name"] == "model")
 
     assert provider_property["type"] == "string"
     assert provider_property["loadOptions"] == "/ai/providers"
     assert "options" not in provider_property
+    assert credential_property["credentialTypeByField"]["field"] == "provider"
+    assert credential_property["credentialTypeByField"]["values"]["openrouter"] == "openrouter_api_key"
     assert model_property["type"] == "string"
     assert model_property["loadOptions"] == "/ai/models"
     assert model_property["loadOptionsDependsOn"] == [
         "provider",
+        "credential",
         "openaiCredential",
         "anthropicCredential",
         "googleCredential",
@@ -82,7 +86,7 @@ async def test_agent_node_sends_openai_request_and_returns_output():
             node_id="agent-1",
             properties={
                 "provider": "openai",
-                "openaiCredential": "cred-1",
+                "credential": "cred-1",
                 "model": "gpt-4o-mini",
                 "messages": [{"role": "user", "content": "Summarize this"}],
                 "temperature": 0.2,

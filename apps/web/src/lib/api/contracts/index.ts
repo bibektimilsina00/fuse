@@ -119,6 +119,10 @@ export const NodePropertySchema = z.object({
   placeholder: z.string().optional(),
   condition: z.any().optional(),
   credentialType: z.string().optional(),
+  credentialTypeByField: z.object({
+    field: z.string(),
+    values: z.record(z.string(), z.string()),
+  }).optional(),
   dependsOn: z.array(z.string()).optional(),
   loadOptions: z.string().optional(),
   loadOptionsDependsOn: z.array(z.string()).optional(),
