@@ -184,7 +184,7 @@ export const PropertyField: React.FC<PropertyFieldProps> = (props) => {
               <ArrowLeftRight size={12} />
             </button>
           )}
-          {prop.loadOptions && (
+          {prop.loadOptions && !canonicalToggle && (
             <button
               onClick={toggleMode}
               className="p-1 rounded hover:bg-surface-5 text-text-placeholder hover:text-white transition-all active:scale-95"

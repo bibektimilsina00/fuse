@@ -121,6 +121,14 @@ const ToolCard: React.FC<ToolCardProps> = ({
 }) => {
   const usageControl: UsageControl = tool.usageControl ?? 'auto'
   const [canonicalModes, setCanonicalModes] = useState<CanonicalModeOverrides>({})
+  const syntheticNode = React.useMemo(
+    () => ({
+      id: tool.toolId ?? 'tool',
+      type: toolConfig?.id ?? 'tool',
+      data: { properties: tool.params },
+    }),
+    [tool.params, tool.toolId, toolConfig?.id],
+  )
 
   // Build synthetic NodeDefinition from ToolConfig so useEditorLayout works identically
   const definition = React.useMemo(
@@ -186,7 +194,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
           )}
           <PropertyGroupList
             groups={mainGroups}
-            selectedNode={{ id: tool.toolId ?? 'tool', type: toolConfig?.id ?? 'tool', data: {} }}
+            selectedNode={syntheticNode}
             definition={definition as any}
             properties={params}
             canonicalIndex={canonicalIndex}
