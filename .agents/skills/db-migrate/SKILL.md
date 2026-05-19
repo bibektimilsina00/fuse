@@ -1,6 +1,6 @@
 ---
 name: db-migrate
-description: Generate an Alembic migration from current SQLAlchemy model changes and optionally apply it. Usage: /db-migrate <short description of the change>
+description: "Generate an Alembic migration from current SQLAlchemy model changes and optionally apply it. Usage: /db-migrate <short description of the change>"
 disable-model-invocation: true
 ---
 

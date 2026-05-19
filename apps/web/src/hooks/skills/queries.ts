@@ -7,6 +7,8 @@ export const SkillMetaSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   description: z.string(),
+  icon: z.string(),
+  color: z.string(),
 })
 
 export const SkillSchema = SkillMetaSchema.extend({
@@ -41,7 +43,7 @@ export function useSkill(id: string) {
 export function useCreateSkill() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { name: string; description?: string; content: string }) =>
+    mutationFn: (data: { name: string; description?: string; icon?: string; color?: string; content: string }) =>
       requestJson(SkillSchema, { url: '/skills/', method: 'POST', data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: skillKeys.lists() })
@@ -55,7 +57,7 @@ export function useUpdateSkill() {
     mutationFn: ({
       id,
       ...data
-    }: { id: string; name?: string; description?: string; content?: string }) =>
+    }: { id: string; name?: string; description?: string; icon?: string; color?: string; content?: string }) =>
       requestJson(SkillSchema, { url: `/skills/${id}`, method: 'PUT', data }),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: skillKeys.lists() })

@@ -5,27 +5,57 @@ import {
   ChevronDown,
   ChevronRight,
   Search,
-  Zap,
-  Puzzle,
-  Server,
-  BookOpen,
   ArrowLeft,
   Edit2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getTool } from '@fuse/node-definitions'
 import type { ToolConfig } from '@fuse/node-definitions'
+import { getIcon } from '@/features/workflow-editor/utils/icon-map'
 import { useAvailableTools } from './use-available-tools'
 import { useCreateSkill } from '@/hooks/skills/queries'
+import type { Skill } from '@/hooks/skills/queries'
 import type { SelectedTool } from './types'
-import { PropertyField } from '../property-field/PropertyField'
 import { useEditorLayout } from '../../hooks/use-editor-layout'
-import { isCanonicalPair, resolveCanonicalMode } from '../../visibility'
+import { PropertyGroupList } from '../PropertyGroupList'
 import type { CanonicalModeOverrides } from '../../visibility'
 
 // Shared input style used across inline forms in this file
 const INPUT_CLASS =
   'w-full bg-surface-editor border border-border rounded px-2 h-[28px] text-[12px] text-white placeholder:text-text-placeholder focus:outline-none focus:border-border-strong transition-colors'
+
+function resolveEntryAppearance(
+  tool: SelectedTool,
+  toolConfig?: ToolConfig,
+): { icon: string; color: string } | null {
+  const kind = tool.kind ?? 'tool'
+  if (kind === 'tool' && toolConfig) return { icon: toolConfig.icon, color: toolConfig.color }
+  if (!tool.icon || !tool.color) return null
+  return { icon: tool.icon, color: tool.color }
+}
+
+// Rendered icon box — identical to NodeHeader's colored icon square
+const EntryIcon: React.FC<{ icon: string; color: string }> = ({ icon, color }) => (
+  <div
+    className="flex size-[22px] shrink-0 items-center justify-center rounded-md"
+    style={{ background: color }}
+  >
+    {React.cloneElement(getIcon(icon) as React.ReactElement, { className: 'size-[13px] text-white' })}
+  </div>
+)
+
+const MissingEntryIcon: React.FC = () => (
+  <div
+    className="flex size-[22px] shrink-0 items-center justify-center rounded-md border border-red-400/60 text-[10px] font-bold text-red-300"
+    title="Missing icon/color metadata"
+  >
+    !
+  </div>
+)
+
+const EntryAppearanceIcon: React.FC<{ appearance: { icon: string; color: string } | null }> = ({
+  appearance,
+}) => (appearance ? <EntryIcon {...appearance} /> : <MissingEntryIcon />)
 
 
 // ---------------------------------------------------------------------------
@@ -101,7 +131,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
             name: toolConfig.name,
             category: 'integration' as const,
             description: toolConfig.description,
-            icon: toolConfig.icon ?? 'Wrench',
+            icon: toolConfig.icon,
             credentialType: toolConfig.credentialType,
             properties: toolConfig.properties,
             inputs: 0,
@@ -120,15 +150,6 @@ const ToolCard: React.FC<ToolCardProps> = ({
     setCanonicalModes((prev) => ({ ...prev, [canonicalId]: current === 'basic' ? 'advanced' : 'basic' }))
   }
 
-  const buildCanonicalToggle = (prop: import('@fuse/node-definitions').NodeProperty) => {
-    const canonicalId = canonicalIndex.canonicalIdByPropName[prop.name]
-    if (!canonicalId) return undefined
-    const group = canonicalIndex.groupsById[canonicalId]
-    if (!isCanonicalPair(group)) return undefined
-    const mode = resolveCanonicalMode(group, params, canonicalModes)
-    return { mode, onToggle: () => toggleCanonicalMode(canonicalId, mode) }
-  }
-
   return (
     <div
       className={cn(
@@ -141,7 +162,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
         onClick={onToggleExpand}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <Zap className={cn('w-3.5 h-3.5 shrink-0', usageControl === 'force' ? 'text-orange-400' : 'text-text-muted')} />
+          <EntryAppearanceIcon appearance={resolveEntryAppearance(tool, toolConfig)} />
           <span className="text-[12px] font-bold text-white truncate">{tool.title}</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -159,35 +180,20 @@ const ToolCard: React.FC<ToolCardProps> = ({
       </div>
 
       {tool.isExpanded && definition && (
-        <div className="px-3 py-2 border-t border-border">
+        <div className="border-t border-border bg-[var(--bg)] p-4">
           {mainGroups.flatMap((g) => g.props).length === 0 && (
-            <p className="text-[11px] text-text-muted italic py-2">No configurable parameters.</p>
+            <p className="text-[13px] text-text-muted text-center py-4">No configurable parameters.</p>
           )}
-          {mainGroups.map((group, gi) => (
-            <div key={group.group ?? gi}>
-              {group.group && (
-                <div className="mb-2 mt-4 pb-1 border-b border-border">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted">{group.group}</span>
-                </div>
-              )}
-              {group.props.map((prop) => (
-                <PropertyField
-                  key={prop.name}
-                  prop={prop}
-                  selectedNode={{ id: tool.toolId ?? 'tool', type: toolConfig?.id ?? 'tool', data: {} }}
-                  properties={params}
-                  handlePropertyChange={onParamChange}
-                  onShowPicker={() => {}}
-                  isFirstClickAllowed={() => true}
-                  onFirstClickUsed={() => {}}
-                  definition={definition as any}
-                  canonicalIndex={canonicalIndex}
-                  canonicalModes={canonicalModes}
-                  canonicalToggle={buildCanonicalToggle(prop)}
-                />
-              ))}
-            </div>
-          ))}
+          <PropertyGroupList
+            groups={mainGroups}
+            selectedNode={{ id: tool.toolId ?? 'tool', type: toolConfig?.id ?? 'tool', data: {} }}
+            definition={definition as any}
+            properties={params}
+            canonicalIndex={canonicalIndex}
+            canonicalModes={canonicalModes}
+            onPropertyChange={onParamChange}
+            onCanonicalToggle={toggleCanonicalMode}
+          />
         </div>
       )}
     </div>
@@ -206,7 +212,7 @@ interface SkillCardProps {
 const SkillCard: React.FC<SkillCardProps> = ({ tool, onRemove }) => (
   <div className="flex items-center justify-between px-3 h-9 rounded-md border border-border bg-surface-editor animate-in fade-in slide-in-from-top-1 duration-200">
     <div className="flex items-center gap-2 flex-1 min-w-0">
-      <BookOpen className="w-3.5 h-3.5 text-primary shrink-0" />
+      <EntryAppearanceIcon appearance={resolveEntryAppearance(tool)} />
       <span className="text-[12px] font-bold text-white truncate">{tool.title}</span>
       <span className="text-[10px] text-text-muted shrink-0">tool</span>
     </div>
@@ -245,7 +251,7 @@ const McpServerCard: React.FC<McpServerCardProps> = ({ tool, onRemove, onUpdate 
     <div className="flex flex-col rounded-md border border-border bg-surface-editor overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
       <div className="flex items-center justify-between px-3 h-9 bg-surface-active">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <Server className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+          <EntryAppearanceIcon appearance={resolveEntryAppearance(tool)} />
           <span className="text-[12px] font-bold text-white truncate">{tool.title}</span>
           <span className="text-[10px] text-text-muted shrink-0">MCP</span>
         </div>
@@ -362,7 +368,7 @@ const AddMcpForm: React.FC<AddMcpFormProps> = ({ onAdd, onBack }) => {
 // ---------------------------------------------------------------------------
 
 interface CreateToolFormProps {
-  onCreated: (skillId: string, skillName: string) => void
+  onCreated: (skill: Skill) => void
   onBack: () => void
 }
 
@@ -382,7 +388,7 @@ const CreateToolForm: React.FC<CreateToolFormProps> = ({ onCreated, onBack }) =>
     if (!canSubmit) return
     createSkill.mutate(
       { name: name.trim(), description: description.trim(), content: content.trim() },
-      { onSuccess: (skill) => onCreated(skill.id, skill.name) },
+      { onSuccess: (skill) => onCreated(skill) },
     )
   }
 
@@ -462,7 +468,7 @@ interface ToolComboboxProps {
   selectedToolIds: Set<string>
   onSelectTool: (tool: ToolConfig) => void
   onAddMcp: (entry: SelectedTool) => void
-  onAddSkill: (skillId: string, skillName: string) => void
+  onAddSkill: (skill: Skill) => void
   onClose: () => void
 }
 
@@ -497,7 +503,7 @@ const ToolCombobox: React.FC<ToolComboboxProps> = ({
   if (view === 'create') {
     return (
       <CreateToolForm
-        onCreated={(id, name) => { onAddSkill(id, name); onClose() }}
+        onCreated={(skill) => { onAddSkill(skill); onClose() }}
         onBack={() => setView('list')}
       />
     )
@@ -512,22 +518,22 @@ const ToolCombobox: React.FC<ToolComboboxProps> = ({
     )
   }
 
-  const renderToolBtn = (tool: ToolConfig, icon: React.ReactNode) => {
-    const isAdded = selectedToolIds.has(tool.id)
+  const renderToolBtn = (toolConfig: ToolConfig) => {
+    const isAdded = selectedToolIds.has(toolConfig.id)
     return (
       <button
-        key={tool.id}
+        key={toolConfig.id}
         disabled={isAdded}
-        onClick={() => { if (!isAdded) { onSelectTool(tool); onClose() } }}
+        onClick={() => { if (!isAdded) { onSelectTool(toolConfig); onClose() } }}
         className={cn(
           'w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors',
           isAdded ? 'opacity-40 cursor-default' : 'hover:bg-surface-5 cursor-pointer',
         )}
       >
-        {icon}
+        <EntryIcon icon={toolConfig.icon} color={toolConfig.color} />
         <div className="flex flex-col min-w-0">
-          <span className="text-[12px] text-white truncate">{tool.name}</span>
-          <span className="text-[11px] text-text-muted truncate">{tool.description}</span>
+          <span className="text-[12px] text-white truncate">{toolConfig.name}</span>
+          <span className="text-[11px] text-text-muted truncate">{toolConfig.description}</span>
         </div>
         {isAdded && <span className="ml-auto text-[10px] text-text-muted shrink-0">added</span>}
       </button>
@@ -553,17 +559,17 @@ const ToolCombobox: React.FC<ToolComboboxProps> = ({
           <>
             <button
               onClick={() => setView('create')}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-surface-5 transition-colors text-primary"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-surface-5 transition-colors"
             >
-              <BookOpen className="w-3.5 h-3.5 shrink-0" />
-              <span className="text-[12px] font-semibold">Create Tool</span>
+              <MissingEntryIcon />
+              <span className="text-[12px] font-semibold text-white">Create Tool</span>
             </button>
             <button
               onClick={() => setView('mcp')}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-surface-5 transition-colors text-blue-400"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-surface-5 transition-colors"
             >
-              <Server className="w-3.5 h-3.5 shrink-0" />
-              <span className="text-[12px] font-semibold">Add MCP Server</span>
+              <MissingEntryIcon />
+              <span className="text-[12px] font-semibold text-white">Add MCP Server</span>
             </button>
             <div className="mx-3 my-1 border-t border-border" />
           </>
@@ -574,7 +580,7 @@ const ToolCombobox: React.FC<ToolComboboxProps> = ({
             <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-text-muted uppercase tracking-wider">
               Built-in Tools
             </div>
-            {filteredBuiltin.map((t) => renderToolBtn(t, <Zap className="w-3.5 h-3.5 text-text-muted shrink-0" />))}
+            {filteredBuiltin.map((t) => renderToolBtn(t))}
           </>
         )}
 
@@ -583,7 +589,7 @@ const ToolCombobox: React.FC<ToolComboboxProps> = ({
             <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-text-muted uppercase tracking-wider">
               Integrations
             </div>
-            {filteredIntegrations.map((t) => renderToolBtn(t, <Puzzle className="w-3.5 h-3.5 text-text-muted shrink-0" />))}
+            {filteredIntegrations.map((t) => renderToolBtn(t))}
           </>
         )}
 
@@ -642,8 +648,16 @@ export const ToolSelectorField: React.FC<ToolSelectorFieldProps> = ({
   const handleAddTool = (toolConfig: ToolConfig) =>
     handleAdd({ kind: 'tool', toolId: toolConfig.id, title: toolConfig.name, params: {}, isExpanded: true, usageControl: 'auto' })
 
-  const handleAddSkill = (skillId: string, skillName: string) =>
-    handleAdd({ kind: 'skill', toolId: skillId, title: skillName, params: {}, usageControl: 'auto' })
+  const handleAddSkill = (skill: Skill) =>
+    handleAdd({
+      kind: 'skill',
+      toolId: skill.id,
+      title: skill.name,
+      icon: skill.icon,
+      color: skill.color,
+      params: {},
+      usageControl: 'auto',
+    })
 
   const handleRemove = (index: number) => onChange(value.filter((_, i) => i !== index))
 

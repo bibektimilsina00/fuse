@@ -1,6 +1,6 @@
 ---
 name: new-integration
-description: Scaffold a complete integration — credential provider, HTTP client, service layer, loadOptions API endpoints, and node wiring. Covers both OAuth 2.0 and API Key integrations. Usage: /new-integration
+description: "Scaffold a complete integration — credential provider, HTTP client, service layer, loadOptions API endpoints, and node wiring. Covers both OAuth 2.0 and API Key integrations. Usage: /new-integration"
 ---
 
 # new-integration skill

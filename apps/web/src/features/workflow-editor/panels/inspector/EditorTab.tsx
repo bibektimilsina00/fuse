@@ -4,26 +4,10 @@ import { cn } from '@/lib/utils'
 import { useWorkflowStore } from '@/stores/workflow-store'
 import { useNodeAncestors } from '@/features/workflow-editor/hooks/use-node-ancestors'
 import { useEditorLayout } from './hooks/use-editor-layout'
-import { PropertyField } from './components/property-field/PropertyField'
 import { ConnectionsPanel } from './components/connections-panel'
 import { InterpolationPicker } from './components/interpolation-picker'
-import {
-  isCanonicalPair,
-  resolveCanonicalMode,
-  type CanonicalModeOverrides,
-} from './visibility'
-import type { NodeProperty } from '@fuse/node-definitions'
-import type { PropertyGroup } from './hooks/use-editor-layout'
-
-// ─── Shared UI fragments ──────────────────────────────────────────────────────
-
-const SectionHeader: React.FC<{ label: string }> = ({ label }) => (
-  <div className="mb-3 mt-6 pb-1 border-b border-border">
-    <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{label}</span>
-  </div>
-)
-
-const FieldDivider = () => <div className="border-t border-dashed border-border my-4" />
+import { PropertyGroupList } from './components/PropertyGroupList'
+import type { CanonicalModeOverrides } from './visibility'
 
 const EmptyState: React.FC<{ message: string }> = ({ message }) => (
   <div className="flex-1 flex items-center justify-center p-8 text-center">
@@ -72,44 +56,6 @@ export const EditorTab: React.FC = () => {
     })
   }
 
-  /** Build the canonical swap toggle for a prop if it belongs to a canonical pair. */
-  const buildCanonicalToggle = (prop: NodeProperty) => {
-    const canonicalId = canonicalIndex.canonicalIdByPropName[prop.name]
-    if (!canonicalId) return undefined
-    const group = canonicalIndex.groupsById[canonicalId]
-    if (!isCanonicalPair(group)) return undefined
-    const mode = resolveCanonicalMode(group, properties, canonicalModes)
-    return { mode, onToggle: () => toggleCanonicalMode(canonicalId, mode) }
-  }
-
-  const sharedProps = {
-    selectedNode,
-    properties,
-    handlePropertyChange,
-    onShowPicker: (rect: DOMRect, onSelect: (val: string) => void) => setPicker({ rect, onSelect }),
-    isFirstClickAllowed: (subId?: string) => !usedFields.has(subId || ''),
-    onFirstClickUsed: (subId?: string) => setUsedFields(prev => new Set(prev).add(subId || '')),
-    definition,
-    canonicalIndex,
-    canonicalModes,
-  }
-
-  const renderGroup = (group: PropertyGroup, groupIndex: number) => (
-    <div key={group.group ?? groupIndex}>
-      {group.group && <SectionHeader label={group.group} />}
-      {group.props.map((prop, i) => (
-        <React.Fragment key={prop.name}>
-          {(i > 0 || (!group.group && groupIndex > 0)) && <FieldDivider />}
-          <PropertyField
-            prop={prop}
-            {...sharedProps}
-            canonicalToggle={buildCanonicalToggle(prop)}
-          />
-        </React.Fragment>
-      ))}
-    </div>
-  )
-
   const isEmpty = mainGroups.every(g => g.props.length === 0) && !hasAdvanced
 
   return (
@@ -121,7 +67,19 @@ export const EditorTab: React.FC = () => {
           </p>
         )}
 
-        {mainGroups.map((group, gi) => renderGroup(group, gi))}
+        <PropertyGroupList
+          groups={mainGroups}
+          selectedNode={selectedNode}
+          definition={definition}
+          properties={properties}
+          canonicalIndex={canonicalIndex}
+          canonicalModes={canonicalModes}
+          onPropertyChange={handlePropertyChange}
+          onShowPicker={(rect, onSelect) => setPicker({ rect, onSelect })}
+          isFirstClickAllowed={(subId) => !usedFields.has(subId || '')}
+          onFirstClickUsed={(subId) => setUsedFields(prev => new Set(prev).add(subId || ''))}
+          onCanonicalToggle={toggleCanonicalMode}
+        />
 
         {hasAdvanced && (
           <div className="mt-8 flex flex-col">
@@ -139,16 +97,19 @@ export const EditorTab: React.FC = () => {
 
             {showAdvanced && (
               <div className="flex flex-col mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                {advancedProps.map((prop, i) => (
-                  <React.Fragment key={prop.name}>
-                    {i > 0 && <FieldDivider />}
-                    <PropertyField
-                      prop={prop}
-                      {...sharedProps}
-                      canonicalToggle={buildCanonicalToggle(prop)}
-                    />
-                  </React.Fragment>
-                ))}
+                <PropertyGroupList
+                  groups={[{ group: null, props: advancedProps }]}
+                  selectedNode={selectedNode}
+                  definition={definition}
+                  properties={properties}
+                  canonicalIndex={canonicalIndex}
+                  canonicalModes={canonicalModes}
+                  onPropertyChange={handlePropertyChange}
+                  onShowPicker={(rect, onSelect) => setPicker({ rect, onSelect })}
+                  isFirstClickAllowed={(subId) => !usedFields.has(subId || '')}
+                  onFirstClickUsed={(subId) => setUsedFields(prev => new Set(prev).add(subId || ''))}
+                  onCanonicalToggle={toggleCanonicalMode}
+                />
               </div>
             )}
           </div>

@@ -5,6 +5,8 @@ export interface SelectedTool {
   // Registry tool fields (kind='tool')
   toolId?: string                 // e.g. 'slack_send_message'
   title: string                   // display name
+  icon?: string
+  color?: string
   params: Record<string, unknown> // user-provided param values
   isExpanded?: boolean
   usageControl?: 'auto' | 'force' | 'none'

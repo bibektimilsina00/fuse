@@ -1,6 +1,6 @@
 ---
 name: new-node
-description: Scaffold a complete workflow node — backend (BaseNode subclass + Pydantic model + NodeMetadata) and frontend (NodeDefinition in node-definitions package). Follows the exact project patterns so the node is auto-discovered by the registry. Usage: /new-node
+description: "Scaffold a complete workflow node — backend (BaseNode subclass + Pydantic model + NodeMetadata) and frontend (NodeDefinition in node-definitions package). Follows the exact project patterns so the node is auto-discovered by the registry. Usage: /new-node"
 ---
 
 # new-node skill

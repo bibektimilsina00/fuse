@@ -35,6 +35,8 @@ class SkillService:
             user_id=user.id,
             name=data.name,
             description=data.description,
+            icon=data.icon,
+            color=data.color,
             content=data.content,
         )
         return await self.repo.create(skill)
@@ -53,6 +55,10 @@ class SkillService:
             skill.name = data.name
         if data.description is not None:
             skill.description = data.description
+        if data.icon is not None:
+            skill.icon = data.icon
+        if data.color is not None:
+            skill.color = data.color
         if data.content is not None:
             skill.content = data.content
         return await self.repo.update(skill)

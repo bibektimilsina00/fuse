@@ -1,6 +1,6 @@
 ---
 name: debug-workflow
-description: Diagnose a failing or misbehaving workflow execution. Reads execution logs, traces the node execution path, identifies the failure point, and suggests a fix. Usage: /debug-workflow <execution_id or description of the problem>
+description: "Diagnose a failing or misbehaving workflow execution. Reads execution logs, traces the node execution path, identifies the failure point, and suggests a fix. Usage: /debug-workflow <execution_id or description of the problem>"
 ---
 
 # debug-workflow skill

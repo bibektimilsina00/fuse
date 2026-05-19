@@ -19,6 +19,8 @@ class Skill(Base):
     user_id = mapped_column(UUID(as_uuid=True), ForeignKey("user.id"), nullable=False)
     name: Mapped[str] = mapped_column(String(64), nullable=False)
     description: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
+    icon: Mapped[str] = mapped_column(String(64), nullable=False, default="BookOpen")
+    color: Mapped[str] = mapped_column(String(32), nullable=False, default="#8b5cf6")
     content: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None)

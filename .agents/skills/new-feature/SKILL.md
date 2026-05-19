@@ -1,6 +1,6 @@
 ---
 name: new-feature
-description: Scaffold a new frontend feature — directory structure, page component, React Query hooks, API client calls, and route registration. Usage: /new-feature
+description: "Scaffold a new frontend feature — directory structure, page component, React Query hooks, API client calls, and route registration. Usage: /new-feature"
 ---
 
 # new-feature skill

@@ -1,6 +1,6 @@
 ---
 name: new-ui-component
-description: Scaffold a new reusable UI component in components/ui/ following the project's component patterns — forwardRef, cn() for className merging, variant/size props, barrel export. Usage: /new-ui-component
+description: "Scaffold a new reusable UI component in components/ui/ following the project's component patterns — forwardRef, cn() for className merging, variant/size props, barrel export. Usage: /new-ui-component"
 ---
 
 # new-ui-component skill

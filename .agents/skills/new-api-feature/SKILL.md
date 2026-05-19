@@ -1,6 +1,6 @@
 ---
 name: new-api-feature
-description: Scaffold a complete backend API feature following the project's layered architecture — SQLAlchemy model, Pydantic schemas, repository, service, FastAPI router, and router registration. Usage: /new-api-feature
+description: "Scaffold a complete backend API feature following the project's layered architecture — SQLAlchemy model, Pydantic schemas, repository, service, FastAPI router, and router registration. Usage: /new-api-feature"
 ---
 
 # new-api-feature skill
