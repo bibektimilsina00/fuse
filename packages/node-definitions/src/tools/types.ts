@@ -21,6 +21,7 @@ export interface ToolConfig {
   category: 'builtin' | 'integration'
   icon: string
   color: string
+  sourceNodeType?: string
   credentialType?: string       // top-level credential — injected automatically at runtime
   properties: NodeProperty[]    // full NodeProperty[] — same type as NodeDefinition.properties
   outputs?: Record<string, { type: string; description?: string }>

@@ -123,12 +123,20 @@ export const NodePropertySchema = z.object({
     field: z.string(),
     values: z.record(z.string(), z.string()),
   }).optional(),
-  dependsOn: z.array(z.string()).optional(),
+  dependsOn: z.union([
+    z.array(z.string()),
+    z.object({
+      all: z.array(z.string()).optional(),
+      any: z.array(z.string()).optional(),
+    }),
+  ]).optional(),
   loadOptions: z.string().optional(),
   loadOptionsDependsOn: z.array(z.string()).optional(),
   mode: z.enum(['basic', 'advanced', 'both']).optional(),
   secret: z.boolean().optional(),
   visibility: z.enum(['user-or-llm', 'user-only', 'hidden']).optional(),
+  canonicalId: z.string().optional(),
+  group: z.string().optional(),
 })
 
 export const ApiNodeDefinitionSchema = z.object({

@@ -33,6 +33,87 @@ const CHANNEL_ID_INPUT: import('../../types').NodeProperty = {
   description: 'Enter the channel ID directly.',
 }
 
+const SLACK_OPERATION: import('../../types').NodeProperty = {
+  name: 'operation',
+  label: 'Operation',
+  type: 'options',
+  default: 'send_message',
+  options: [
+    { label: 'Send Message', value: 'send_message' },
+    { label: 'Update Message', value: 'update_message' },
+    { label: 'Delete Message', value: 'delete_message' },
+    { label: 'List Channels', value: 'list_channels' },
+    { label: 'Get Channel Info', value: 'get_channel_info' },
+  ],
+  visibility: 'user-only',
+}
+
+const CHANNEL_REQUIRED_FOR_MESSAGE_OPS = {
+  field: 'operation',
+  value: ['send_message', 'update_message', 'delete_message', 'get_channel_info'],
+}
+
+export const slackTool: ToolConfig = {
+  id: 'slack',
+  name: 'Slack',
+  description: 'Let the agent use selected Slack operations',
+  category: 'integration',
+  icon: 'MessageSquare',
+  color: '#4a154b',
+  sourceNodeType: 'action.slack',
+  credentialType: 'slack_oauth',
+  oauth: { required: true, credentialType: 'slack_oauth' },
+  properties: [
+    SLACK_CREDENTIAL,
+    SLACK_OPERATION,
+    { ...CHANNEL_DROPDOWN, condition: CHANNEL_REQUIRED_FOR_MESSAGE_OPS },
+    { ...CHANNEL_ID_INPUT, condition: CHANNEL_REQUIRED_FOR_MESSAGE_OPS },
+    {
+      name: 'text',
+      label: 'Message',
+      type: 'string',
+      required: true,
+      placeholder: 'Hello, world!',
+      description: 'The message text to send.',
+      condition: { field: 'operation', value: ['send_message', 'update_message'] },
+    },
+    {
+      name: 'ts',
+      label: 'Message Timestamp',
+      type: 'string',
+      required: true,
+      placeholder: '1234567890.123456',
+      description: 'Timestamp of the message to update or delete.',
+      condition: { field: 'operation', value: ['update_message', 'delete_message'] },
+    },
+    {
+      name: 'thread_ts',
+      label: 'Reply to thread',
+      type: 'string',
+      placeholder: '1234567890.123456',
+      description: 'Timestamp of the message to reply to.',
+      condition: { field: 'operation', value: 'send_message' },
+    },
+    {
+      name: 'blocks',
+      label: 'Block Kit',
+      type: 'json',
+      description: 'Optional Block Kit blocks JSON array.',
+      visibility: 'user-only',
+      condition: { field: 'operation', value: ['send_message', 'update_message'] },
+    },
+    {
+      name: 'limit',
+      label: 'Limit',
+      type: 'number',
+      default: 100,
+      visibility: 'user-only',
+      description: 'Maximum number of channels to return.',
+      condition: { field: 'operation', value: 'list_channels' },
+    },
+  ],
+}
+
 export const slackSendMessageTool: ToolConfig = {
   id: 'slack_send_message',
   name: 'Send Message',

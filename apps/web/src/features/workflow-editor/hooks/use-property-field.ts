@@ -21,7 +21,7 @@ const normalizeOptionsResponse = (data: any) => {
 
 interface UsePropertyFieldProps {
   prop: any
-  selectedNode: any
+  properties: Record<string, any>
   handlePropertyChange: (name: string, value: any) => void
   onShowPicker: (rect: DOMRect, onSelect: (val: string) => void) => void
   onFirstClickUsed: (subId?: string) => void
@@ -30,13 +30,13 @@ interface UsePropertyFieldProps {
 
 export const usePropertyField = ({
   prop,
-  selectedNode,
+  properties,
   handlePropertyChange,
   onShowPicker,
   onFirstClickUsed,
   isFirstClickAllowed
 }: UsePropertyFieldProps) => {
-  const propsData = useMemo(() => selectedNode.data?.properties || {}, [selectedNode.data?.properties])
+  const propsData = useMemo(() => properties || {}, [properties])
   const modes = propsData._modes || {}
   const mode = modes[prop.name] || (prop.loadOptions ? 'dynamic' : 'manual')
   

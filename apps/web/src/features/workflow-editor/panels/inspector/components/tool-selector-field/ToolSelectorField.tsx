@@ -5,11 +5,11 @@ import {
   ChevronDown,
   ChevronRight,
   Search,
+  Server,
   ArrowLeft,
   Edit2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getTool } from '@fuse/node-definitions'
 import type { ToolConfig } from '@fuse/node-definitions'
 import { getIcon } from '@/features/workflow-editor/utils/icon-map'
 import { useAvailableTools } from './use-available-tools'
@@ -121,14 +121,6 @@ const ToolCard: React.FC<ToolCardProps> = ({
 }) => {
   const usageControl: UsageControl = tool.usageControl ?? 'auto'
   const [canonicalModes, setCanonicalModes] = useState<CanonicalModeOverrides>({})
-  const syntheticNode = React.useMemo(
-    () => ({
-      id: tool.toolId ?? 'tool',
-      type: toolConfig?.id ?? 'tool',
-      data: { properties: tool.params },
-    }),
-    [tool.params, tool.toolId, toolConfig?.id],
-  )
 
   // Build synthetic NodeDefinition from ToolConfig so useEditorLayout works identically
   const definition = React.useMemo(
@@ -194,7 +186,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
           )}
           <PropertyGroupList
             groups={mainGroups}
-            selectedNode={syntheticNode}
+            selectedNode={{ id: tool.toolId ?? 'tool', type: toolConfig?.id ?? 'tool', data: {} }}
             definition={definition as any}
             properties={params}
             canonicalIndex={canonicalIndex}
@@ -569,14 +561,14 @@ const ToolCombobox: React.FC<ToolComboboxProps> = ({
               onClick={() => setView('create')}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-surface-5 transition-colors"
             >
-              <MissingEntryIcon />
+              <Plus className="w-3.5 h-3.5 shrink-0 text-text-muted" />
               <span className="text-[12px] font-semibold text-white">Create Tool</span>
             </button>
             <button
               onClick={() => setView('mcp')}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-surface-5 transition-colors"
             >
-              <MissingEntryIcon />
+              <Server className="w-3.5 h-3.5 shrink-0 text-text-muted" />
               <span className="text-[12px] font-semibold text-white">Add MCP Server</span>
             </button>
             <div className="mx-3 my-1 border-t border-border" />
@@ -634,7 +626,7 @@ export const ToolSelectorField: React.FC<ToolSelectorFieldProps> = ({
 }) => {
   const [comboboxOpen, setComboboxOpen] = useState(false)
   const comboboxRef = useRef<HTMLDivElement>(null)
-  const { builtinTools, integrations } = useAvailableTools()
+  const { builtinTools, integrations, toolsById } = useAvailableTools()
 
   useEffect(() => {
     if (!comboboxOpen) return
@@ -709,7 +701,7 @@ export const ToolSelectorField: React.FC<ToolSelectorFieldProps> = ({
               <ToolCard
                 key={`tool-${tool.toolId ?? index}`}
                 tool={tool}
-                toolConfig={tool.toolId ? getTool(tool.toolId) : undefined}
+                toolConfig={tool.toolId ? toolsById[tool.toolId] : undefined}
                 onRemove={() => handleRemove(index)}
                 onToggleExpand={() => handleToggleExpand(index)}
                 onParamChange={(key, val) => handleParamChange(index, key, val)}

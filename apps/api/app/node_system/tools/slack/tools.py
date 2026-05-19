@@ -1,22 +1,21 @@
 from __future__ import annotations
 
-import httpx
 from typing import Any
 
+import httpx
+
+from apps.api.app.node_system.base.node_context import NodeContext
 from apps.api.app.node_system.tools.base import ToolDefinition, ToolOAuth, ToolParam, ToolResult
 from apps.api.app.node_system.tools.registry import tool_registry
-from apps.api.app.node_system.base.node_context import NodeContext
 
 SLACK_API_BASE = "https://slack.com/api"
 
 _SLACK_OAUTH = ToolOAuth(required=True, credential_type='slack_oauth')
 
-
 def _get_slack_token(params: dict[str, Any], context: NodeContext) -> str | None:
     # Injected by ToolRegistry when oauth is declared
-    if token := params.get('_oauth_token'):
-        if isinstance(token, str) and token.strip():
-            return token
+    if (token := params.get('_oauth_token')) and isinstance(token, str) and token.strip():
+        return token
     # Fallback: manual search (backwards compat)
     for cred in (context.credentials or []):
         if not isinstance(cred, dict):
@@ -28,6 +27,115 @@ def _get_slack_token(params: dict[str, Any], context: NodeContext) -> str | None
                 if isinstance(token, str) and token.strip():
                     return token
     return None
+
+
+async def _execute_slack(params: dict[str, Any], context: NodeContext) -> ToolResult:
+    from apps.api.app.execution_engine.engine.node_executor import node_executor
+
+    result = await node_executor.execute_node(
+        node_type="action.slack",
+        node_id="tool:slack",
+        properties=params,
+        input_data={},
+        context=context,
+    )
+    return ToolResult(
+        success=result.success,
+        output=result.output_data,
+        error=result.error,
+    )
+
+
+tool_registry.register(
+    ToolDefinition(
+        id='slack',
+        name='Slack',
+        description='Use Slack to send, update, delete, list, or inspect channels.',
+        params={
+            'operation': ToolParam(
+                type='string',
+                visibility='user-only',
+                description='Slack operation to execute',
+            ),
+            'channel': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='Channel ID',
+            ),
+            'channelId': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='Channel ID',
+            ),
+            'user': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='User ID',
+            ),
+            'text': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='Message text',
+            ),
+            'ts': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='Message timestamp',
+            ),
+            'thread_ts': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='Thread timestamp to reply to',
+            ),
+            'blocks': ToolParam(
+                type='json',
+                visibility='user-or-llm',
+                description='Block Kit blocks JSON',
+            ),
+            'limit': ToolParam(
+                type='number',
+                visibility='user-only',
+                description='Maximum number of channels to return',
+            ),
+            'name': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='Channel name or emoji name, depending on the operation',
+            ),
+            'users': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='Comma-separated user IDs',
+            ),
+            'trigger_id': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='Slack trigger ID for modal operations',
+            ),
+            'view': ToolParam(
+                type='json',
+                visibility='user-or-llm',
+                description='Slack Block Kit view payload',
+            ),
+            'view_id': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='Slack view ID',
+            ),
+            'external_id': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='Slack external view ID',
+            ),
+            'hash': ToolParam(
+                type='string',
+                visibility='user-or-llm',
+                description='Slack view hash',
+            ),
+        },
+    ),
+    _execute_slack,
+)
 
 
 async def _slack_post(

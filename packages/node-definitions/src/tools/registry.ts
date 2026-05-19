@@ -1,4 +1,5 @@
 import {
+  slackTool,
   slackSendMessageTool,
   slackUpdateMessageTool,
   slackDeleteMessageTool,
@@ -9,6 +10,7 @@ import { httpRequestTool } from './http'
 import type { ToolConfig } from './types'
 
 export const allTools: Record<string, ToolConfig> = {
+  slack: slackTool,
   slack_send_message: slackSendMessageTool,
   slack_update_message: slackUpdateMessageTool,
   slack_delete_message: slackDeleteMessageTool,

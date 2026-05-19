@@ -323,13 +323,7 @@ class SlackNode(BaseNode[SlackProperties]):
             ],
             allow_error=True,
             credential_type="slack_oauth",
-            tools=[
-                "slack_send_message",
-                "slack_update_message",
-                "slack_delete_message",
-                "slack_list_channels",
-                "slack_get_channel_info",
-            ],
+            tools=["slack"],
             operation_tool_map={
                 "chat.postMessage": "slack_send_message",
                 "chat.update": "slack_update_message",
