@@ -22,6 +22,7 @@ dependencies = [
     "croniter>=6.2.2",
     "pgvector>=0.4.2",
     "pypdf>=6.11.0",
+    "slowapi>=0.1.9",
 ]
 
 [tool.uv]

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { TableRowSkeleton } from '@/components/ui/skeleton'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
@@ -153,7 +154,7 @@ export const ExecutionsPage: React.FC = () => {
           {isLoading ? (
             <div className="flex flex-col">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-12 border-b border-[var(--border-default)] animate-pulse bg-[var(--bg-surface)]" />
+                <TableRowSkeleton key={i} cols={5} />
               ))}
             </div>
           ) : filtered.length === 0 ? (

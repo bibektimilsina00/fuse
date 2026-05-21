@@ -268,6 +268,29 @@ PROVIDERS = {
         chat_completions_url="https://api.together.ai/v1/chat/completions",
         models_url="https://api.together.ai/v1/models",
     ),
+    "jira": APIKeyProvider(
+        id="jira_api_key",
+        name="Jira",
+        description="Jira — project management and issue tracking via REST API v3",
+        icon_url="https://cdn.brandfetch.io/atlassian.com/icon",
+        hint="https://yoursite.atlassian.net",
+        fields=[
+            CredentialField(id="email", label="Atlassian Email", type="text", placeholder="you@company.com"),
+            CredentialField(id="api_key", label="API Token", type="password", placeholder="ATATT3x..."),
+            CredentialField(id="base_url", label="Jira Base URL", type="text", placeholder="https://yoursite.atlassian.net"),
+        ],
+    ),
+    "salesforce": APIKeyProvider(
+        id="salesforce_api_key",
+        name="Salesforce",
+        description="Salesforce — CRM records via Connected App access token",
+        icon_url="https://cdn.brandfetch.io/salesforce.com/icon",
+        hint="Access token from Salesforce Connected App",
+        fields=[
+            CredentialField(id="api_key", label="Access Token", type="password", placeholder="00D..."),
+            CredentialField(id="instance_url", label="Instance URL", type="text", placeholder="https://yourorg.my.salesforce.com"),
+        ],
+    ),
     "fireworks": APIKeyProvider(
         id="fireworks_api_key",
         name="Fireworks AI",

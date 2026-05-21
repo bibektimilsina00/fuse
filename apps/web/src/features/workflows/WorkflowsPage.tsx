@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react'
+import { WorkflowCardSkeleton } from '@/components/ui/skeleton'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Play, Clock, Zap, Globe, MoreHorizontal, Pencil, Trash2, ToggleLeft, ToggleRight, Copy, Upload } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
@@ -231,7 +232,7 @@ export const WorkflowsPage: React.FC = () => {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-32 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] animate-pulse" />
+              <WorkflowCardSkeleton key={i} />
             ))}
           </div>
         ) : filtered.length === 0 ? (

@@ -19,3 +19,5 @@ export { ThemeToggle } from './theme-toggle'
 
 export { ConfirmProvider } from './confirm-modal'
 export { useConfirm } from './confirm-context'
+
+export { Skeleton, WorkflowCardSkeleton, TableRowSkeleton, PageSkeleton } from './skeleton'

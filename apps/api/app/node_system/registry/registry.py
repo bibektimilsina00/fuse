@@ -45,6 +45,8 @@ from apps.api.app.node_system.nodes.slack.slack_node import SlackNode
 from apps.api.app.node_system.nodes.slack.slack_trigger import SlackTriggerNode
 from apps.api.app.node_system.nodes.stripe.stripe_node import StripeNode
 from apps.api.app.node_system.nodes.telegram.telegram_node import TelegramNode
+from apps.api.app.node_system.nodes.jira.jira_node import JiraNode
+from apps.api.app.node_system.nodes.salesforce.salesforce_node import SalesforceNode
 
 
 class NodeRegistry:
@@ -111,6 +113,8 @@ node_registry.register(MySQLNode)
 node_registry.register(MongoDBNode)
 node_registry.register(DynamoDBNode)
 node_registry.register(Neo4jNode)
+node_registry.register(JiraNode)
+node_registry.register(SalesforceNode)
 
 # Load tool definitions (side-effect: registers all tools in tool_registry)
 import apps.api.app.node_system.tools.loader  # noqa: F401

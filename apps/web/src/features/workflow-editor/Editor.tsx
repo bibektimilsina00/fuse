@@ -6,6 +6,7 @@ import ReactFlow, {
   SelectionMode,
   ConnectionLineType,
   Background,
+  MiniMap,
   useReactFlow,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
@@ -15,6 +16,7 @@ import { EditorLogs } from '@/features/workflow-editor/panels/logs-panel/EditorL
 import { WorkflowControls } from '@/features/workflow-editor/controls/WorkflowControls'
 import { CollaborationOverlay } from '@/features/workflow-editor/components/CollaborationOverlay'
 import { ContextMenu, NODE_CONTEXT_ITEMS, PANE_CONTEXT_ITEMS } from '@/features/workflow-editor/components/context-menu/ContextMenu'
+import { KeyboardShortcutsModal } from '@/features/workflow-editor/components/KeyboardShortcutsModal'
 import { useWorkflow } from '@/features/workflow-editor/hooks/use-workflow'
 import { useAutoSave } from '@/features/workflow-editor/hooks/use-auto-save'
 import { useWorkflowData } from '@/features/workflow-editor/hooks/use-workflow-data'
@@ -108,6 +110,7 @@ function EditorContent() {
     removeNode,
     duplicateNode,
     toggleNodeLock,
+    toggleNodePinned,
     toggleNodeDisabled,
     startNodeRename,
     selectAllNodes,
@@ -139,16 +142,18 @@ function EditorContent() {
   const workflowLocked = useWorkflowStore(s => s.workflowLocked)
   const undo = useWorkflowStore(s => s.undo)
   const redo = useWorkflowStore(s => s.redo)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
-  // Undo / redo keyboard shortcuts
+  // Undo / redo + shortcuts help keyboard handler
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const meta = e.metaKey || e.ctrlKey
-      if (!meta) return
-      // Don't fire when typing in inputs
       const tag = (e.target as HTMLElement).tagName
       if (['INPUT', 'TEXTAREA'].includes(tag)) return
 
+      if (e.key === '?') { e.preventDefault(); setShortcutsOpen(v => !v); return }
+
+      const meta = e.metaKey || e.ctrlKey
+      if (!meta) return
       if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo() }
       if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); redo() }
     }
@@ -274,6 +279,13 @@ function EditorContent() {
           style={{ background: 'var(--bg)' }}
         >
           <Background color="#222" gap={20} />
+          <MiniMap
+            nodeColor="#3a3a3a"
+            maskColor="rgba(0,0,0,0.4)"
+            style={{ background: '#141414', border: '1px solid #2a2a2a', borderRadius: 8 }}
+            zoomable
+            pannable
+          />
         </ReactFlow>
         <CollaborationOverlay />
         <WorkflowControls mode={mode} onModeChange={setMode} />
@@ -291,6 +303,7 @@ function EditorContent() {
             items={NODE_CONTEXT_ITEMS({
               nodeId: contextMenu.nodeId,
               isLocked: node?.data?.locked ?? false,
+              isPinned: node?.data?.pinned ?? false,
               isDisabled: node?.data?.disabled ?? false,
               onDuplicate: () => duplicateNode(contextMenu.nodeId!),
               onDisableToggle: () => toggleNodeDisabled(contextMenu.nodeId!),
@@ -299,6 +312,7 @@ function EditorContent() {
                 if (n) toggleNodeLock(contextMenu.nodeId!) // reuse — or add flip action
               },
               onLockToggle: () => toggleNodeLock(contextMenu.nodeId!),
+              onPinToggle: () => toggleNodePinned(contextMenu.nodeId!),
               onRename: () => startNodeRename(contextMenu.nodeId!),
               onOpenEditor: () => { switchTab('Editor') },
               onDelete: () => removeNode(contextMenu.nodeId!),
@@ -326,6 +340,8 @@ function EditorContent() {
           })}
         />
       )}
+
+      <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </div>
   )
 }

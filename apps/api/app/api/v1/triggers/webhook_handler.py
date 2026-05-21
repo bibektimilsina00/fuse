@@ -122,3 +122,83 @@ async def receive_webhook(
         "triggered_count": len(execution_ids),
         "execution_ids": execution_ids,
     }
+
+
+# ── GitHub-specific webhook endpoint ─────────────────────────────────────────
+
+@router.post("/github/{workflow_id}")
+async def receive_github_webhook(
+    workflow_id,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    GitHub webhook endpoint scoped to a specific workflow.
+    Set your GitHub webhook URL to: POST /api/v1/webhooks/github/{workflow_id}
+    The workflow must have a trigger.webhook node with 'require_signature: true'
+    and the signing secret matching the GitHub webhook secret.
+    """
+    import uuid as _uuid
+    from apps.api.app.repositories.workflow_repository import WorkflowRepository
+
+    raw_body = await request.body()
+    event_type = request.headers.get("X-GitHub-Event", "unknown")
+    delivery_id = request.headers.get("X-GitHub-Delivery", "")
+
+    try:
+        wf_id = _uuid.UUID(str(workflow_id))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid workflow ID")
+
+    wf_repo = WorkflowRepository(db)
+    workflow = await wf_repo.get_by_id(wf_id)
+    if not workflow:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    # Find the webhook trigger node to get the signing secret
+    node_props = _find_webhook_node_props(workflow, "")  # path not used for GitHub
+    # For GitHub, find any trigger.webhook node in the workflow
+    for node in workflow.graph.get("nodes", []):
+        if node.get("type") == "trigger.webhook":
+            node_props = node.get("data", {}).get("properties", {})
+            break
+
+    # Always verify GitHub signature (X-Hub-Signature-256)
+    hub_sig = request.headers.get("X-Hub-Signature-256", "")
+    secret = (node_props or {}).get("secret", "") if node_props else ""
+
+    if not secret:
+        raise HTTPException(status_code=401, detail="Webhook secret not configured on this workflow")
+
+    if not hub_sig:
+        raise HTTPException(status_code=401, detail="Missing X-Hub-Signature-256 header")
+
+    if not _verify_signature(raw_body, secret, hub_sig):
+        raise HTTPException(status_code=401, detail="Invalid signature")
+
+    try:
+        import json
+        payload = json.loads(raw_body)
+    except Exception:
+        payload = {"raw": raw_body.decode("utf-8", errors="replace")}
+
+    trigger_data = {
+        "event": event_type,
+        "delivery": delivery_id,
+        "body": payload,
+        "headers": dict(request.headers),
+        "repository": payload.get("repository", {}).get("full_name"),
+        "sender": payload.get("sender", {}).get("login"),
+    }
+
+    from apps.api.app.execution_engine.engine import execution_engine
+
+    execution_id = await execution_engine.trigger_workflow(
+        workflow_id=workflow.id,
+        graph=workflow.graph,
+        trigger_type="trigger.webhook",
+        input_data=trigger_data,
+    )
+
+    logger.info(f"GitHub webhook [{event_type}] → workflow {workflow.id}")
+    return {"status": "accepted", "execution_id": str(execution_id), "event": event_type}

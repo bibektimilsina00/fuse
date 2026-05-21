@@ -35,7 +35,7 @@ export const useWorkflow = () => {
   const { setInspectorTab, setSearchOpen } = useUIStore();
   const [mode, setMode] = useState<'select' | 'pan'>('select');
   const { data: nodeRegistry = [] } = useNodes();
-  const { removeNode, toggleNodeLock, duplicateNode, updateNodeData, nodes: allNodes, snapshot } = useWorkflowStore();
+  const { removeNode, toggleNodeLock, toggleNodePinned, duplicateNode, updateNodeData, nodes: allNodes, snapshot } = useWorkflowStore();
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -379,6 +379,7 @@ export const useWorkflow = () => {
     removeNode,
     duplicateNode,
     toggleNodeLock,
+    toggleNodePinned,
     toggleNodeDisabled,
     startNodeRename,
     selectAllNodes,

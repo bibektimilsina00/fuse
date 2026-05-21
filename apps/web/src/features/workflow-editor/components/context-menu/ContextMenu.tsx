@@ -101,11 +101,13 @@ export const PANE_CONTEXT_ITEMS = (params: {
 export const NODE_CONTEXT_ITEMS = (params: {
   nodeId: string
   isLocked: boolean
+  isPinned?: boolean
   isDisabled?: boolean
   onDuplicate: () => void
   onDisableToggle: () => void
   onFlipHandles: () => void
   onLockToggle: () => void
+  onPinToggle: () => void
   onRename: () => void
   onOpenEditor: () => void
   onDelete: () => void
@@ -119,6 +121,12 @@ export const NODE_CONTEXT_ITEMS = (params: {
   },
   { label: 'Flip Handles', onClick: params.onFlipHandles },
   { label: params.isLocked ? 'Unlock' : 'Lock', onClick: params.onLockToggle },
+  {
+    label: params.isPinned ? 'Unpin Node' : 'Pin Node',
+    onClick: params.onPinToggle,
+    active: params.isPinned,
+    shortcut: '⌘P',
+  },
   { label: 'Rename', onClick: params.onRename, dividerBefore: true },
   { label: 'Open Editor', onClick: params.onOpenEditor },
   { label: 'Delete', shortcut: '⌫', onClick: params.onDelete, variant: 'danger', dividerBefore: true },

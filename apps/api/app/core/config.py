@@ -44,6 +44,16 @@ class Settings(BaseSettings):
     LINEAR_CLIENT_ID: str = ""
     LINEAR_CLIENT_SECRET: str = ""
 
+    # Environment & CORS
+    ENVIRONMENT: str = "development"   # "production" in prod
+    CORS_ORIGINS: str = ""             # Comma-separated origins; overrides defaults when set
+
+    # Rate limits (slowapi format: "N/period")
+    RATE_LIMIT_AUTH: str = "5/minute"
+    RATE_LIMIT_EXECUTION: str = "20/minute"
+    RATE_LIMIT_UPLOAD: str = "10/minute"
+    RATE_LIMIT_DEFAULT: str = "100/minute"
+
     # Email (SMTP) — works with Gmail, SendGrid, Mailgun, SES, etc.
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587
@@ -58,6 +68,13 @@ class Settings(BaseSettings):
         case_sensitive=True,
         extra="ignore",
     )
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def resolved_cors_origins(self) -> list[str]:
+        if self.CORS_ORIGINS.strip():
+            return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        return self.BACKEND_CORS_ORIGINS
 
     @computed_field  # type: ignore[prop-decorator]
     @property

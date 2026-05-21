@@ -31,6 +31,7 @@ interface WorkflowState {
   updateNodeData: (id: string, data: any) => void
   removeNode: (id: string) => void
   toggleNodeLock: (id: string) => void
+  toggleNodePinned: (id: string) => void
   duplicateNode: (id: string) => void
   toggleNodeHandleDirection: (id: string) => void
   selectedNodeId: string | null
@@ -188,6 +189,17 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
         return node
       })
     })
+  },
+  toggleNodePinned: (id: string) => {
+    set({
+      nodes: get().nodes.map((node) => {
+        if (node.id === id) {
+          return { ...node, data: { ...node.data, pinned: !node.data?.pinned } }
+        }
+        return node
+      })
+    })
+    get().markDirty()
   },
   duplicateNode: (id: string) => {
     const node = get().nodes.find(n => n.id === id)

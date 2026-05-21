@@ -93,13 +93,14 @@ class WorkflowRunner:
         if self._failed.is_set():
             return
 
-        # Dedup: only one coroutine may execute a given node
+        node_data = self.nodes.get(node_id)
+
+        # Dedup: only one coroutine may execute a given node (pinned nodes bypass dedup)
+        is_pinned = node_data and node_data.get("data", {}).get("pinned", False)
         async with self._lock:
-            if node_id in self._executed:
+            if node_id in self._executed and not is_pinned:
                 return
             self._executed[node_id] = None  # placeholder while running
-
-        node_data = self.nodes.get(node_id)
         if not node_data:
             logger.warning(f"Node {node_id} not found in graph, skipping")
             return
