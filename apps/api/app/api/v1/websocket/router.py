@@ -171,6 +171,57 @@ async def workspace_logs_websocket(
                 await websocket.close(code=1000)
 
     except Exception as e:
-        logger.error(f"Failed to initialize WebSocket for workspace {workspace_id}: {e}", exc_info=True)
+        logger.error(
+            f"Failed to initialize WebSocket for workspace {workspace_id}: {e}", exc_info=True
+        )
+        with suppress(Exception):
+            await websocket.close(code=1011)
+
+
+@router.websocket("/workspaces/{workspace_id}/runs")
+async def workspace_runs_websocket(
+    websocket: WebSocket,
+    workspace_id: UUID,
+    token: str = Query(...),
+):
+    """
+    WebSocket endpoint for streaming workspace-wide execution/run events.
+    Verifies the user via JWT token before accepting.
+    Subscribes to Redis pub/sub for the specific workspace runs channel.
+    """
+    try:
+        user = await get_current_user_from_token(token)
+        if not user:
+            await websocket.close(code=4001)  # Unauthorized
+            return
+
+        await websocket.accept()
+        logger.info(f"WebSocket connected for workspace {workspace_id} runs")
+
+        redis = await get_redis()
+        pubsub = redis.pubsub()
+        channel = f"workspace:{workspace_id}:runs"
+
+        await pubsub.subscribe(channel)
+        logger.info(f"Subscribed to Redis channel: {channel}")
+
+        try:
+            async for message in pubsub.listen():
+                if message["type"] == "message":
+                    # Forward the Redis message directly to the WebSocket
+                    await websocket.send_text(message["data"])
+        except WebSocketDisconnect:
+            logger.info(f"WebSocket disconnected for workspace {workspace_id} runs")
+        except Exception as e:
+            logger.error(f"WebSocket error for workspace {workspace_id} runs: {e}", exc_info=True)
+        finally:
+            await pubsub.unsubscribe(channel)
+            if websocket.client_state != WebSocketState.DISCONNECTED:
+                await websocket.close(code=1000)
+
+    except Exception as e:
+        logger.error(
+            f"Failed to initialize WebSocket for workspace {workspace_id} runs: {e}", exc_info=True
+        )
         with suppress(Exception):
             await websocket.close(code=1011)
