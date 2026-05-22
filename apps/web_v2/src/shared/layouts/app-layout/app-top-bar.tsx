@@ -13,6 +13,7 @@ export function AppTopBar({ controller }: AppTopBarProps) {
   const {
     currentWorkspace,
     pageLabel,
+    selectedTableName,
     user,
     logout,
     theme,
@@ -30,7 +31,15 @@ export function AppTopBar({ controller }: AppTopBarProps) {
       <div className="flex items-center gap-[8px] text-[13px] text-[var(--text-mute)]">
         <span>{currentWorkspace?.name ?? 'My workspace'}</span>
         <span className="text-[var(--text-dim)]">/</span>
-        <span className="text-[var(--text)] font-medium">{pageLabel}</span>
+        {selectedTableName ? (
+          <>
+            <span className="text-[var(--text-mute)]">{pageLabel}</span>
+            <span className="text-[var(--text-dim)]">/</span>
+            <span className="text-[var(--text)] font-medium">{selectedTableName}</span>
+          </>
+        ) : (
+          <span className="text-[var(--text)] font-medium">{pageLabel}</span>
+        )}
       </div>
 
       <div className="flex items-center gap-[6px]">

@@ -6,6 +6,7 @@ import { TableEditor } from '../components/TableEditor'
 import type { DataTable } from '../types/tablesTypes'
 import { formatCount } from '../utils/tableFormat'
 import { cn } from '@/lib/cn'
+import { useTablesStore } from '@/features/tables/store/tablesStore'
 
 export function Tables() {
   const { toast } = useToast()
@@ -18,7 +19,7 @@ export function Tables() {
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [tableName, setTableName] = useState('')
-  const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
+  const { selectedTableId, setSelectedTableId } = useTablesStore()
 
   const visibleItems = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -164,7 +165,7 @@ export function Tables() {
 
       <main className="min-w-0 flex-1 overflow-hidden">
         {selectedTable ? (
-          <TableEditor table={selectedTable} onClose={() => setSelectedTableId(null)} />
+          <TableEditor key={selectedTable.id} table={selectedTable} />
         ) : (
           <div className="flex h-full flex-col items-center justify-center p-8 text-center">
             <Icons.Table className="mx-auto mb-3 h-10 w-10 text-[var(--text-faint)] opacity-40" />

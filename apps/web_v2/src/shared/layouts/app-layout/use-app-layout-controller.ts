@@ -20,6 +20,7 @@ import {
 import { useFileStats } from '@/features/files/hooks/useFiles'
 import { useKBList } from '@/features/knowledge/hooks/useKnowledge'
 import { useTables } from '@/features/tables/hooks/useTables'
+import { useTablesStore } from '@/features/tables'
 import { useWorkspaces, useWorkspaceStore } from '@/features/workspaces'
 import { useConfirm, useToast } from '@/shared/components'
 import { useTheme } from '@/stores/theme'
@@ -281,6 +282,9 @@ export function useAppLayoutController() {
   }
 
   const pageName = location.pathname.substring(1) || 'dashboard'
+  const { selectedTableId } = useTablesStore()
+  const selectedTable = pageName === 'tables' ? tables.find(t => t.id === selectedTableId) : null
+
   const navItemCounts: Record<string, string> = {
     tables: String(tables.length),
     files: String(fileStats?.count ?? 0),
@@ -292,6 +296,7 @@ export function useAppLayoutController() {
     logout,
     currentWorkspace,
     pageLabel: pageName.charAt(0).toUpperCase() + pageName.slice(1),
+    selectedTableName: selectedTable?.name || null,
     theme,
     toggleTheme,
     collapsed,

@@ -1,8 +1,10 @@
 import { useMemo, useRef, useState, type Dispatch, type FormEvent, type SetStateAction } from 'react'
 import {
   AlignLeft,
+  ArrowUpDown,
   Calendar,
   Check,
+  Filter,
   Hash,
   Link,
   List,
@@ -11,7 +13,7 @@ import {
   Type,
   X,
 } from 'lucide-react'
-import { Empty, useConfirm, useToast } from '@/shared/components'
+import { Empty, Select, useConfirm, useToast } from '@/shared/components'
 import { Icons } from '@/shared/components/icons'
 import { cn } from '@/lib/cn'
 import {
@@ -34,7 +36,6 @@ import {
 
 interface TableEditorProps {
   table: DataTable
-  onClose: () => void
 }
 
 interface ColumnFormState {
@@ -76,7 +77,7 @@ const COLUMN_ICON_BY_TYPE = Object.fromEntries(
   COLUMN_TYPE_DEFS.map(typeDef => [typeDef.type, typeDef.icon]),
 ) as Record<TableColumnType, typeof Type>
 
-export function TableEditor({ table, onClose }: TableEditorProps) {
+export function TableEditor({ table }: TableEditorProps) {
   const { toast } = useToast()
   const confirm = useConfirm()
   const importInputRef = useRef<HTMLInputElement>(null)
@@ -91,14 +92,89 @@ export function TableEditor({ table, onClose }: TableEditorProps) {
   const [editingColumn, setEditingColumn] = useState<TableColumn | null>(null)
   const [columnForm, setColumnForm] = useState<ColumnFormState>(emptyColumnForm)
 
+  // Filter states
+  const [showFilterBar, setShowFilterBar] = useState(false)
+  const [filterColumnId, setFilterColumnId] = useState<string>('')
+  const [filterOperator, setFilterOperator] = useState<'contains' | 'equals' | 'empty' | 'not_empty'>('contains')
+  const [filterValue, setFilterValue] = useState('')
+
+  // Sort states
+  const [showSortBar, setShowSortBar] = useState(false)
+  const [sortColumnId, setSortColumnId] = useState<string>('')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+
   const columns = useMemo(
     () => [...(data?.columns ?? [])].sort((a, b) => a.position - b.position),
     [data?.columns],
   )
-  const rows = useMemo(
-    () => [...(data?.rows ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0)),
-    [data?.rows],
-  )
+
+  const rows = useMemo(() => {
+    let result = [...(data?.rows ?? [])]
+
+    // 1. Apply filtering
+    if (showFilterBar && filterColumnId) {
+      result = result.filter(row => {
+        const val = row.data[filterColumnId]
+        const strVal = formatCellValue(val).toLowerCase()
+        const target = filterValue.toLowerCase()
+
+        switch (filterOperator) {
+          case 'contains':
+            return strVal.includes(target)
+          case 'equals':
+            return strVal === target
+          case 'empty':
+            return strVal.trim() === ''
+          case 'not_empty':
+            return strVal.trim() !== ''
+          default:
+            return true
+        }
+      })
+    }
+
+    // 2. Apply sorting
+    if (showSortBar && sortColumnId) {
+      const col = columns.find(c => c.id === sortColumnId)
+      const colType = col?.col_type
+
+      result.sort((a, b) => {
+        const valA = a.data[sortColumnId]
+        const valB = b.data[sortColumnId]
+
+        // Handle empty values by pushing them to the bottom/end regardless of direction
+        const isEmptyA = valA === undefined || valA === null || String(valA).trim() === ''
+        const isEmptyB = valB === undefined || valB === null || String(valB).trim() === ''
+        if (isEmptyA && isEmptyB) return 0
+        if (isEmptyA) return 1
+        if (isEmptyB) return -1
+
+        let cmp: number
+        if (colType === 'number') {
+          const numA = Number(valA)
+          const numB = Number(valB)
+          if (!isNaN(numA) && !isNaN(numB)) {
+            cmp = numA - numB
+          } else {
+            cmp = String(valA).localeCompare(String(valB))
+          }
+        } else if (colType === 'boolean') {
+          const boolA = valA === true ? 1 : 0
+          const boolB = valB === true ? 1 : 0
+          cmp = boolA - boolB
+        } else {
+          cmp = String(valA).localeCompare(String(valB), undefined, { numeric: true, sensitivity: 'base' })
+        }
+
+        return sortDirection === 'asc' ? cmp : -cmp
+      })
+    } else {
+      // Fallback to default position sorting
+      result.sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+    }
+
+    return result
+  }, [data?.rows, showFilterBar, filterColumnId, filterOperator, filterValue, showSortBar, sortColumnId, sortDirection, columns])
 
   const openNewColumn = () => {
     setEditingColumn(null)
@@ -208,6 +284,7 @@ export function TableEditor({ table, onClose }: TableEditorProps) {
       link.download = `${table.name}.csv`
       link.click()
       window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+      toast('Table exported successfully', { variant: 'ok' })
     } catch {
       toast('Failed to export table', { variant: 'err' })
     }
@@ -218,13 +295,7 @@ export function TableEditor({ table, onClose }: TableEditorProps) {
       <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b border-[var(--border-faint)] px-4 py-2 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
-            <button className="icon-btn" title="Back to tables" onClick={onClose}>
-              <Icons.CaretLeft />
-            </button>
-            <span className="text-[13px] text-[var(--text-faint)]">Tables</span>
-            <span className="text-[var(--text-faint)]">/</span>
             <span className="truncate text-[13px] font-medium text-[var(--text)]">{table.name}</span>
-            <Icons.Caret className="h-3.5 w-3.5 text-[var(--text-faint)]" />
           </div>
           <div className="flex items-center gap-1 text-[11px] text-[var(--text-faint)]">
             {rows.length} rows · {columns.length} columns
@@ -233,11 +304,27 @@ export function TableEditor({ table, onClose }: TableEditorProps) {
 
         <div className="flex items-center justify-between border-b border-[var(--border-faint)] px-4 py-2 shrink-0">
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]">
-              <Icons.Sort className="h-3.5 w-3.5" /> Filter
+            <button
+              onClick={() => setShowFilterBar(prev => !prev)}
+              className={cn(
+                'flex items-center gap-1.5 rounded-[8px] border px-2.5 py-1.5 text-[12px] transition-colors',
+                showFilterBar
+                  ? 'border-[var(--border-soft)] bg-[var(--surface)] text-[var(--text)] font-medium'
+                  : 'border-[var(--border-faint)] text-[var(--text-faint)] hover:border-[var(--border-soft)] hover:text-[var(--text)]',
+              )}
+            >
+              <Filter className="h-3.5 w-3.5" /> Filter
             </button>
-            <button className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]">
-              <Icons.Sort className="h-3.5 w-3.5" /> Sort
+            <button
+              onClick={() => setShowSortBar(prev => !prev)}
+              className={cn(
+                'flex items-center gap-1.5 rounded-[8px] border px-2.5 py-1.5 text-[12px] transition-colors',
+                showSortBar
+                  ? 'border-[var(--border-soft)] bg-[var(--surface)] text-[var(--text)] font-medium'
+                  : 'border-[var(--border-faint)] text-[var(--text-faint)] hover:border-[var(--border-soft)] hover:text-[var(--text)]',
+              )}
+            >
+              <ArrowUpDown className="h-3.5 w-3.5" /> Sort
             </button>
           </div>
           <div className="flex items-center gap-2">
@@ -273,6 +360,100 @@ export function TableEditor({ table, onClose }: TableEditorProps) {
             />
           </div>
         </div>
+
+        {showFilterBar && (
+          <div className="flex items-center gap-2 border-b border-[var(--border-faint)] bg-[var(--surface-faint)] px-4 py-2 shrink-0 text-[12px] animate-in fade-in slide-in-from-top-1 duration-150">
+            <span className="text-[var(--text-faint)] font-medium">Filter:</span>
+            <Select
+              options={columns.map(col => ({ value: col.id, label: col.name }))}
+              value={filterColumnId}
+              onChange={val => {
+                setFilterColumnId(val)
+                if (!val) {
+                  setFilterValue('')
+                }
+              }}
+              placeholder="Select column..."
+              className="w-48 shrink-0 [&>button]:h-8 [&>button]:py-0 [&>button]:px-2.5 [&>button]:text-[12px] [&_svg]:w-3 [&_svg]:h-3"
+            />
+
+            {filterColumnId && (
+              <>
+                <Select
+                  options={[
+                    { value: 'contains', label: 'contains' },
+                    { value: 'equals', label: 'equals' },
+                    { value: 'empty', label: 'is empty' },
+                    { value: 'not_empty', label: 'is not empty' },
+                  ]}
+                  value={filterOperator}
+                  onChange={val => setFilterOperator(val as 'contains' | 'equals' | 'empty' | 'not_empty')}
+                  className="w-36 shrink-0 [&>button]:h-8 [&>button]:py-0 [&>button]:px-2.5 [&>button]:text-[12px] [&_svg]:w-3 [&_svg]:h-3"
+                />
+
+                {filterOperator !== 'empty' && filterOperator !== 'not_empty' && (
+                  <input
+                    type="text"
+                    value={filterValue}
+                    onChange={e => setFilterValue(e.target.value)}
+                    placeholder="Value..."
+                    className="rounded-[6px] border border-[var(--border-faint)] bg-[var(--surface)] px-2.5 py-1 text-[12px] text-[var(--text)] outline-none focus:border-[var(--border-soft)] placeholder:text-[var(--text-faint)] min-w-[150px] h-8"
+                  />
+                )}
+
+                {(filterValue || filterOperator === 'empty' || filterOperator === 'not_empty') && (
+                  <button
+                    onClick={() => {
+                      setFilterColumnId('')
+                      setFilterValue('')
+                    }}
+                    className="text-[var(--text-faint)] hover:text-[var(--text)] p-1 rounded-md hover:bg-[var(--surface)] transition-colors"
+                    title="Clear filter"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {showSortBar && (
+          <div className="flex items-center gap-2 border-b border-[var(--border-faint)] bg-[var(--surface-faint)] px-4 py-2 shrink-0 text-[12px] animate-in fade-in slide-in-from-top-1 duration-150">
+            <span className="text-[var(--text-faint)] font-medium">Sort by:</span>
+            <Select
+              options={columns.map(col => ({ value: col.id, label: col.name }))}
+              value={sortColumnId}
+              onChange={val => setSortColumnId(val)}
+              placeholder="None (position)"
+              className="w-48 shrink-0 [&>button]:h-8 [&>button]:py-0 [&>button]:px-2.5 [&>button]:text-[12px] [&_svg]:w-3 [&_svg]:h-3"
+            />
+
+            {sortColumnId && (
+              <>
+                <Select
+                  options={[
+                    { value: 'asc', label: 'Ascending (A-Z, 0-9)' },
+                    { value: 'desc', label: 'Descending (Z-A, 9-0)' },
+                  ]}
+                  value={sortDirection}
+                  onChange={val => setSortDirection(val as 'asc' | 'desc')}
+                  className="w-56 shrink-0 [&>button]:h-8 [&>button]:py-0 [&>button]:px-2.5 [&>button]:text-[12px] [&_svg]:w-3 [&_svg]:h-3"
+                />
+
+                <button
+                  onClick={() => {
+                    setSortColumnId('')
+                  }}
+                  className="text-[var(--text-faint)] hover:text-[var(--text)] p-1 rounded-md hover:bg-[var(--surface)] transition-colors"
+                  title="Clear sort"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="flex-1 min-h-0 overflow-auto">
           {isLoading ? (
@@ -679,20 +860,18 @@ function EditableCell({ tableId, row, column }: EditableCellProps) {
   }
 
   if (column.col_type === 'select') {
+    const choices = readChoices(column).map(choice => ({ value: choice, label: choice }))
     return (
-      <select
+      <Select
+        options={choices}
         value={draft}
-        onChange={event => {
-          setDraft(event.target.value)
-          commit(event.target.value)
+        onChange={val => {
+          setDraft(val)
+          commit(val)
         }}
-        className="h-full min-h-9 w-full bg-transparent px-3 text-[13px] text-[var(--text)] outline-none focus:bg-[var(--surface)]"
-      >
-        <option value=""></option>
-        {readChoices(column).map(choice => (
-          <option key={choice} value={choice}>{choice}</option>
-        ))}
-      </select>
+        placeholder=""
+        className="w-full h-full min-h-[36px] [&>button]:h-full [&>button]:border-none [&>button]:rounded-none [&>button]:bg-transparent [&>button]:shadow-none [&>button]:pl-3 [&>button]:pr-2"
+      />
     )
   }
 
