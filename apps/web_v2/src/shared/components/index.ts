@@ -25,6 +25,7 @@ export { Table, TableHead, TableBody, TableRow, TableTh, TableTd } from './Table
 export { FormField } from './FormField'
 export { ProtectedRoute } from './ProtectedRoute'
 export { PublicRoute } from './PublicRoute'
-export { AppLayout } from './AppLayout'
 export { Icons } from './icons'
+export { ConfirmProvider, useConfirm } from './ConfirmModal'
+export { ColorPicker } from './ColorPicker'
 

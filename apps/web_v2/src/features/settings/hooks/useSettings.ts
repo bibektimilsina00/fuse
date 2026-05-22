@@ -1,30 +1,61 @@
-import { useState, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { settingsAPI } from '../services/settingsAPI'
+import { settingsKeys } from './keys'
+import { authKeys } from '@/features/auth/hooks/keys'
+import { useAuthStore } from '@/features/auth/store/authStore'
 import type { ApiKey } from '../types/settingsTypes'
 
 export function useSettings() {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
-  const [isGenerating, setIsGenerating] = useState(false)
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    settingsAPI.getApiKeys().then(setApiKeys)
-  }, [])
+  // Fetch developer API keys
+  const { data: apiKeys = [], isLoading } = useQuery({
+    queryKey: settingsKeys.apiKeys(),
+    queryFn: ({ signal }) => settingsAPI.getApiKeys(signal),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  })
 
-  const createApiKey = async (name: string) => {
-    setIsGenerating(true)
-    try {
-      const newKey = await settingsAPI.createApiKey(name)
-      setApiKeys(prev => [...prev, newKey])
-      return newKey
-    } finally {
-      setIsGenerating(false)
-    }
+  // Create API key mutation
+  const createMutation = useMutation({
+    mutationFn: (name: string) => settingsAPI.createApiKey(name),
+    onSuccess: () => {
+      // Optimitic update is tricky because it returns 'token', so we just invalidate
+      queryClient.invalidateQueries({ queryKey: settingsKeys.apiKeys() })
+    },
+  })
+
+  // Revoke API key mutation
+  const revokeMutation = useMutation({
+    mutationFn: (id: string) => settingsAPI.revokeApiKey(id),
+    onSuccess: (_, id) => {
+      queryClient.setQueryData(settingsKeys.apiKeys(), (oldData: ApiKey[] | undefined) => {
+        return oldData?.filter(k => k.id !== id)
+      })
+      queryClient.invalidateQueries({ queryKey: settingsKeys.apiKeys() })
+    },
+  })
+
+  return {
+    apiKeys,
+    isLoading,
+    isGenerating: createMutation.isPending,
+    createApiKey: createMutation.mutateAsync,
+    revokeApiKey: revokeMutation.mutateAsync,
   }
+}
 
-  const revokeApiKey = async (id: string) => {
-    await settingsAPI.revokeApiKey(id)
-    setApiKeys(prev => prev.filter(k => k.id !== id))
-  }
+export function useUpdateProfile() {
+  const queryClient = useQueryClient()
+  const setUser = useAuthStore((state) => state.setUser)
 
-  return { apiKeys, isGenerating, createApiKey, revokeApiKey }
+  return useMutation({
+    mutationFn: ({ fullName, password }: { fullName?: string; password?: string }) =>
+      settingsAPI.updateProfile(fullName, password),
+    onSuccess: (updatedUser) => {
+      // Sync the updated user profile into Zustand store
+      setUser(updatedUser)
+      // Invalidate the auth 'me' query cache
+      queryClient.invalidateQueries({ queryKey: authKeys.me() })
+    },
+  })
 }

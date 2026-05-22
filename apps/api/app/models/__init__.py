@@ -1,3 +1,4 @@
+from apps.api.app.models.api_key import ApiKey
 from apps.api.app.models.asset import Asset
 from apps.api.app.models.base import Base
 from apps.api.app.models.credential import Credential
@@ -12,6 +13,7 @@ from apps.api.app.models.workflow_version import WorkflowVersion
 from apps.api.app.models.workspace import Workspace, WorkspaceInvite, WorkspaceMember
 
 __all__ = [
+    "ApiKey",
     "Asset",
     "Base",
     "Credential",

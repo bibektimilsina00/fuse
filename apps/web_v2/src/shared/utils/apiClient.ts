@@ -1,6 +1,7 @@
 import axios, { type AxiosRequestConfig } from 'axios'
 import { z } from 'zod'
 import { useAuthStore } from '@/features/auth/store/authStore'
+import { useWorkspaceStore } from '@/features/workspaces/store/workspaceStore'
 import { logger } from '@/shared/utils/logger'
 
 /**
@@ -41,6 +42,12 @@ apiClient.interceptors.request.use((config) => {
     } catch {
       // Ignore private browsing storage errors
     }
+  }
+
+  // Inject workspace context — all scoped API calls need this
+  const workspaceId = useWorkspaceStore.getState().currentWorkspaceId
+  if (workspaceId) {
+    config.headers['X-Workspace-ID'] = workspaceId
   }
 
   return config

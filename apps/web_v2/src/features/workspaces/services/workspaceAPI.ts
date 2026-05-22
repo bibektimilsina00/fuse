@@ -7,6 +7,7 @@ import {
   WorkspaceInviteSchema,
   InvitePreviewSchema,
   type WorkspaceCreateRequest,
+  type WorkspaceUpdateRequest,
   type WorkspaceInviteRequest,
   type WorkspaceMemberUpdateRequest,
 } from '../types/workspaceTypes'
@@ -20,6 +21,12 @@ export const workspaceAPI = {
 
   createWorkspace: (data: WorkspaceCreateRequest) =>
     requestJson(WorkspaceWithRoleSchema, { url: API_ROUTES.WORKSPACES, method: 'POST', data }),
+
+  updateWorkspace: (workspaceId: string, data: WorkspaceUpdateRequest) =>
+    requestJson(WorkspaceWithRoleSchema, { url: API_ROUTES.WORKSPACE_UPDATE(workspaceId), method: 'PATCH', data }),
+
+  deleteWorkspace: (workspaceId: string) =>
+    requestJson(z.any(), { url: API_ROUTES.WORKSPACE_DELETE(workspaceId), method: 'DELETE' }),
 
   listMembers: (workspaceId: string, signal?: AbortSignal) =>
     requestJson(MemberListSchema, { url: API_ROUTES.WORKSPACE_MEMBERS(workspaceId), method: 'GET', signal }),

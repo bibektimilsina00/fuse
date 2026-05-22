@@ -4,6 +4,8 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import { RoleSelect } from './RoleSelect'
 import type { WorkspaceMember, WorkspaceRole } from '../types/workspaceTypes'
 import { cn } from '@/lib/cn'
+import { Icons } from '@/shared/components/icons'
+import { Button, useConfirm, useToast } from '@/shared/components'
 
 const EDITABLE_ROLES: WorkspaceRole[] = ['admin', 'member', 'viewer']
 
@@ -14,13 +16,15 @@ interface Props {
 
 export function MemberList({ members, workspaceId }: Props) {
   const { user } = useAuth()
+  const confirm = useConfirm()
+  const { toast } = useToast()
   const canManage = useWorkspaceStore(s => s.canManageMembers())
   const updateMember = useUpdateMember(workspaceId)
   const removeMember = useRemoveMember(workspaceId)
 
   return (
     <div className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px] overflow-hidden">
-      <div className="grid grid-cols-[minmax(0,1fr)_120px_120px_40px] gap-[12px] px-[16px] py-[9px] border-b border-[var(--border-faint)] font-mono text-[10.5px] tracking-widest uppercase text-[var(--text-dim)] bg-[var(--surface)]">
+      <div className="grid grid-cols-[minmax(0,1fr)_120px_120px_40px] gap-[12px] px-[16px] py-[9px] border-b border-[var(--border-faint)] font-mono text-[10.5px] tracking-widest uppercase text-text-mute">
         <span>Member</span>
         <span>Role</span>
         <span>Joined</span>
@@ -51,7 +55,19 @@ export function MemberList({ members, workspaceId }: Props) {
                 <RoleSelect
                   value={m.role}
                   options={EDITABLE_ROLES}
-                  onChange={role => updateMember.mutate({ userId: m.user_id, role })}
+                  onChange={role => {
+                    updateMember.mutate({ userId: m.user_id, role }, {
+                      onSuccess: () => {
+                        toast('Role updated successfully', { variant: 'ok' })
+                      },
+                      onError: (error) => {
+                        toast('Failed to update role', {
+                          variant: 'err',
+                          description: error instanceof Error ? error.message : String(error)
+                        })
+                      }
+                    })
+                  }}
                   disabled={updateMember.isPending}
                 />
               ) : (
@@ -69,17 +85,34 @@ export function MemberList({ members, workspaceId }: Props) {
 
             <div className="flex items-center justify-end">
               {canManage && !isOwner && !isCurrentUser && (
-                <button
-                  className="w-[24px] h-[24px] rounded-[6px] inline-flex items-center justify-center bg-transparent border-none cursor-pointer text-[10px] text-[var(--text-dim)] transition-colors duration-80 hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)]"
-                  title="Remove member"
-                  onClick={() => {
-                    if (confirm(`Remove ${displayName} from this workspace?`)) {
-                      removeMember.mutate(m.user_id)
+                <Button
+                  variant="icon-sm"
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: 'Remove Member',
+                      message: `Are you sure you want to remove ${displayName} from this workspace?`,
+                      confirmText: 'Remove',
+                      variant: 'danger',
+                    })
+                    if (ok) {
+                      removeMember.mutate(m.user_id, {
+                        onSuccess: () => {
+                          toast('Member removed successfully', { variant: 'ok' })
+                        },
+                        onError: (error) => {
+                          toast('Failed to remove member', {
+                            variant: 'err',
+                            description: error instanceof Error ? error.message : String(error)
+                          })
+                        }
+                      })
                     }
                   }}
+                  title="Remove member"
+                  className="text-text-mute hover:text-red-500"
                 >
-                  ✕
-                </button>
+                  <Icons.Trash />
+                </Button>
               )}
             </div>
           </div>

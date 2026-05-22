@@ -60,12 +60,14 @@ const variants: Record<Variant, string> = {
     'hover:bg-surface hover:text-text',
     'w-9 h-9 rounded-[8px]',
     'before:absolute before:inset-[-4px] before:content-[""]',
+    '[&_svg]:w-[15px] [&_svg]:h-[15px]',
   ].join(' '),
   'icon-sm': [
     'relative bg-transparent border border-border-faint text-text-mute',
     'hover:bg-surface hover:text-text',
     'w-7 h-7 rounded-[6px]',
     'before:absolute before:inset-[-7px] before:content-[""]',
+    '[&_svg]:w-[13px] [&_svg]:h-[13px]',
   ].join(' '),
 }
 
@@ -90,7 +92,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           ? <Spinner size={isIcon || size === 'sm' ? 'xs' : 'sm'} className="shrink-0" />
           : leftIcon
         }
-        {!isIcon && children}
+        {isIcon ? (!loading && children) : children}
         {!loading && rightIcon}
       </button>
     )

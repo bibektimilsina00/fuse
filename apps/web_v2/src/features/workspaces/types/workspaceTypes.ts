@@ -68,6 +68,10 @@ export interface WorkspaceCreateRequest {
   name: string
 }
 
+export interface WorkspaceUpdateRequest {
+  name: string
+}
+
 export interface WorkspaceInviteRequest {
   email: string
   role: WorkspaceRole

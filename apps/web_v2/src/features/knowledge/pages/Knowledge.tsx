@@ -1,54 +1,103 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Icons } from '@/shared/components/icons'
-import { useKnowledge } from '../hooks/useKnowledge'
+import { useToast, useConfirm } from '@/shared/components'
+import { useKBList, useDeleteKB } from '../hooks/useKnowledge'
 import { KnowledgeList } from '../components/KnowledgeList'
-
-const FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'doc', label: 'Documents' },
-  { id: 'live', label: 'Live sources' },
-  { id: 'stale', label: 'Stale' },
-]
+import { CreateKBModal } from '../components/CreateKBModal'
+import { APP_ROUTES } from '@/shared/constants/routes'
+import type { KnowledgeBase } from '../types/knowledgeTypes'
 
 export function Knowledge() {
-  const { items } = useKnowledge()
-  const [filter, setFilter] = useState('all')
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  const confirm = useConfirm()
 
-  const filtered = filter === 'all' ? items
-    : filter === 'stale' ? items.filter(k => k.state === 'stale')
-    : filter === 'live' ? items.filter(k => k.kind === 'site' || k.kind === 'slack' || k.kind === 'linear')
-    : items.filter(k => k.kind === 'doc' || k.kind === 'csv' || k.kind === 'notion')
+  const { data: kbs = [], isLoading } = useKBList()
+  const deleteKB = useDeleteKB()
+
+  const [search, setSearch]     = useState('')
+  const [createOpen, setCreateOpen] = useState(false)
+
+  const totalChunks = kbs.reduce((s, kb) => s + kb.total_chunks, 0)
+  const fmtChunks = (n: number) => n >= 1_000_000 ? `${(n/1_000_000).toFixed(1)}M` : n >= 1_000 ? `${(n/1_000).toFixed(1)}k` : String(n)
+
+  const filtered = useMemo(() =>
+    search.trim()
+      ? kbs.filter(kb =>
+          kb.name.toLowerCase().includes(search.toLowerCase()) ||
+          (kb.description ?? '').toLowerCase().includes(search.toLowerCase())
+        )
+      : kbs
+  , [kbs, search])
+
+  const handleDelete = async (kb: KnowledgeBase) => {
+    const ok = await confirm({
+      title: 'Delete knowledge base',
+      message: `Delete "${kb.name}"? All ${kb.document_count} documents and ${kb.total_chunks} chunks will be permanently removed.`,
+      confirmText: 'Delete', variant: 'danger',
+    })
+    if (!ok) return
+    await deleteKB.mutateAsync(kb.id)
+    toast('Knowledge base deleted', { variant: 'ok' })
+  }
 
   return (
     <div className="view-body">
       <div className="page-head">
         <div>
-          <span className="eyebrow">Retrieval · 4.2M tokens indexed</span>
+          <span className="eyebrow">Retrieval · {fmtChunks(totalChunks)} chunks indexed</span>
           <h1>Knowledge base</h1>
         </div>
-        <div className="btn-group">
-          <button className="btn btn-secondary"><Icons.Plus /> Add source</button>
-          <button className="btn btn-primary"><Icons.Doc /> Upload document</button>
-        </div>
+        <button className="btn btn-primary" onClick={() => setCreateOpen(true)}>
+          <Icons.Plus /> New knowledge base
+        </button>
+      </div>
+
+      <div className="flex items-start gap-3 px-4 py-3.5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[10px]">
+        <Icons.Spark style={{ width: 14, height: 14, color: 'var(--accent)', flexShrink: 0, marginTop: 1 }} />
+        <p className="text-[12.5px] text-[var(--text-faint)] m-0">
+          Knowledge bases store documents as vector embeddings. AI agent nodes in workflows can search them with natural language to retrieve relevant context before generating responses.
+        </p>
       </div>
 
       <div className="filter-bar">
         <div className="filter-tabs">
-          {FILTERS.map(f => (
-            <button key={f.id} className={`filter-tab${filter === f.id ? ' active' : ''}`} onClick={() => setFilter(f.id)}>
-              {f.label}
+          <button className="filter-tab active">
+            All <span className="filter-count">{kbs.length}</span>
+          </button>
+          {kbs.some(k => !k.embedding_credential_id) && (
+            <button className="filter-tab">
+              Setup required <span className="filter-count">{kbs.filter(k => !k.embedding_credential_id).length}</span>
             </button>
-          ))}
+          )}
         </div>
         <div className="filter-tools">
           <div className="cmd-search inline-search">
             <Icons.Search />
-            <input placeholder="Search knowledge sources" />
+            <input placeholder="Search knowledge bases" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
       </div>
 
-      <KnowledgeList items={filtered} />
+      {isLoading ? (
+        <div className="flex items-center gap-3 py-8 text-[13px] text-[var(--text-faint)]">
+          <div className="w-4 h-4 border-2 border-[var(--border)] border-t-[var(--text-mute)] rounded-full animate-spin" />
+          Loading…
+        </div>
+      ) : (
+        <KnowledgeList items={filtered} onDelete={handleDelete} />
+      )}
+
+      {createOpen && (
+        <CreateKBModal
+          onClose={() => setCreateOpen(false)}
+          onCreated={id => {
+            setCreateOpen(false)
+            navigate(APP_ROUTES.KNOWLEDGE_DETAIL(id))
+          }}
+        />
+      )}
     </div>
   )
 }

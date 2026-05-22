@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { ProtectedRoute, PublicRoute, AppLayout } from '@/shared/components'
+import { ProtectedRoute, PublicRoute } from '@/shared/components'
+import { AppLayout } from '@/shared/layouts'
 import { APP_ROUTES } from '@/shared/constants/routes'
 import { Login, Register, ForgotPassword, ResetPassword } from '@/features/auth'
 import { Dashboard } from '@/features/dashboard'
@@ -12,7 +13,7 @@ import { Schedules } from '@/features/schedules'
 import { Logs } from '@/features/logs'
 import { Tables } from '@/features/tables'
 import { Files } from '@/features/files'
-import { Knowledge } from '@/features/knowledge'
+import { Knowledge, KnowledgeDetail, KnowledgeDocumentView } from '@/features/knowledge'
 import { Variables } from '@/features/variables'
 import { Connections } from '@/features/connections'
 import { WorkspaceSettings, InviteAccept } from '@/features/workspaces'
@@ -42,6 +43,8 @@ export default function App() {
             <Route path={APP_ROUTES.TABLES} element={<Tables />} />
             <Route path={APP_ROUTES.FILES} element={<Files />} />
             <Route path={APP_ROUTES.KNOWLEDGE} element={<Knowledge />} />
+            <Route path="/knowledge/:id" element={<KnowledgeDetail />} />
+            <Route path="/knowledge/:id/documents/:docId" element={<KnowledgeDocumentView />} />
             <Route path={APP_ROUTES.VARIABLES} element={<Variables />} />
             <Route path={APP_ROUTES.CONNECTIONS} element={<Connections />} />
             <Route path={APP_ROUTES.WORKSPACE_SETTINGS} element={<WorkspaceSettings />} />

@@ -50,6 +50,37 @@ export function switchWorkspace(workspace: WorkspaceWithRole) {
   useWorkspaceStore.getState().setCurrentWorkspace(normalized, normalized.role)
 }
 
+/** Rename workspace — owner only. */
+export function useUpdateWorkspace() {
+  const queryClient = useQueryClient()
+  const setCurrentWorkspace = useWorkspaceStore(s => s.setCurrentWorkspace)
+
+  return useMutation({
+    mutationFn: ({ workspaceId, name }: { workspaceId: string; name: string }) =>
+      workspaceAPI.updateWorkspace(workspaceId, { name }),
+    onSuccess: (updated) => {
+      const normalized = { ...updated, avatar_url: updated.avatar_url ?? null }
+      setCurrentWorkspace(normalized, normalized.role)
+      queryClient.invalidateQueries({ queryKey: workspaceKeys.lists() })
+    },
+  })
+}
+
+/** Delete workspace — owner only, non-personal only. */
+export function useDeleteWorkspace() {
+  const queryClient = useQueryClient()
+  const clearWorkspace = useWorkspaceStore(s => s.clearWorkspace)
+
+  return useMutation({
+    mutationFn: (workspaceId: string) => workspaceAPI.deleteWorkspace(workspaceId),
+    onSuccess: async () => {
+      clearWorkspace()
+      await queryClient.invalidateQueries({ queryKey: workspaceKeys.lists() })
+      await queryClient.refetchQueries({ queryKey: workspaceKeys.lists() })
+    },
+  })
+}
+
 /** Fetch members of a workspace. */
 export function useWorkspaceMembers(workspaceId: string | null) {
   return useQuery({
@@ -124,7 +155,9 @@ export function useRemoveMember(workspaceId: string | null) {
 
   return useMutation({
     mutationFn: (userId: string) => {
-      if (!workspaceId) throw new Error('No workspace selected')
+      if (!workspaceId) {
+        throw new Error('No workspace selected')
+      }
       return workspaceAPI.removeMember(workspaceId, userId)
     },
     onSuccess: () => {

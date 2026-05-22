@@ -16,6 +16,7 @@ from apps.api.app.api.v1.skills.router import router as skills_router
 from apps.api.app.api.v1.tables.router import router as tables_router
 from apps.api.app.api.v1.triggers.cron_utils import router as cron_router
 from apps.api.app.api.v1.triggers.webhook_handler import router as webhooks_router
+from apps.api.app.api.v1.users.router import router as users_router
 from apps.api.app.api.v1.websocket.router import router as websocket_router
 from apps.api.app.api.v1.workflows.router import router as workflows_router
 from apps.api.app.api.v1.workspaces.router import router as workspaces_router
@@ -23,6 +24,7 @@ from apps.api.app.api.v1.workspaces.router import router as workspaces_router
 router = APIRouter()
 
 router.include_router(auth_router, prefix="/auth", tags=["auth"])
+router.include_router(users_router, prefix="/users", tags=["users"])
 router.include_router(workflows_router, prefix="/workflows", tags=["workflows"])
 router.include_router(workspaces_router, prefix="/workspaces", tags=["workspaces"])
 router.include_router(folders_router, prefix="/folders", tags=["folders"])

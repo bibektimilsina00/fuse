@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 import apps.api.app.models.copilot_session  # noqa: F401
 import apps.api.app.models.credential  # noqa: F401
 import apps.api.app.models.folder  # noqa: F401 — register models
+import apps.api.app.models.audit_log  # noqa: F401
+import apps.api.app.models.secret  # noqa: F401
 import apps.api.app.models.user  # noqa: F401
 import apps.api.app.models.workflow  # noqa: F401
 from apps.api.app.core.config import settings

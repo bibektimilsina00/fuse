@@ -17,10 +17,16 @@ export const APP_ROUTES = {
   TABLES: '/tables',
   FILES: '/files',
   KNOWLEDGE: '/knowledge',
+  KNOWLEDGE_DETAIL: (id: string) => `/knowledge/${id}`,
+  KNOWLEDGE_DOCUMENT: (kbId: string, docId: string) => `/knowledge/${kbId}/documents/${docId}`,
+  KB_CHUNKS: (kbId: string, docId: string) => `/kb/${kbId}/documents/${docId}/chunks`,
+  KB_CHUNK: (kbId: string, chunkId: string) => `/kb/${kbId}/chunks/${chunkId}`,
   VARIABLES: '/variables',
   CONNECTIONS: '/connections',
   WORKSPACE_SETTINGS: '/settings/workspace',
   INVITE_ACCEPT: '/invite/:token',
+  WORKFLOW_DETAIL: '/workflows/:id',
+  WORKFLOW: (id: string) => `/workflows/${id}`,
 } as const
 
 export type AppRoute = typeof APP_ROUTES[keyof typeof APP_ROUTES]
@@ -36,9 +42,42 @@ export const API_ROUTES = {
   FORGOT_PASSWORD: '/auth/forgot-password',
   RESET_PASSWORD: '/auth/reset-password',
 
+  // Connections (credentials)
+  CREDENTIALS: '/credentials/',
+  CREDENTIAL: (id: string) => `/credentials/${id}`,
+  CREDENTIAL_PROVIDERS: '/credentials/providers',
+  CREDENTIAL_OAUTH_URL: (service: string) => `/credentials/oauth/${service}/url`,
+  CREDENTIAL_AUDIT: '/credentials/audit',
+
+  // Knowledge base
+  KB_LIST: '/kb/',
+  KB: (id: string) => `/kb/${id}`,
+  KB_DOCS: (id: string) => `/kb/${id}/documents`,
+  KB_DOC_TEXT: (id: string) => `/kb/${id}/documents/text`,
+  KB_DOC_UPLOAD: (id: string) => `/kb/${id}/documents/upload`,
+  KB_DOC_URL: (id: string) => `/kb/${id}/documents/url`,
+  KB_DOC: (kbId: string, docId: string) => `/kb/${kbId}/documents/${docId}`,
+  KB_DOC_REINDEX: (kbId: string, docId: string) => `/kb/${kbId}/documents/${docId}/reindex`,
+  KB_CHUNKS: (kbId: string, docId: string) => `/kb/${kbId}/documents/${docId}/chunks`,
+  KB_CHUNK: (kbId: string, chunkId: string) => `/kb/${kbId}/chunks/${chunkId}`,
+  KB_SEARCH: (id: string) => `/kb/${id}/search`,
+  KB_REINDEX: (id: string) => `/kb/${id}/reindex`,
+
+  // Variables (backed by /secrets endpoint)
+  VARIABLES_LIST: '/secrets/',
+  VARIABLE: (id: string) => `/secrets/${id}`,
+  VARIABLE_REVEAL: (id: string) => `/secrets/${id}/reveal`,
+
+  // User / Account
+  USER_ME: '/users/me',
+  USER_API_KEYS: '/users/api-keys',
+  USER_API_KEY: (id: string) => `/users/api-keys/${id}`,
+
   // Workspaces
   WORKSPACES: '/workspaces/',
   WORKSPACE: (id: string) => `/workspaces/${id}`,
+  WORKSPACE_UPDATE: (id: string) => `/workspaces/${id}`,
+  WORKSPACE_DELETE: (id: string) => `/workspaces/${id}`,
   WORKSPACE_MEMBERS: (id: string) => `/workspaces/${id}/members`,
   WORKSPACE_MEMBER: (workspaceId: string, userId: string) => `/workspaces/${workspaceId}/members/${userId}`,
   WORKSPACE_INVITES: (id: string) => `/workspaces/${id}/invites`,
