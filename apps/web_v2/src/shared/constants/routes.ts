@@ -42,6 +42,19 @@ export const API_ROUTES = {
   FORGOT_PASSWORD: '/auth/forgot-password',
   RESET_PASSWORD: '/auth/reset-password',
 
+  // Workflows / Automations
+  WORKFLOWS_WITH_STATS: '/workflows/with-stats',
+  WORKFLOW_CREATE: '/workflows/',
+  WORKFLOW_GET: (id: string) => `/workflows/${id}`,
+  WORKFLOW_UPDATE: (id: string) => `/workflows/${id}`,
+  WORKFLOW_DELETE: (id: string) => `/workflows/${id}`,
+  WORKFLOW_TOGGLE: (id: string) => `/workflows/${id}/toggle`,
+  WORKFLOW_DUPLICATE: (id: string) => `/workflows/${id}/duplicate`,
+  WORKFLOW_RUN: (id: string) => `/workflows/${id}/run`,
+  DASHBOARD_STATS: '/dashboard/stats',
+  CRON_VALIDATE: '/cron/validate',
+  CRON_NEXT_RUNS: '/cron/next-runs',
+
   // Connections (credentials)
   CREDENTIALS: '/credentials/',
   CREDENTIAL: (id: string) => `/credentials/${id}`,

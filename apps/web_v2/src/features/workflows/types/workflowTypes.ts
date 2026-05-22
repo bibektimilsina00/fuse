@@ -10,7 +10,7 @@ export const WorkflowSchema = z.object({
   schema_version: z.string().optional(),
   graph: z.any().optional(),
   is_active: z.boolean(),
-  position: z.number().int(),
+  position: z.number().int().optional().default(0),
   color: z.string().optional().nullable(),
   env: z.record(z.string(), z.string()).optional().nullable(),
   version_vector: z.number().int().optional(),

@@ -449,10 +449,10 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .log-line.warn .log-msg { color: var(--warn); }
 
 /* view body */
-.view-body { padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 24px; max-width: 1240px; width: 100%; margin: 0 auto; }
+.view-body { padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 24px; max-width: 1240px; width: 100%; margin: 0 auto; min-height: 100%; }
 
 /* panel */
-.panel { background: var(--bg); border: 1px solid var(--border-faint); border-radius: 12px; overflow: hidden; }
+.panel { background: var(--bg); border: 1px solid var(--border-faint); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; flex: 1; }
 
 /* icon-btn */
 .icon-btn { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border-faint); color: var(--text-mute); cursor: pointer; transition: background 120ms; flex-shrink: 0; }

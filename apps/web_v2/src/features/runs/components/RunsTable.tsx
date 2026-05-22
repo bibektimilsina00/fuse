@@ -1,9 +1,30 @@
 import { Icons } from '@/shared/components/icons'
+import { Empty } from '@/shared/components'
 import type { Run } from '../types/runsTypes'
 
-interface Props { items: Run[] }
+interface Props {
+  items: Run[]
+  totalCount?: number
+}
 
-export function RunsTable({ items }: Props) {
+export function RunsTable({ items, totalCount = 0 }: Props) {
+  if (items.length === 0) {
+    return (
+      <div className="panel">
+        <Empty
+          icon={<Icons.Activity />}
+          title="No runs found"
+          description={
+            totalCount === 0
+              ? 'Run automation workflows to see execution history here.'
+              : 'No runs match the current filter.'
+          }
+          className="flex-1 justify-center"
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="panel">
       <div className="table runs-table">

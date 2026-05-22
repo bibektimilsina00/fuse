@@ -14,6 +14,7 @@ import { Logs } from '@/features/logs'
 import { Tables } from '@/features/tables'
 import { Files } from '@/features/files'
 import { Knowledge, KnowledgeDetail, KnowledgeDocumentView } from '@/features/knowledge'
+import { WorkflowEditor } from '@/features/workflow-editor'
 import { Variables } from '@/features/variables'
 import { Connections } from '@/features/connections'
 import { WorkspaceSettings, InviteAccept } from '@/features/workspaces'
@@ -53,6 +54,11 @@ export default function App() {
 
         {/* Public invite accept — needs auth check inside the page */}
         <Route path="/invite/:token" element={<InviteAccept />} />
+
+        {/* Workflow editor — full screen, inside ProtectedRoute but outside AppLayout */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/workflows/:id" element={<WorkflowEditor />} />
+        </Route>
 
         {/* Showcase page - public but using AppLayout */}
         <Route element={<AppLayout />}>

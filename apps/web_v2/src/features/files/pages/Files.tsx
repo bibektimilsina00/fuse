@@ -142,7 +142,13 @@ export function Files() {
         </div>
       </div>
 
-      <FilesList items={visibleItems} isLoading={isLoading} onOpen={handleOpen} onDelete={handleDelete} />
+      <FilesList
+        items={visibleItems}
+        totalCount={items.length}
+        isLoading={isLoading}
+        onOpen={handleOpen}
+        onDelete={handleDelete}
+      />
     </div>
   )
 }

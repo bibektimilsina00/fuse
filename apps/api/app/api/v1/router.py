@@ -14,6 +14,7 @@ from apps.api.app.api.v1.logs.router import router as logs_router
 from apps.api.app.api.v1.nodes.router import router as nodes_router
 from apps.api.app.api.v1.secrets.router import router as secrets_router
 from apps.api.app.api.v1.skills.router import router as skills_router
+from apps.api.app.api.v1.dashboard.router import router as dashboard_router
 from apps.api.app.api.v1.tables.router import router as tables_router
 from apps.api.app.api.v1.triggers.cron_utils import router as cron_router
 from apps.api.app.api.v1.triggers.webhook_handler import router as webhooks_router
@@ -43,5 +44,6 @@ router.include_router(webhooks_router)
 router.include_router(cron_router)
 router.include_router(knowledge_router, prefix="/kb", tags=["knowledge"])
 router.include_router(secrets_router, prefix="/secrets", tags=["secrets"])
+router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 router.include_router(tables_router, prefix="/tables", tags=["tables"])
 router.include_router(logs_router, prefix="/logs", tags=["logs"])
