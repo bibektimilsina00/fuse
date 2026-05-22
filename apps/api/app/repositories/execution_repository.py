@@ -218,6 +218,26 @@ class ExecutionRepository:
         rows = await self.db.execute(q)
         return [dict(r._mapping) for r in rows.fetchall()], total
 
+    async def last_run_by_workflow(self, workflow_ids: list[uuid.UUID]) -> dict[str, dict]:
+        """Return most recent execution info keyed by workflow_id string."""
+        if not workflow_ids:
+            return {}
+        # Subquery: max started_at per workflow
+        sub = (
+            select(Execution.workflow_id, func.max(Execution.started_at).label("max_started"))
+            .where(Execution.workflow_id.in_(workflow_ids))
+            .group_by(Execution.workflow_id)
+            .subquery()
+        )
+        result = await self.db.execute(
+            select(Execution.workflow_id, Execution.started_at, Execution.status)
+            .join(sub, (Execution.workflow_id == sub.c.workflow_id) & (Execution.started_at == sub.c.max_started))
+        )
+        return {
+            str(row.workflow_id): {"started_at": row.started_at, "status": row.status}
+            for row in result.fetchall()
+        }
+
     async def count_by_workflow(self, workflow_ids: list[uuid.UUID]) -> dict[str, int]:
         """Return execution counts keyed by workflow_id string."""
         if not workflow_ids:

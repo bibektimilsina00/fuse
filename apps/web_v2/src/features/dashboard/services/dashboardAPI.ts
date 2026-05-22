@@ -1,41 +1,55 @@
-import type { RunItem, ConnectionItem, ScheduleItem, DashboardStats } from '../types/dashboardTypes'
+import { z } from 'zod'
+import { requestJson } from '@/shared/utils/apiClient'
+import { API_ROUTES } from '@/shared/constants/routes'
 
-const MOCK_RUNS: RunItem[] = [
-  { status: 'ok', name: 'Stripe refund — Slack approval', trigger: 'stripe.charge.refunded', duration: '1.4s', ago: '2m ago' },
-  { status: 'ok', name: 'Lead enrichment — Clearbit → HubSpot', trigger: 'hubspot.contact.created', duration: '3.1s', ago: '4m ago' },
-  { status: 'run', name: 'Inbound RFP classifier', trigger: 'imap.inbox.new', duration: 'running', ago: 'now' },
-  { status: 'ok', name: 'Daily brief from Linear + GitHub', trigger: 'schedule.daily', duration: '8.7s', ago: '1h ago' },
-  { status: 'err', name: 'Notion → Airtable nightly sync', trigger: 'schedule.0_2_*_*_*', duration: '12.4s', ago: '2h ago' },
-  { status: 'ok', name: 'Invoice triage agent', trigger: 'gmail.label.invoice', duration: '5.9s', ago: '3h ago' },
-  { status: 'warn', name: 'Support ticket auto-tagger', trigger: 'zendesk.ticket.new', duration: '2.2s', ago: '4h ago' },
-  { status: 'ok', name: 'Weekly metrics digest', trigger: 'schedule.weekly', duration: '11.0s', ago: '5h ago' },
-]
+export const DashboardStatSchema = z.object({
+  label:     z.string(),
+  value:     z.string(),
+  unit:      z.string(),
+  delta:     z.string(),
+  delta_dir: z.enum(['up', 'down', 'flat']),
+  spark:     z.array(z.number()),
+})
 
-const MOCK_CONNECTIONS: ConnectionItem[] = [
-  { id: 'stripe', name: 'Stripe', sub: '12 endpoints · 4 webhooks', state: 'ok' },
-  { id: 'slack', name: 'Slack', sub: '3 workspaces', state: 'ok' },
-  { id: 'linear', name: 'Linear', sub: 'fuse-engineering', state: 'ok' },
-  { id: 'notion', name: 'Notion', sub: 'token expires in 4d', state: 'warn' },
-  { id: 'hub', name: 'HubSpot', sub: 'auth failed · re-link', state: 'err' },
-]
+export const DashboardRunSchema = z.object({
+  id:       z.string(),
+  status:   z.enum(['ok', 'run', 'err', 'warn']),
+  name:     z.string(),
+  trigger:  z.string(),
+  duration: z.string(),
+  ago:      z.string(),
+})
 
-const MOCK_SCHEDULES: ScheduleItem[] = [
-  { time: '14:30', name: 'Weekly metrics digest', sub: 'linear · github · stripe' },
-  { time: '16:00', name: 'Churn-risk watchlist refresh', sub: 'agent · 6 sources' },
-  { time: '18:00', name: 'EOD pager rotation handoff', sub: 'pagerduty · slack' },
-  { time: '02:00', name: 'Notion → Airtable sync', sub: 'scheduled · last failed' },
-]
+export const DashboardScheduleSchema = z.object({
+  workflow_id: z.string(),
+  name:        z.string(),
+  time:        z.string(),
+  sub:         z.string(),
+  next_iso:    z.string(),
+})
 
-const MOCK_STATS: DashboardStats = {
-  activeWorkflows: 47,
-  runsToday: 1284,
-  errorsToday: 3,
-  connectedApps: 18,
-}
+export const DashboardConnectionSchema = z.object({
+  id:    z.string(),
+  name:  z.string(),
+  type:  z.string(),
+  state: z.enum(['ok', 'warn', 'err']),
+})
+
+export const DashboardStatsSchema = z.object({
+  stats:       z.array(DashboardStatSchema),
+  recent_runs: z.array(DashboardRunSchema),
+  schedules:   z.array(DashboardScheduleSchema),
+  connections: z.array(DashboardConnectionSchema),
+  total_today: z.number(),
+})
+
+export type DashboardStats      = z.infer<typeof DashboardStatsSchema>
+export type DashboardStat       = z.infer<typeof DashboardStatSchema>
+export type DashboardRun        = z.infer<typeof DashboardRunSchema>
+export type DashboardSchedule   = z.infer<typeof DashboardScheduleSchema>
+export type DashboardConnection = z.infer<typeof DashboardConnectionSchema>
 
 export const dashboardAPI = {
-  getRuns: async (): Promise<RunItem[]> => MOCK_RUNS,
-  getConnections: async (): Promise<ConnectionItem[]> => MOCK_CONNECTIONS,
-  getSchedules: async (): Promise<ScheduleItem[]> => MOCK_SCHEDULES,
-  getStats: async (): Promise<DashboardStats> => MOCK_STATS,
+  getStats: (signal?: AbortSignal) =>
+    requestJson(DashboardStatsSchema, { url: API_ROUTES.DASHBOARD_STATS, method: 'GET', signal }),
 }

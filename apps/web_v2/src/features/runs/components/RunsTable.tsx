@@ -8,6 +8,23 @@ interface Props {
 }
 
 export function RunsTable({ items, totalCount = 0 }: Props) {
+  if (items.length === 0) {
+    return (
+      <div className="panel">
+        <Empty
+          icon={<Icons.Activity />}
+          title="No runs found"
+          description={
+            totalCount === 0
+              ? 'Run automation workflows to see execution history here.'
+              : 'No runs match the current filter.'
+          }
+          className="flex-1 justify-center"
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="panel">
       <div className="table runs-table">
@@ -19,36 +36,17 @@ export function RunsTable({ items, totalCount = 0 }: Props) {
           <span>Duration</span>
           <span></span>
         </div>
-        {items.length === 0 ? (
-          <div
-            className="flex-1 border-t border-[var(--border-faint)] flex items-center justify-center"
-            style={{ minHeight: '560px', display: 'flex', flexDirection: 'column' }}
-          >
-            <Empty
-              icon={<Icons.Activity />}
-              title="No runs found"
-              description={
-                totalCount === 0
-                  ? "Run automation workflows to see their execution history here."
-                  : "No runs match the current search query or filter tab."
-              }
-              className="py-10"
-            />
+        {items.map(r => (
+          <div key={r.id} className="table-row">
+            <span className={`status-dot ${r.status}`} />
+            <span className="row-name">{r.name}</span>
+            <span className="run-trigger"><Icons.Bolt />{r.trigger}</span>
+            <span className="row-mono">{r.started}</span>
+            <span className="row-mono">{r.duration}</span>
+            <span className="caret"><Icons.CaretRight /></span>
           </div>
-        ) : (
-          items.map(r => (
-            <div key={r.id} className="table-row">
-              <span className={`status-dot ${r.status}`} />
-              <span className="row-name">{r.name}</span>
-              <span className="run-trigger"><Icons.Bolt />{r.trigger}</span>
-              <span className="row-mono">{r.started}</span>
-              <span className="row-mono">{r.duration}</span>
-              <span className="caret"><Icons.CaretRight /></span>
-            </div>
-          ))
-        )}
+        ))}
       </div>
     </div>
   )
 }
-

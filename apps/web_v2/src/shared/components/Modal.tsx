@@ -1,4 +1,5 @@
 import { useEffect, useId, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from './Button'
@@ -29,9 +30,9 @@ export function Modal({ open, onClose, title, children, footer, width, descripti
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
       {/* Backdrop */}
@@ -70,6 +71,7 @@ export function Modal({ open, onClose, title, children, footer, width, descripti
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

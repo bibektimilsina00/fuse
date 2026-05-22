@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useWorkflowModalStore } from '@/stores/workflowModalStore'
 import { useDroppable } from '@dnd-kit/core'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import {
@@ -149,10 +150,20 @@ export function useAppLayoutController() {
     setFeedbackText('')
   }
 
-  const openCreateWorkflow = (folderId?: string | null) => {
+  const openCreateWorkflow = useCallback((folderId?: string | null) => {
     setWorkflowFolderId(folderId ?? null)
     setIsCreateWorkflowOpen(true)
-  }
+  }, [])
+
+  // Listen for external requests (e.g. from Automations page "New automation" button)
+  const pendingOpen = useWorkflowModalStore(s => s.pendingOpen)
+  const consumePending = useWorkflowModalStore(s => s.consume)
+  useEffect(() => {
+    if (pendingOpen) {
+      openCreateWorkflow(null)
+      consumePending()
+    }
+  }, [pendingOpen, openCreateWorkflow, consumePending])
 
   const openCreateFolder = (parentId?: string | null) => {
     setFolderParentId(parentId ?? null)

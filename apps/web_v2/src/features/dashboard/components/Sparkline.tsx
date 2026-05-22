@@ -5,6 +5,8 @@ interface SparklineProps {
 }
 
 export function Sparkline({ data, color = 'currentColor', className }: SparklineProps) {
+  if (!data || data.length < 2) return <svg viewBox="0 0 70 28" fill="none" className={className} />
+
   const max = Math.max(...data)
   const min = Math.min(...data)
   const range = max - min || 1
