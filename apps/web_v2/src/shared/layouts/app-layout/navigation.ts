@@ -38,7 +38,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'tables', label: 'Tables', icon: Icons.Table, count: '8', to: APP_ROUTES.TABLES },
       { id: 'files', label: 'Files', icon: Icons.Folder, count: '124', to: APP_ROUTES.FILES },
-      { id: 'knowledge', label: 'Knowledge base', icon: Icons.Book, count: '8', to: APP_ROUTES.KNOWLEDGE },
+      { id: 'knowledge', label: 'Knowledge base', icon: Icons.Book, to: APP_ROUTES.KNOWLEDGE },
       { id: 'variables', label: 'Variables', icon: Icons.Key, to: APP_ROUTES.VARIABLES },
     ],
   },

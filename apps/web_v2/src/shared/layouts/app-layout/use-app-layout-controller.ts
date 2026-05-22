@@ -17,6 +17,7 @@ import {
   useWorkflowDnD,
   useWorkflows,
 } from '@/features/workflows'
+import { useKBList } from '@/features/knowledge/hooks/useKnowledge'
 import { useWorkspaces, useWorkspaceStore } from '@/features/workspaces'
 import { useConfirm, useToast } from '@/shared/components'
 import { useTheme } from '@/stores/theme'
@@ -34,6 +35,7 @@ export function useAppLayoutController() {
   const { currentWorkspace } = useWorkspaceStore()
   const { data: folders = [], isLoading: isLoadingFolders } = useFolders()
   const { data: workflows = [], isLoading: isLoadingWorkflows } = useWorkflows()
+  const { data: knowledgeBases = [] } = useKBList()
   const createFolder = useCreateFolder()
   const updateFolder = useUpdateFolder()
   const deleteFolder = useDeleteFolder()
@@ -275,6 +277,9 @@ export function useAppLayoutController() {
   }
 
   const pageName = location.pathname.substring(1) || 'dashboard'
+  const navItemCounts: Record<string, string> = {
+    knowledge: String(knowledgeBases.length),
+  }
 
   return {
     user,
@@ -305,6 +310,7 @@ export function useAppLayoutController() {
     openAnchoredMenu,
     folders,
     workflows,
+    navItemCounts,
     isLoadingTree: isLoadingFolders || isLoadingWorkflows,
     workflowDnd,
     setRootNodeRef,
