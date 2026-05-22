@@ -43,7 +43,11 @@ async def _run_workflow(
 ):
     from apps.api.app.core.database import AsyncSessionLocal
     from apps.api.app.execution_engine.engine.event_emitter import RedisEventEmitter
-    from apps.api.app.execution_engine.engine.workflow_runner import CancelledException, PauseSignal, WorkflowRunner
+    from apps.api.app.execution_engine.engine.workflow_runner import (
+        CancelledException,
+        PauseSignal,
+        WorkflowRunner,
+    )
     from apps.api.app.repositories.execution_repository import ExecutionRepository
     from apps.api.app.repositories.workflow_repository import WorkflowRepository
     from apps.api.app.services.credential_service import CredentialService
@@ -67,8 +71,9 @@ async def _run_workflow(
             # Load user secrets for {{secrets.KEY}} interpolation
             try:
                 import sqlalchemy as sa
-                from apps.api.app.models.secret import Secret
+
                 from apps.api.app.credential_manager.encryption.aes import AESEncryptionService
+                from apps.api.app.models.secret import Secret
                 _enc = AESEncryptionService()
                 result = await db.execute(sa.select(Secret).where(Secret.user_id == workflow.user_id))
                 for s in result.scalars().all():

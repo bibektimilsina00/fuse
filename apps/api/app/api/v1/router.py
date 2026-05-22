@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 
 from apps.api.app.api.v1.a2a.router import router as a2a_router
-from apps.api.app.api.v1.tables.router import router as tables_router
 from apps.api.app.api.v1.ai.router import router as ai_router
 from apps.api.app.api.v1.assets.router import router as assets_router
 from apps.api.app.api.v1.auth.router import router as auth_router
@@ -14,6 +13,7 @@ from apps.api.app.api.v1.knowledge.router import router as knowledge_router
 from apps.api.app.api.v1.nodes.router import router as nodes_router
 from apps.api.app.api.v1.secrets.router import router as secrets_router
 from apps.api.app.api.v1.skills.router import router as skills_router
+from apps.api.app.api.v1.tables.router import router as tables_router
 from apps.api.app.api.v1.triggers.cron_utils import router as cron_router
 from apps.api.app.api.v1.triggers.webhook_handler import router as webhooks_router
 from apps.api.app.api.v1.websocket.router import router as websocket_router
