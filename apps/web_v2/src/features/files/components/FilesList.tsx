@@ -5,12 +5,13 @@ import { fileExtension, formatBytes, sourceLabel, timeAgo } from '../utils/fileF
 
 interface Props {
   items: FileAsset[]
+  totalCount?: number
   isLoading?: boolean
   onOpen: (file: FileAsset) => void
   onDelete: (file: FileAsset) => void
 }
 
-export function FilesList({ items, isLoading, onOpen, onDelete }: Props) {
+export function FilesList({ items, totalCount = 0, isLoading, onOpen, onDelete }: Props) {
   return (
     <div className="panel flex-1 min-h-0 flex flex-col">
       <div className="table table-files flex-1 min-h-0">
@@ -32,11 +33,18 @@ export function FilesList({ items, isLoading, onOpen, onDelete }: Props) {
             <span></span>
           </div>
         ) : items.length === 0 ? (
-          <div className="flex-1 min-h-[360px] border-b border-[var(--border-faint)] flex items-center justify-center">
+          <div
+            className="flex-1 border-b border-[var(--border-faint)] flex items-center justify-center"
+            style={{ minHeight: '560px' }}
+          >
             <Empty
               icon={<Icons.Folder />}
               title="No files found"
-              description="Upload files to make them available in this workspace."
+              description={
+                totalCount === 0
+                  ? "Upload files to make them available in this workspace."
+                  : "No files match the current search query or filter tab."
+              }
               className="py-10"
             />
           </div>

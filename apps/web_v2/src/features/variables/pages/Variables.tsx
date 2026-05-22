@@ -195,7 +195,7 @@ export function Variables() {
           Loading variables…
         </div>
       ) : (
-        <VariablesTable items={filtered} />
+        <VariablesTable items={filtered} totalCount={items.length} />
       )}
     </div>
   )
