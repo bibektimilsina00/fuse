@@ -22,7 +22,7 @@ async def _check_and_fire():
     from apps.api.app.core.database import AsyncSessionLocal
     from apps.api.app.core.redis import get_redis
     from apps.api.app.execution_engine.engine import execution_engine
-    from apps.api.app.repositories.workflow_repository import WorkflowRepository
+    from apps.api.app.features.workflows.repository import WorkflowRepository
 
     now = datetime.now(UTC)
 

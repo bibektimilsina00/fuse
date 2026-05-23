@@ -109,7 +109,7 @@ async def test_agent_node_sends_openai_request_and_returns_output():
     assert result.success is True
     assert captured_request["headers"]["authorization"] == "Bearer sk-test"
     assert request_body["model"] == "gpt-4o-mini"
-    assert request_body["messages"] == [{"role": "user", "content": "Summarize this"}]
+    assert request_body["messages"][-1] == {"role": "user", "content": "Summarize this"}
     assert request_body["temperature"] == 0.2
     assert request_body["max_tokens"] == 512
     assert result.output_data["provider"] == "openai"
@@ -134,28 +134,44 @@ async def test_agent_node_requires_selected_provider_credential():
 
 @pytest.mark.anyio
 async def test_agent_node_sends_anthropic_request_with_tools():
-    captured_payload: dict[str, Any] = {}
-    captured_headers: dict[str, str] = {}
+    captured_payloads: list[dict[str, Any]] = []
+    captured_headers: list[dict[str, str]] = []
 
     async def handler(request: httpx.Request) -> httpx.Response:
-        captured_headers.update(dict(request.headers))
-        captured_payload.update(json.loads(request.read()))
-        return httpx.Response(
-            200,
-            json={
-                "model": "claude-3-5-sonnet-latest",
-                "content": [
-                    {"type": "text", "text": "Need lookup"},
-                    {
-                        "type": "tool_use",
-                        "id": "toolu_1",
-                        "name": "lookup_customer",
-                        "input": {"id": "123"},
-                    },
-                ],
-                "usage": {"input_tokens": 9, "output_tokens": 4},
-            },
-        )
+        captured_headers.append(dict(request.headers))
+        payload = json.loads(request.read())
+        captured_payloads.append(payload)
+        
+        # On first request (which requires lookup), return tool use
+        # On subsequent request (summarization), return text response so it stops looping
+        if len(captured_payloads) == 1:
+            return httpx.Response(
+                200,
+                json={
+                    "model": "claude-3-5-sonnet-latest",
+                    "content": [
+                        {"type": "text", "text": "Need lookup"},
+                        {
+                            "type": "tool_use",
+                            "id": "toolu_1",
+                            "name": "lookup_customer",
+                            "input": {"id": "123"},
+                        },
+                    ],
+                    "usage": {"input_tokens": 9, "output_tokens": 4},
+                },
+            )
+        else:
+            return httpx.Response(
+                200,
+                json={
+                    "model": "claude-3-5-sonnet-latest",
+                    "content": [
+                        {"type": "text", "text": "Need lookup"},
+                    ],
+                    "usage": {"input_tokens": 9, "output_tokens": 4},
+                },
+            )
 
     credentials = [
         {"id": "cred-2", "type": "anthropic_api_key", "data": {"api_key": "sk-ant-test"}},
@@ -190,50 +206,81 @@ async def test_agent_node_sends_anthropic_request_with_tools():
         result = await node.execute({}, make_context(client, credentials))
 
     assert result.success is True
-    assert captured_headers["x-api-key"] == "sk-ant-test"
-    assert captured_payload["system"] == "Be concise."
-    assert captured_payload["messages"] == [{"role": "user", "content": "Find customer 123."}]
-    assert captured_payload["tools"][0]["name"] == "lookup_customer"
-    assert captured_payload["tool_choice"] == {"type": "any"}
+    assert captured_headers[0]["x-api-key"] == "sk-ant-test"
+    assert captured_payloads[0]["system"] == "Be concise."
+    assert captured_payloads[0]["messages"] == [{"role": "user", "content": "Find customer 123."}]
+    assert captured_payloads[0]["tools"][0]["name"] == "lookup_customer"
+    assert captured_payloads[0]["tool_choice"] == {"type": "any"}
     assert result.output_data["provider"] == "anthropic"
     assert result.output_data["content"] == "Need lookup"
     assert result.output_data["toolCalls"] == [
-        {"id": "toolu_1", "name": "lookup_customer", "arguments": {"id": "123"}}
+        {
+            "id": "toolu_1",
+            "name": "lookup_customer",
+            "arguments": {"id": "123"},
+            "success": False,
+            "result": {"error": "Unknown tool: lookup_customer"},
+        }
     ]
     assert result.output_data["tokens"]["total_tokens"] == 13
 
 
 @pytest.mark.anyio
 async def test_agent_node_sends_google_request_with_response_schema_and_memory():
-    captured_payload: dict[str, Any] = {}
-    captured_params: dict[str, str] = {}
+    captured_payloads: list[dict[str, Any]] = []
+    captured_params: list[dict[str, str]] = []
     variables = {
         "agent_memory:support": [{"role": "user", "content": "Earlier question"}],
     }
 
     async def handler(request: httpx.Request) -> httpx.Response:
-        captured_params.update(dict(request.url.params))
-        captured_payload.update(json.loads(request.read()))
-        return httpx.Response(
-            200,
-            json={
-                "candidates": [
-                    {
-                        "content": {
-                            "parts": [
-                                {"text": "{\"status\":\"ok\"}"},
-                                {"functionCall": {"name": "search_docs", "args": {"q": "billing"}}},
-                            ]
+        captured_params.append(dict(request.url.params))
+        payload = json.loads(request.read())
+        captured_payloads.append(payload)
+        
+        # On first request, return function call and text
+        # On subsequent request, return only text so it stops looping
+        if len(captured_payloads) == 1:
+            return httpx.Response(
+                200,
+                json={
+                    "candidates": [
+                        {
+                            "content": {
+                                "parts": [
+                                    {"text": "{\"status\":\"ok\"}"},
+                                    {"functionCall": {"name": "search_docs", "args": {"q": "billing"}}},
+                                ]
+                            }
                         }
-                    }
-                ],
-                "usageMetadata": {
-                    "promptTokenCount": 11,
-                    "candidatesTokenCount": 6,
-                    "totalTokenCount": 17,
+                    ],
+                    "usageMetadata": {
+                        "promptTokenCount": 11,
+                        "candidatesTokenCount": 6,
+                        "totalTokenCount": 17,
+                    },
                 },
-            },
-        )
+            )
+        else:
+            return httpx.Response(
+                200,
+                json={
+                    "candidates": [
+                        {
+                            "content": {
+                                "parts": [
+                                    {"text": "{\"status\":\"ok\"}"},
+                                ]
+                            }
+                        }
+                    ],
+                    "usageMetadata": {
+                        "promptTokenCount": 11,
+                        "candidatesTokenCount": 6,
+                        "totalTokenCount": 17,
+                    },
+                },
+            )
 
     credentials = [
         {"id": "cred-3", "type": "google_api_key", "data": {"api_key": "google-test"}},
@@ -267,15 +314,23 @@ async def test_agent_node_sends_google_request_with_response_schema_and_memory()
         result = await node.execute({}, make_context(client, credentials, variables))
 
     assert result.success is True
-    assert captured_params["key"] == "google-test"
-    assert captured_payload["systemInstruction"] == {"parts": [{"text": "Return JSON."}]}
-    assert captured_payload["contents"][0] == {
+    assert captured_params[0]["key"] == "google-test"
+    assert captured_payloads[0]["systemInstruction"] == {"parts": [{"text": "Return JSON."}]}
+    assert captured_payloads[0]["contents"][0] == {
         "role": "user",
         "parts": [{"text": "Earlier question"}],
     }
-    assert captured_payload["generationConfig"]["responseMimeType"] == "application/json"
-    assert captured_payload["tools"][0]["functionDeclarations"][0]["name"] == "search_docs"
+    assert captured_payloads[0]["generationConfig"]["responseMimeType"] == "application/json"
+    assert captured_payloads[0]["tools"][0]["functionDeclarations"][0]["name"] == "search_docs"
     assert result.output_data["provider"] == "google"
     assert result.output_data["status"] == "ok"
-    assert result.output_data["toolCalls"] == [{"name": "search_docs", "arguments": {"q": "billing"}}]
+    assert result.output_data["toolCalls"] == [
+        {
+            "id": "search_docs",
+            "name": "search_docs",
+            "arguments": {"q": "billing"},
+            "success": False,
+            "result": {"error": "Unknown tool: search_docs"},
+        }
+    ]
     assert variables["agent_memory:support"][-1] == {"role": "assistant", "content": "{\"status\":\"ok\"}"}

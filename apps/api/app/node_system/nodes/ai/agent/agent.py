@@ -556,12 +556,15 @@ class AgentNode(BaseNode[AgentProperties]):
                             seen_tool_calls.add(call_sig)
                             result = await tool_registry.execute(tool_id, merged_params, context)
 
-                        all_tool_calls.append({
+                        tool_call_entry = {
                             "name": tool_id,
                             "arguments": llm_args,
                             "result": result.output if result.success else {"error": result.error},
                             "success": result.success,
-                        })
+                        }
+                        if "id" in tc:
+                            tool_call_entry["id"] = tc["id"]
+                        all_tool_calls.append(tool_call_entry)
 
                         messages.append(
                             self._build_tool_result_message(tc, result, ai_provider.ai_api_type)
@@ -719,7 +722,7 @@ class AgentNode(BaseNode[AgentProperties]):
         """
         import uuid as _uuid
 
-        from apps.api.app.repositories.skill_repository import SkillRepository
+        from apps.api.app.features.skills.repository import SkillRepository
 
         raw_skills = self.props.skills
         if not raw_skills:
@@ -752,7 +755,7 @@ class AgentNode(BaseNode[AgentProperties]):
 
         # Fetch user_id from credentials context — skills are owned by the workflow user
         # We use workflow_id to look up the user via WorkflowRepository
-        from apps.api.app.repositories.workflow_repository import WorkflowRepository
+        from apps.api.app.features.workflows.repository import WorkflowRepository
 
         wf_repo = WorkflowRepository(context.db)
         workflow = await wf_repo.get_by_id(_uuid.UUID(context.workflow_id))

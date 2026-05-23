@@ -4,7 +4,6 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy.orm import relationship
 from sqlmodel import Field, Relationship
 
 from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
@@ -23,4 +22,4 @@ class ApiKey(SQLModelBase, table=True):
     key_preview: str = Field(max_length=50)
     created_at: datetime = Field(default_factory=utc_now)
 
-    user: User = Relationship(sa_relationship=relationship("User", back_populates="api_keys"))
+    user: User = Relationship(back_populates="api_keys")

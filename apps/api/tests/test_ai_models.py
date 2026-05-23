@@ -1,12 +1,11 @@
 import pytest
 
-from apps.api.app.api.v1.ai.router import (
-    _google_model_options,
-    _model_options_from_items,
+from apps.api.app.features.ai.router import (
     list_ai_models,
     list_ai_providers,
 )
-from apps.api.app.credential_manager.api_keys import get_ai_provider_ids
+from apps.api.app.features.ai.service import AIService
+from apps.api.app.features.credentials.manager.api_keys import get_ai_provider_ids
 
 
 @pytest.fixture
@@ -31,7 +30,8 @@ def test_ai_model_providers_cover_supported_agent_providers():
 
 @pytest.mark.anyio
 async def test_list_ai_providers_uses_api_key_catalog():
-    result = await list_ai_providers()
+    response = await list_ai_providers()
+    result = response.model_dump()
 
     assert result["ok"] is True
     assert {provider["value"] for provider in result["data"]} == {
@@ -63,7 +63,8 @@ async def test_list_ai_providers_uses_api_key_catalog():
 
 
 def test_openai_compatible_model_options_are_sorted_and_labeled_by_id():
-    options = _model_options_from_items(
+    ai_service = AIService(None)
+    options = ai_service._model_options_from_items(
         [
             {"id": "z-model"},
             {"id": "a-model", "display_name": "A Model"},
@@ -78,7 +79,8 @@ def test_openai_compatible_model_options_are_sorted_and_labeled_by_id():
 
 
 def test_google_model_options_remove_models_prefix():
-    options = _google_model_options(
+    ai_service = AIService(None)
+    options = ai_service._google_model_options(
         [
             {"name": "models/gemini-1.5-flash", "displayName": "Gemini 1.5 Flash"},
             {"name": "models/gemini-1.5-pro"},
@@ -92,20 +94,20 @@ def test_google_model_options_remove_models_prefix():
 
 
 def test_model_options_can_be_empty_without_static_fallback():
-    assert _model_options_from_items([]) == []
-    assert _google_model_options([]) == []
+    ai_service = AIService(None)
+    assert ai_service._model_options_from_items([]) == []
+    assert ai_service._google_model_options([]) == []
 
 
 @pytest.mark.anyio
 async def test_list_ai_models_requires_selected_credential_for_dynamic_fetch():
-    result = await list_ai_models(
+    response = await list_ai_models(
         provider="openai",
         credential=None,
-        openaiCredential=None,
-        anthropicCredential=None,
-        googleCredential=None,
-        groqCredential=None,
+        current_user=None,
+        service=AIService(None),
     )
+    result = response.model_dump()
 
     assert result == {
         "ok": False,

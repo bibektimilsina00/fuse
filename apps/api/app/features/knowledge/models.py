@@ -1,11 +1,8 @@
-from __future__ import annotations
-
 import uuid
 from datetime import datetime
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import Column
-from sqlalchemy.orm import relationship
 from sqlmodel import Field, Relationship
 
 from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
@@ -27,8 +24,9 @@ class KnowledgeBase(SQLModelBase, table=True):
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now})
 
-    documents: list[KBDocument] = Relationship(
-        sa_relationship=relationship("KBDocument", back_populates="knowledge_base", cascade="all, delete-orphan")
+    documents: list["KBDocument"] = Relationship(
+        back_populates="knowledge_base",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
 
 
@@ -42,11 +40,10 @@ class KBDocument(SQLModelBase, table=True):
     raw_content: str | None = Field(default=None)
     created_at: datetime = Field(default_factory=utc_now)
 
-    knowledge_base: KnowledgeBase = Relationship(
-        sa_relationship=relationship("KnowledgeBase", back_populates="documents")
-    )
-    chunks: list[KBChunk] = Relationship(
-        sa_relationship=relationship("KBChunk", back_populates="document", cascade="all, delete-orphan")
+    knowledge_base: "KnowledgeBase" = Relationship(back_populates="documents")
+    chunks: list["KBChunk"] = Relationship(
+        back_populates="document",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
 
 
@@ -58,6 +55,4 @@ class KBChunk(SQLModelBase, table=True):
     chunk_index: int = Field(default=0)
     embedding: list[float] | None = Field(default=None, sa_column=Column(Vector()))
 
-    document: KBDocument = Relationship(
-        sa_relationship=relationship("KBDocument", back_populates="chunks")
-    )
+    document: "KBDocument" = Relationship(back_populates="chunks")

@@ -10,7 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from apps.api.app.core.database import get_db
-from apps.api.app.features.workflows.models import Execution, ExecutionLog, Workflow
+from apps.api.app.features.executions.models import Execution, ExecutionLog
+from apps.api.app.features.workflows.models import Workflow
 
 
 class ExecutionRepository:

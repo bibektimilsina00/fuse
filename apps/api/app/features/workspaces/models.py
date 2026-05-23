@@ -1,11 +1,8 @@
-from __future__ import annotations
-
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import UniqueConstraint
-from sqlalchemy.orm import relationship
 from sqlmodel import Field, Relationship
 
 from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
@@ -25,11 +22,13 @@ class Workspace(SQLModelBase, table=True):
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now})
 
-    members: list[WorkspaceMember] = Relationship(sa_relationship=relationship("WorkspaceMember", 
-        back_populates="workspace", cascade="all, delete-orphan")
+    members: list["WorkspaceMember"] = Relationship(
+        back_populates="workspace",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
-    invites: list[WorkspaceInvite] = Relationship(sa_relationship=relationship("WorkspaceInvite", 
-        back_populates="workspace", cascade="all, delete-orphan")
+    invites: list["WorkspaceInvite"] = Relationship(
+        back_populates="workspace",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
 
 
@@ -43,8 +42,11 @@ class WorkspaceMember(SQLModelBase, table=True):
     invited_by: uuid.UUID | None = Field(default=None, foreign_key="user.id", ondelete="SET NULL")
     joined_at: datetime = Field(default_factory=utc_now)
 
-    workspace: Workspace = Relationship(sa_relationship=relationship("Workspace", back_populates="members"))
-    user: User = Relationship(sa_relationship=relationship("User", back_populates="workspace_memberships"))
+    workspace: "Workspace" = Relationship(back_populates="members")
+    user: "User" = Relationship(
+        back_populates="workspace_memberships",
+        sa_relationship_kwargs={"foreign_keys": "[WorkspaceMember.user_id]"}
+    )
 
 
 class WorkspaceInvite(SQLModelBase, table=True):
@@ -58,5 +60,5 @@ class WorkspaceInvite(SQLModelBase, table=True):
     accepted_at: datetime | None = Field(default=None)
     created_at: datetime = Field(default_factory=utc_now)
 
-    workspace: Workspace = Relationship(sa_relationship=relationship("Workspace", back_populates="invites"))
+    workspace: "Workspace" = Relationship(back_populates="invites")
 

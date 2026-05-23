@@ -1,11 +1,10 @@
-from __future__ import annotations
+
 
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import JSON, Column
-from sqlalchemy.orm import relationship
 from sqlmodel import Field, Relationship
 
 from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
@@ -29,4 +28,4 @@ class AuditLog(SQLModelBase, table=True):
     meta: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=utc_now)
 
-    user: User | None = Relationship(sa_relationship=relationship("User", lazy="joined"))
+    user: "User" = Relationship(sa_relationship_kwargs={"lazy": "joined"})

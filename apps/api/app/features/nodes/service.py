@@ -3,7 +3,6 @@ import uuid
 from typing import Any
 
 import httpx
-import sqlalchemy as sa
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +12,7 @@ from apps.api.app.execution_engine.engine.node_executor import node_executor
 from apps.api.app.features.credentials.manager.encryption.aes import AESEncryptionService
 from apps.api.app.features.credentials.service import CredentialService
 from apps.api.app.features.nodes.schemas import NodeTestRequest, NodeTestResponse
-from apps.api.app.features.secrets.models import Secret
+from apps.api.app.features.secrets.repository import SecretRepository
 from apps.api.app.features.users.models import User
 from apps.api.app.features.workspaces.models import Workspace
 from apps.api.app.node_system.base.node_context import NodeContext
@@ -39,16 +38,9 @@ class NodeService:
         secrets: dict[str, str] = {}
 
         _enc = AESEncryptionService()
-        result = await self.db.execute(
-            sa.select(Secret).where(
-                Secret.workspace_id == workspace.id,
-                sa.or_(
-                    Secret.scope == "workspace",
-                    sa.and_(Secret.scope == "personal", Secret.user_id == current_user.id),
-                ),
-            )
-        )
-        for s in result.scalars().all():
+        secret_repo = SecretRepository(self.db)
+        secrets_list = await secret_repo.list_by_workspace(workspace.id, current_user.id)
+        for s in secrets_list:
             try:
                 secrets[s.name] = _enc.decrypt(s.encrypted_value)
             except Exception as exc:

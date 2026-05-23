@@ -1,10 +1,9 @@
-from __future__ import annotations
+
 
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy.orm import relationship
 from sqlmodel import Field, Relationship
 
 from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
@@ -25,4 +24,4 @@ class Skill(SQLModelBase, table=True):
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now})
 
-    user: User | None = Relationship(sa_relationship=relationship("User", back_populates="skills"))
+    user: "User" = Relationship(back_populates="skills")

@@ -1,10 +1,7 @@
-from __future__ import annotations
-
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy.orm import relationship
 from sqlmodel import Field, Relationship
 
 from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
@@ -23,13 +20,16 @@ class Folder(SQLModelBase, table=True):
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now})
 
-    user: User = Relationship(sa_relationship=relationship("User", back_populates="folders"))
-    parent: Folder | None = Relationship(
-        sa_relationship=relationship("Folder", back_populates="children", remote_side="Folder.id")
+    user: "User" = Relationship(back_populates="folders")
+    parent: "Folder" = Relationship(
+        back_populates="children",
+        sa_relationship_kwargs={"remote_side": "Folder.id"}
     )
-    children: list[Folder] = Relationship(
-        sa_relationship=relationship("Folder", back_populates="parent", cascade="all, delete-orphan")
+    children: list["Folder"] = Relationship(
+        back_populates="parent",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
-    workflows: list[Workflow] = Relationship(
-        sa_relationship=relationship("Workflow", back_populates="folder", cascade="all, delete-orphan")
+    workflows: list["Workflow"] = Relationship(
+        back_populates="folder",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )

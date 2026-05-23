@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.app.credential_manager.oauth.flow import get_oauth_provider
-from apps.api.app.models.user import User
-from apps.api.app.models.workspace import Workspace
-from apps.api.app.services.audit_service import AuditService
-from apps.api.app.services.credential_service import CredentialService
+from apps.api.app.features.credentials.service import CredentialService
+from apps.api.app.features.logs.service import LogsService
+from apps.api.app.features.users.models import User
+from apps.api.app.features.workspaces.models import Workspace
 
 
 async def handle_oauth_callback(
@@ -42,7 +42,7 @@ async def handle_oauth_callback(
             "refresh_token_expires_at": token_data.get("refresh_token_expires_at"),
         },
     )
-    await AuditService(db).log(
+    await LogsService(db).log(
         workspace_id=workspace.id,
         user_id=user.id,
         action="credential.created",

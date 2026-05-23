@@ -1,10 +1,9 @@
-from __future__ import annotations
+
 
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy.orm import relationship
 from sqlmodel import JSON, Field, Relationship
 
 from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
@@ -24,4 +23,4 @@ class Credential(SQLModelBase, table=True):
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now})
 
-    user: User = Relationship(sa_relationship=relationship("User", back_populates="credentials"))
+    user: "User" = Relationship(back_populates="credentials")

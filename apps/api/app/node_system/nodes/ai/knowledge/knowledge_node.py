@@ -90,17 +90,17 @@ class KnowledgeNode(BaseNode[KnowledgeProperties]):
             return NodeResult(success=False, error="Invalid knowledge base ID.")
 
         try:
-            from apps.api.app.repositories.credential_repository import CredentialRepository
-            from apps.api.app.repositories.knowledge_repository import KnowledgeRepository
-            from apps.api.app.services.credential_service import CredentialService
-            from apps.api.app.services.knowledge_service import KnowledgeService
+            from apps.api.app.features.credentials.repository import CredentialRepository
+            from apps.api.app.features.credentials.service import CredentialService
+            from apps.api.app.features.knowledge.repository import KnowledgeRepository
+            from apps.api.app.features.knowledge.service import KnowledgeService
 
             repo = KnowledgeRepository(context.db)
 
             # Find KB — search across all users' KBs since we don't have user_id here
             import sqlalchemy as sa
 
-            from apps.api.app.models.knowledge import KnowledgeBase
+            from apps.api.app.features.knowledge.models import KnowledgeBase
             result = await context.db.execute(sa.select(KnowledgeBase).where(KnowledgeBase.id == kb_id))
             kb = result.scalar_one_or_none()
             if not kb:

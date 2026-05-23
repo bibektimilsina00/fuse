@@ -2,13 +2,12 @@ import csv
 import io
 import uuid
 
-import sqlalchemy as sa
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from apps.api.app.core.database import get_db
 from apps.api.app.features.tables.models import DataTable, TableColumn, TableRow
+from apps.api.app.features.tables.repository import TableRepository
 from apps.api.app.features.tables.schemas import (
     TableColumnCreate,
     TableColumnOut,
@@ -25,12 +24,15 @@ from apps.api.app.features.workspaces.models import Workspace
 
 
 class TableService:
+    """Service layer executing business logic for Tables."""
+
     def __init__(self, db: AsyncSession):
-        self.db = db
+        self.repository = TableRepository(db)
 
     def _summary_out(
         self, table: DataTable, row_count: int, column_count: int, owner: User
     ) -> TableSummaryOut:
+        """Helper to construct a TableSummaryOut schema."""
         return TableSummaryOut(
             id=table.id,
             name=table.name,
@@ -44,63 +46,38 @@ class TableService:
         )
 
     async def _get_table(self, table_id: uuid.UUID, workspace_id: uuid.UUID) -> DataTable:
-        result = await self.db.execute(
-            sa.select(DataTable)
-            .where(DataTable.id == table_id, DataTable.workspace_id == workspace_id)
-            .options(selectinload(DataTable.columns))
-        )
-        t = result.scalar_one_or_none()
+        """Helper to get a table or raise 404."""
+        t = await self.repository.get_table_by_id(table_id, workspace_id)
         if not t:
             raise HTTPException(status_code=404, detail="Table not found")
         return t
 
     async def list_tables(self, current_user: User, workspace: Workspace) -> list[TableSummaryOut]:
-        row_counts = (
-            sa.select(TableRow.table_id, sa.func.count(TableRow.id).label("row_count"))
-            .group_by(TableRow.table_id)
-            .subquery()
-        )
-        col_counts = (
-            sa.select(TableColumn.table_id, sa.func.count(TableColumn.id).label("column_count"))
-            .group_by(TableColumn.table_id)
-            .subquery()
-        )
-        result = await self.db.execute(
-            sa.select(
-                DataTable,
-                sa.func.coalesce(row_counts.c.row_count, 0),
-                sa.func.coalesce(col_counts.c.column_count, 0),
-            )
-            .outerjoin(row_counts, row_counts.c.table_id == DataTable.id)
-            .outerjoin(col_counts, col_counts.c.table_id == DataTable.id)
-            .where(DataTable.workspace_id == workspace.id)
-            .order_by(DataTable.name)
-        )
+        """List tables in the workspace."""
+        results = await self.repository.list_tables_summary(workspace.id)
         return [
             self._summary_out(t, int(row_count or 0), int(column_count or 0), current_user)
-            for t, row_count, column_count in result.all()
+            for t, row_count, column_count in results
         ]
 
     async def create_table(
         self, body: TableCreate, current_user: User, workspace: Workspace
     ) -> TableSummaryOut:
+        """Create a new table with a default column 'name'."""
         table = DataTable(
             workspace_id=workspace.id,
             user_id=current_user.id,
             name=body.name.strip(),
             description=body.description,
         )
-        self.db.add(table)
-        await self.db.flush()
-        col = TableColumn(table_id=table.id, name="name", col_type="text", position=0)
-        self.db.add(col)
-        await self.db.commit()
-        await self.db.refresh(table)
-        return self._summary_out(table, 0, 1, current_user)
+        col = TableColumn(name="name", col_type="text", position=0)
+        created = await self.repository.create_table(table, col)
+        return self._summary_out(created, 0, 1, current_user)
 
     async def import_csv_as_table(
         self, filename: str, content: str, current_user: User, workspace: Workspace
     ) -> TableImportOut:
+        """Create a table and populate it with rows from a CSV."""
         table_name = filename.rsplit(".", 1)[0].strip() or "Imported table"
         table = DataTable(
             workspace_id=workspace.id,
@@ -108,8 +85,8 @@ class TableService:
             name=table_name[:200],
             description="CSV import",
         )
-        self.db.add(table)
-        await self.db.flush()
+        await self.repository.add(table)
+        await self.repository.flush()
 
         reader = csv.DictReader(io.StringIO(content))
         headers = [header for header in (reader.fieldnames or []) if header]
@@ -119,35 +96,33 @@ class TableService:
             col = TableColumn(
                 table_id=table.id, name=header[:200], col_type="text", position=position
             )
-            self.db.add(col)
-            await self.db.flush()
+            await self.repository.add(col)
+            await self.repository.flush()
             col_map[header] = str(col.id)
 
         row_count = 0
         for position, row in enumerate(reader):
             data = {col_map[key]: value for key, value in row.items() if key in col_map}
-            self.db.add(TableRow(table_id=table.id, position=position, data=data))
+            await self.repository.add(TableRow(table_id=table.id, position=position, data=data))
             row_count += 1
 
-        await self.db.commit()
-        await self.db.refresh(table)
+        await self.repository.commit()
+        await self.repository.refresh(table)
         return TableImportOut(
             **self._summary_out(table, row_count, len(headers), current_user).model_dump()
         )
 
     async def delete_table(self, table_id: uuid.UUID, workspace: Workspace) -> None:
+        """Delete a table."""
         t = await self._get_table(table_id, workspace.id)
-        await self.db.delete(t)
-        await self.db.commit()
+        await self.repository.delete_table(t)
 
     async def add_column(
         self, table_id: uuid.UUID, body: TableColumnCreate, workspace: Workspace
     ) -> TableColumnOut:
+        """Add a column to a table."""
         await self._get_table(table_id, workspace.id)
-        count_r = await self.db.execute(
-            sa.select(sa.func.count(TableColumn.id)).where(TableColumn.table_id == table_id)
-        )
-        pos = count_r.scalar() or 0
+        pos = await self.repository.get_column_count(table_id)
         col = TableColumn(
             table_id=table_id,
             name=body.name.strip(),
@@ -155,9 +130,9 @@ class TableService:
             position=pos,
             options=body.options,
         )
-        self.db.add(col)
-        await self.db.commit()
-        await self.db.refresh(col)
+        await self.repository.add(col)
+        await self.repository.commit()
+        await self.repository.refresh(col)
         return TableColumnOut(
             id=col.id,
             name=col.name,
@@ -173,19 +148,15 @@ class TableService:
         body: TableColumnCreate,
         workspace: Workspace,
     ) -> TableColumnOut:
+        """Update a column's name, type, and options."""
         await self._get_table(table_id, workspace.id)
-        r = await self.db.execute(
-            sa.select(TableColumn).where(
-                TableColumn.id == column_id, TableColumn.table_id == table_id
-            )
-        )
-        col = r.scalar_one_or_none()
+        col = await self.repository.get_column(column_id, table_id)
         if not col:
             raise HTTPException(404, "Column not found")
         col.name = body.name.strip()
         col.col_type = body.col_type
         col.options = body.options
-        await self.db.commit()
+        await self.repository.commit()
         return TableColumnOut(
             id=col.id,
             name=col.name,
@@ -197,26 +168,18 @@ class TableService:
     async def delete_column(
         self, table_id: uuid.UUID, column_id: uuid.UUID, workspace: Workspace
     ) -> None:
+        """Delete a column from a table."""
         await self._get_table(table_id, workspace.id)
-        r = await self.db.execute(
-            sa.select(TableColumn).where(
-                TableColumn.id == column_id, TableColumn.table_id == table_id
-            )
-        )
-        col = r.scalar_one_or_none()
+        col = await self.repository.get_column(column_id, table_id)
         if not col:
             raise HTTPException(404, "Column not found")
-        await self.db.delete(col)
-        await self.db.commit()
+        await self.repository.db.delete(col)
+        await self.repository.commit()
 
     async def list_rows(self, table_id: uuid.UUID, workspace: Workspace) -> TableRowsOut:
+        """List columns and rows for a table."""
         t = await self._get_table(table_id, workspace.id)
-        r = await self.db.execute(
-            sa.select(TableRow)
-            .where(TableRow.table_id == table_id)
-            .order_by(TableRow.position, TableRow.created_at)
-        )
-        rows = r.scalars().all()
+        rows = await self.repository.list_rows(table_id)
         cols = [
             TableColumnOut(
                 id=c.id,
@@ -235,50 +198,42 @@ class TableService:
     async def add_row(
         self, table_id: uuid.UUID, body: TableRowUpsert | None, workspace: Workspace
     ) -> TableRowOut:
+        """Add a row to a table."""
         await self._get_table(table_id, workspace.id)
-        count_r = await self.db.execute(
-            sa.select(sa.func.count(TableRow.id)).where(TableRow.table_id == table_id)
-        )
-        pos = count_r.scalar() or 0
+        pos = await self.repository.get_row_count(table_id)
         row = TableRow(table_id=table_id, position=pos, data=body.data if body else {})
-        self.db.add(row)
-        await self.db.commit()
-        await self.db.refresh(row)
+        await self.repository.add(row)
+        await self.repository.commit()
+        await self.repository.refresh(row)
         return TableRowOut(id=row.id, data=row.data, position=row.position)
 
     async def update_row(
         self, table_id: uuid.UUID, row_id: uuid.UUID, body: TableRowUpsert, workspace: Workspace
     ) -> TableRowOut:
+        """Update a row's data fields."""
         await self._get_table(table_id, workspace.id)
-        r = await self.db.execute(
-            sa.select(TableRow).where(TableRow.id == row_id, TableRow.table_id == table_id)
-        )
-        row = r.scalar_one_or_none()
+        row = await self.repository.get_row(row_id, table_id)
         if not row:
             raise HTTPException(404, "Row not found")
         row.data = {**row.data, **body.data}
-        await self.db.commit()
+        await self.repository.commit()
         return TableRowOut(id=row.id, data=row.data, position=row.position)
 
     async def delete_row(
         self, table_id: uuid.UUID, row_id: uuid.UUID, workspace: Workspace
     ) -> None:
+        """Delete a row from a table."""
         await self._get_table(table_id, workspace.id)
-        r = await self.db.execute(
-            sa.select(TableRow).where(TableRow.id == row_id, TableRow.table_id == table_id)
-        )
-        row = r.scalar_one_or_none()
+        row = await self.repository.get_row(row_id, table_id)
         if not row:
             raise HTTPException(404, "Row not found")
-        await self.db.delete(row)
-        await self.db.commit()
+        await self.repository.db.delete(row)
+        await self.repository.commit()
 
     async def export_csv(self, table_id: uuid.UUID, workspace: Workspace) -> tuple[str, str]:
+        """Export table columns and rows as a CSV string."""
         t = await self._get_table(table_id, workspace.id)
-        r = await self.db.execute(
-            sa.select(TableRow).where(TableRow.table_id == table_id).order_by(TableRow.position)
-        )
-        rows = r.scalars().all()
+        rows = await self.repository.list_rows(table_id)
         buf = io.StringIO()
         writer = csv.writer(buf)
         writer.writerow([c.name for c in t.columns])
@@ -289,34 +244,30 @@ class TableService:
     async def import_csv(
         self, table_id: uuid.UUID, content: str, workspace: Workspace
     ) -> TableImportRowsOut:
+        """Import rows from a CSV, creating any new columns found in the CSV header."""
         t = await self._get_table(table_id, workspace.id)
         reader = csv.DictReader(io.StringIO(content))
         col_map = {c.name: str(c.id) for c in t.columns}
 
         for header in reader.fieldnames or []:
             if header not in col_map:
-                count_r = await self.db.execute(
-                    sa.select(sa.func.count(TableColumn.id)).where(TableColumn.table_id == table_id)
-                )
-                pos = count_r.scalar() or 0
+                pos = await self.repository.get_column_count(table_id)
                 col = TableColumn(table_id=table_id, name=header, col_type="text", position=pos)
-                self.db.add(col)
-                await self.db.flush()
+                await self.repository.add(col)
+                await self.repository.flush()
                 col_map[header] = str(col.id)
 
-        count_r = await self.db.execute(
-            sa.select(sa.func.count(TableRow.id)).where(TableRow.table_id == table_id)
-        )
-        pos = count_r.scalar() or 0
+        pos = await self.repository.get_row_count(table_id)
         imported = 0
         for row in reader:
             data = {col_map[k]: v for k, v in row.items() if k in col_map}
-            self.db.add(TableRow(table_id=t.id, position=pos, data=data))
+            await self.repository.add(TableRow(table_id=t.id, position=pos, data=data))
             pos += 1
             imported += 1
-        await self.db.commit()
+        await self.repository.commit()
         return TableImportRowsOut(imported=imported)
 
 
 def get_table_service(db: AsyncSession = Depends(get_db)) -> TableService:
+    """Dependency helper for TableService."""
     return TableService(db)

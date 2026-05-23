@@ -16,7 +16,7 @@ async def _execute_workflow(params: dict[str, Any], context: NodeContext) -> Too
 
     try:
         from apps.api.app.execution_engine.engine.workflow_runner import WorkflowRunner
-        from apps.api.app.repositories.workflow_repository import WorkflowRepository
+        from apps.api.app.features.workflows.repository import WorkflowRepository
 
         repo = WorkflowRepository(context.db)
         workflow = await repo.get_by_id(workflow_id)

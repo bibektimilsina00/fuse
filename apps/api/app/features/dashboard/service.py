@@ -13,8 +13,9 @@ from apps.api.app.features.dashboard.schemas import (
     DashboardStatItem,
     DashboardStatsResponse,
 )
+from apps.api.app.features.executions.models import Execution
 from apps.api.app.features.users.models import User
-from apps.api.app.features.workflows.models import Execution, Workflow
+from apps.api.app.features.workflows.models import Workflow
 from apps.api.app.features.workspaces.models import Workspace
 
 

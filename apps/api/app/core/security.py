@@ -55,7 +55,7 @@ async def get_current_user_from_token(token: str) -> Any | None:
             return None
 
         from apps.api.app.core.database import AsyncSessionLocal
-        from apps.api.app.repositories.user_repository import UserRepository
+        from apps.api.app.features.users.repository import UserRepository
 
         async with AsyncSessionLocal() as db:
             user_repo = UserRepository(db)
