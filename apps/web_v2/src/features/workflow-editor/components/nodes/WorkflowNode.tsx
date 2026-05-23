@@ -39,12 +39,12 @@ export function WorkflowNode({ id, type, data, selected }: NodeProps) {
         role="button"
         tabIndex={0}
         className={cn(
-          'workflow-drag-handle relative z-[20] w-[200px] select-none rounded-[12px] border bg-[var(--bg)] [box-shadow:var(--card-shadow)] transition-[background,border-color,box-shadow] duration-[120ms]',
+          'workflow-drag-handle relative z-[20] w-[180px] select-none rounded-[7px] border bg-[var(--bg-2)] font-[var(--font-ui)] [box-shadow:var(--card-shadow)] transition-[background,border-color,box-shadow] duration-[120ms]',
           !isLocked ? 'cursor-grab active:cursor-grabbing' : 'cursor-default',
           executionStatus === 'completed' && 'node-status-completed',
           executionStatus === 'failed'    && 'node-status-failed',
           executionStatus === 'running'   && 'border-[var(--accent-line)] shadow-[0_0_0_1px_var(--accent-line)]',
-          !executionStatus && selected && !isLocked && 'border-[var(--accent-line)] shadow-[0_0_0_1px_var(--accent-line)]',
+          !executionStatus && selected && !isLocked && 'border-[#555] shadow-[0_0_0_1px_#555]',
           !executionStatus && (!selected || isLocked) && 'border-[var(--border-faint)]',
         )}
       >
@@ -57,7 +57,7 @@ export function WorkflowNode({ id, type, data, selected }: NodeProps) {
           color={definition.color}
         />
 
-        <div className="flex flex-col gap-0.5 py-2">
+        <div className="flex flex-col gap-px py-1.5">
           {visibleProps.map(prop => {
             const modes = (data.properties as Record<string, unknown>)?._modes as Record<string, string> | undefined
             const mode = modes?.[prop.name] ?? (prop.loadOptions ? 'dynamic' : 'manual')

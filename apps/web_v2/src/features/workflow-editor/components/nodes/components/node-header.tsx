@@ -8,16 +8,16 @@ interface NodeHeaderProps {
 }
 
 export const NodeHeader = ({ label, icon, color }: NodeHeaderProps) => (
-  <div className="flex items-center gap-2.5 px-3 py-2.5 border-b border-border-faint">
+  <div className="flex items-center gap-1.5 px-2.5 py-1 border-b border-border-faint">
     <div
-      className="flex size-[22px] shrink-0 items-center justify-center rounded-[5px]"
+      className="flex size-[14px] shrink-0 items-center justify-center rounded-[2px]"
       style={{ background: color ?? 'var(--surface-3)' }}
     >
       {React.cloneElement(getIcon(icon) as React.ReactElement, {
-        className: 'size-[13px] text-white',
+        className: 'size-[8px] text-white',
       })}
     </div>
-    <span className="truncate text-[13px] font-semibold text-text leading-none" title={label}>
+    <span className="truncate text-[11px] font-semibold leading-none text-[var(--text)]" title={label}>
       {label}
     </span>
   </div>

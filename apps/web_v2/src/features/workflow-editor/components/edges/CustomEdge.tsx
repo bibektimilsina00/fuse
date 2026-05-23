@@ -213,7 +213,7 @@ export const CustomEdge = ({
     if (!edge) return
 
     const definition = nodeDefinitions.find(item => item.type === nodeType)
-    const defaultWidth = 200
+    const defaultWidth = 180
     const newNode: Node = {
       id: `${nodeType}-${crypto.randomUUID()}`,
       type: nodeType,
