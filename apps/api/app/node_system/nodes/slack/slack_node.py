@@ -405,7 +405,7 @@ class SlackNode(BaseNode[SlackProperties]):
                 if self.props.attachments and context.db:
                     import sqlalchemy as sa
 
-                    from apps.api.app.models.asset import Asset
+                    from apps.api.app.features.assets.models import Asset
 
                     for asset_id in self.props.attachments:
                         result_asset = await context.db.execute(

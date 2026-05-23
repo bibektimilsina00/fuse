@@ -242,9 +242,10 @@ async def _next_schedules(db, workspace_id, limit=4) -> list[dict]:
             if not expr:
                 continue
             try:
-                from croniter import croniter
-                from zoneinfo import ZoneInfo
                 import datetime as _dt
+                from zoneinfo import ZoneInfo
+
+                from croniter import croniter
                 zone = ZoneInfo(tz)
                 ci   = croniter(expr, _dt.datetime.now(zone))
                 nxt  = ci.get_next(_dt.datetime)

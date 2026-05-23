@@ -2,7 +2,7 @@ import uuid
 
 from apps.api.app.core.database import AsyncSessionLocal
 from apps.api.app.core.logger import get_logger
-from apps.api.app.models import Execution
+from apps.api.app.features.executions.models import Execution
 
 logger = get_logger(__name__)
 

@@ -5,12 +5,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException, Request, status
 
-from apps.api.app.api.v1.auth.dependencies import get_current_user
-from apps.api.app.models.api_key import ApiKey
-from apps.api.app.models.user import User
-from apps.api.app.repositories.api_key_repository import ApiKeyRepository
-from apps.api.app.repositories.user_repository import UserRepository
-from apps.api.app.services.api_key_service import ApiKeyService
+from apps.api.app.features.api_keys.models import ApiKey
+from apps.api.app.features.api_keys.repository import ApiKeyRepository
+from apps.api.app.features.api_keys.service import ApiKeyService
+from apps.api.app.features.users.models import User
+from apps.api.app.features.users.repository import UserRepository
+from apps.api.app.shared.dependencies import get_current_user
 
 
 @pytest.fixture

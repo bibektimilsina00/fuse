@@ -1,8 +1,9 @@
 import uuid
 from datetime import UTC, datetime, timedelta, timezone
 
-from apps.api.app.models.workflow import ExecutionLog, UTCDateTime, utc_now
-from apps.api.app.schemas.execution import ExecutionLogOut, ExecutionOut
+from apps.api.app.features.executions.models import ExecutionLog, UTCDateTime
+from apps.api.app.features.executions.schemas import ExecutionLogOut, ExecutionOut
+from apps.api.app.shared.sqlmodel import utc_now
 
 
 def test_execution_schema_serializes_model_aware_datetimes_as_utc():

@@ -39,9 +39,13 @@ from apps.api.app.node_system.nodes.hubspot.hubspot_node import HubSpotNode
 from apps.api.app.node_system.nodes.jira.jira_node import JiraNode
 from apps.api.app.node_system.nodes.linear.linear_node import LinearNode
 from apps.api.app.node_system.nodes.logic.code.code_node import CodeNode
+from apps.api.app.node_system.nodes.logic.do_while.do_while import DoWhileNode
+from apps.api.app.node_system.nodes.logic.for_loop.for_loop import ForLoopNode
+from apps.api.app.node_system.nodes.logic.foreach.foreach import ForEachNode
 from apps.api.app.node_system.nodes.logic.human_input.human_input import HumanInputNode
 from apps.api.app.node_system.nodes.logic.loop.loop_node import LoopNode
 from apps.api.app.node_system.nodes.logic.sub_workflow.sub_workflow_node import SubWorkflowNode
+from apps.api.app.node_system.nodes.logic.while_loop.while_loop import WhileLoopNode
 from apps.api.app.node_system.nodes.notion.notion_node import NotionNode
 from apps.api.app.node_system.nodes.salesforce.salesforce_node import SalesforceNode
 from apps.api.app.node_system.nodes.slack.slack_node import SlackNode
@@ -106,6 +110,10 @@ node_registry.register(WaitNode)
 node_registry.register(EvaluatorNode)
 node_registry.register(ThinkingNode)
 node_registry.register(LoopNode)
+node_registry.register(ForLoopNode)
+node_registry.register(WhileLoopNode)
+node_registry.register(DoWhileNode)
+node_registry.register(ForEachNode)
 node_registry.register(CodeNode)
 node_registry.register(HumanInputNode)
 node_registry.register(A2ANode)

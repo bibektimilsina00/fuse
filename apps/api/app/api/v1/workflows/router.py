@@ -65,9 +65,10 @@ def _derive_cron_info(graph: dict) -> dict | None:
 def _compute_next_run(cron_expr: str, timezone: str = "UTC") -> str | None:
     """Return ISO string of the next scheduled run, or None on error."""
     try:
-        from croniter import croniter
-        from zoneinfo import ZoneInfo
         import datetime as _dt
+        from zoneinfo import ZoneInfo
+
+        from croniter import croniter
         tz  = ZoneInfo(timezone)
         now = _dt.datetime.now(tz)
         ci  = croniter(cron_expr, now)
@@ -90,7 +91,8 @@ def _derive_status(workflow, last_run: dict | None) -> str:
 def _fmt_last_run(last_run: dict | None) -> str | None:
     if not last_run or not last_run.get("started_at"):
         return None
-    from datetime import UTC, datetime as dt
+    from datetime import UTC
+    from datetime import datetime as dt
     ts = last_run["started_at"]
     if isinstance(ts, str):
         ts = dt.fromisoformat(ts)

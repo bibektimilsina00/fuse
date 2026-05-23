@@ -1,27 +1,26 @@
 from fastapi import APIRouter
 
-from apps.api.app.api.v1.a2a.router import router as a2a_router
-from apps.api.app.api.v1.ai.router import router as ai_router
-from apps.api.app.api.v1.assets.router import router as assets_router
-from apps.api.app.api.v1.auth.router import router as auth_router
-from apps.api.app.api.v1.copilot.router import router as copilot_router
-from apps.api.app.api.v1.credentials.router import router as credentials_router
-from apps.api.app.api.v1.executions.router import router as executions_router
-from apps.api.app.api.v1.folders.router import router as folders_router
-from apps.api.app.api.v1.integrations.router import router as integrations_router
-from apps.api.app.api.v1.knowledge.router import router as knowledge_router
-from apps.api.app.api.v1.logs.router import router as logs_router
-from apps.api.app.api.v1.nodes.router import router as nodes_router
-from apps.api.app.api.v1.secrets.router import router as secrets_router
-from apps.api.app.api.v1.skills.router import router as skills_router
-from apps.api.app.api.v1.dashboard.router import router as dashboard_router
-from apps.api.app.api.v1.tables.router import router as tables_router
-from apps.api.app.api.v1.triggers.cron_utils import router as cron_router
-from apps.api.app.api.v1.triggers.webhook_handler import router as webhooks_router
-from apps.api.app.api.v1.users.router import router as users_router
 from apps.api.app.api.v1.websocket.router import router as websocket_router
-from apps.api.app.api.v1.workflows.router import router as workflows_router
-from apps.api.app.api.v1.workspaces.router import router as workspaces_router
+from apps.api.app.features.a2a.router import router as a2a_router
+from apps.api.app.features.ai.router import router as ai_router
+from apps.api.app.features.assets.router import router as assets_router
+from apps.api.app.features.auth.router import router as auth_router
+from apps.api.app.features.copilot.router import router as copilot_router
+from apps.api.app.features.credentials.router import router as credentials_router
+from apps.api.app.features.dashboard.router import router as dashboard_router
+from apps.api.app.features.executions.router import router as executions_router
+from apps.api.app.features.folders.router import router as folders_router
+from apps.api.app.features.integrations.router import router as integrations_router
+from apps.api.app.features.knowledge.router import router as knowledge_router
+from apps.api.app.features.logs.router import router as logs_router
+from apps.api.app.features.nodes.router import router as nodes_router
+from apps.api.app.features.secrets.router import router as secrets_router
+from apps.api.app.features.skills.router import router as skills_router
+from apps.api.app.features.tables.router import router as tables_router
+from apps.api.app.features.triggers.router import router as triggers_router
+from apps.api.app.features.users.router import router as users_router
+from apps.api.app.features.workflows.router import router as workflows_router
+from apps.api.app.features.workspaces.router import router as workspaces_router
 
 router = APIRouter()
 
@@ -40,8 +39,7 @@ router.include_router(assets_router, prefix="/assets", tags=["assets"])
 router.include_router(skills_router, prefix="/skills", tags=["skills"])
 router.include_router(a2a_router, prefix="/a2a", tags=["a2a"])
 router.include_router(copilot_router, prefix="/copilot", tags=["copilot"])
-router.include_router(webhooks_router)
-router.include_router(cron_router)
+router.include_router(triggers_router)
 router.include_router(knowledge_router, prefix="/kb", tags=["knowledge"])
 router.include_router(secrets_router, prefix="/secrets", tags=["secrets"])
 router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])

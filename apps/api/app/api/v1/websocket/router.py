@@ -10,8 +10,8 @@ from apps.api.app.core.database import AsyncSessionLocal
 from apps.api.app.core.logger import get_logger
 from apps.api.app.core.redis import get_redis
 from apps.api.app.core.security import get_current_user_from_token
-from apps.api.app.repositories.execution_repository import ExecutionRepository
-from apps.api.app.services.collaboration_service import CollaborationService
+from apps.api.app.features.collaboration.service import CollaborationService
+from apps.api.app.features.executions.repository import ExecutionRepository
 
 logger = get_logger(__name__)
 router = APIRouter()
