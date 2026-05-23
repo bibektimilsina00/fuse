@@ -8,11 +8,13 @@ import ReactFlow, {
   type OnNodesChange,
   type OnEdgesChange,
   type OnConnect,
+  ConnectionLineType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useShallow } from 'zustand/react/shallow'
 import { buildNodeTypes } from '../../constants/nodeTypes'
 import { useWorkflowEditorStore } from '../../stores/workflowEditorStore'
+import { CustomEdge } from '../edges/CustomEdge'
 
 interface Props {
   nodes: Node[]
@@ -30,6 +32,7 @@ function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect }: Props) 
   // array contents don't change. Flow is only mounted after definitions arrive
   // (see EditorCanvas guard below), so this runs exactly once.
   const nodeTypes = useMemo(() => buildNodeTypes(nodeDefinitions), [nodeDefinitions])
+  const edgeTypes = useMemo(() => ({ custom: CustomEdge }), [])
 
   const handleConnect: OnConnect = useCallback(
     (connection) => {
@@ -46,11 +49,18 @@ function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect }: Props) 
       onEdgesChange={onEdgesChange}
       onConnect={handleConnect}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       fitView
       fitViewOptions={{ padding: 0.2 }}
       minZoom={0.1}
       maxZoom={2}
-      defaultEdgeOptions={{ type: 'smoothstep', animated: false }}
+      defaultEdgeOptions={{
+        type: 'custom',
+        animated: false,
+        style: { stroke: 'var(--border)', strokeWidth: 2 },
+      }}
+      connectionLineType={ConnectionLineType.SmoothStep}
+      connectionLineStyle={{ stroke: 'var(--border)', strokeWidth: 2 }}
       proOptions={{ hideAttribution: true }}
       style={{ background: 'var(--bg)' }}
     >

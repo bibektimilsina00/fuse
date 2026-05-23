@@ -49,16 +49,12 @@ export default function App() {
             <Route path={APP_ROUTES.VARIABLES} element={<Variables />} />
             <Route path={APP_ROUTES.CONNECTIONS} element={<Connections />} />
             <Route path={APP_ROUTES.WORKSPACE_SETTINGS} element={<WorkspaceSettings />} />
+            <Route path="/workflows/:id" element={<WorkflowEditor />} />
           </Route>
         </Route>
 
         {/* Public invite accept — needs auth check inside the page */}
         <Route path="/invite/:token" element={<InviteAccept />} />
-
-        {/* Workflow editor — full screen, inside ProtectedRoute but outside AppLayout */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/workflows/:id" element={<WorkflowEditor />} />
-        </Route>
 
         {/* Showcase page - public but using AppLayout */}
         <Route element={<AppLayout />}>
@@ -72,4 +68,3 @@ export default function App() {
     </BrowserRouter>
   )
 }
-
