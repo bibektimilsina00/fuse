@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { SlidersHorizontal, ChevronDown } from 'lucide-react'
 import type { Node } from 'reactflow'
 import { Empty } from '@/shared/components'
@@ -15,14 +14,14 @@ interface EditorInspectorProps {
 }
 
 export function EditorInspector({ nodes, updateNodeData, className }: EditorInspectorProps) {
-  const [showAdvanced, setShowAdvanced] = useState(false)
-
   const {
     selectedNode,
     definition,
     properties,
     basicGroups,
     advancedGroups,
+    showAdvanced,
+    toggleAdvanced,
     updateProperty,
     updateLabel,
     closeInspector,
@@ -75,7 +74,7 @@ export function EditorInspector({ nodes, updateNodeData, className }: EditorInsp
                   <div className="flex flex-col gap-4">
                     <button
                       type="button"
-                      onClick={() => setShowAdvanced(v => !v)}
+                      onClick={toggleAdvanced}
                       className="flex items-center gap-3 group"
                     >
                       <div className="h-px flex-1 border-b border-dashed border-[var(--border-faint)]" />

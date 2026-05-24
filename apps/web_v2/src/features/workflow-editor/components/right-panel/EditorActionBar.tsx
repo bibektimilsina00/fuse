@@ -1,14 +1,11 @@
-import { useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  MoreHorizontal, MessageCircle, Send, Play, Square, Loader2,
-  LayoutDashboard, Lock, Unlock, Download, Copy, Trash2,
+  MoreHorizontal, MessageCircle, Send, Play, Loader2,
+  LayoutDashboard, Lock, Download, Copy, Trash2,
 } from 'lucide-react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { useReactFlow } from 'reactflow'
 import { cn } from '@/lib/cn'
 import { Button } from '@/shared/components'
-import { useWorkflowEditorStore } from '../../stores/workflowEditorStore'
+import { useEditorActionBar } from '../../hooks/useEditorActionBar'
 
 interface EditorActionBarProps {
   onRun: () => void
@@ -17,7 +14,7 @@ interface EditorActionBarProps {
 
 // ── Portalled dropdown ────────────────────────────────────────────────────────
 
-interface MenuItem {
+interface DropdownItem {
   label: string
   icon: React.ReactNode
   onClick: () => void
@@ -25,11 +22,15 @@ interface MenuItem {
   dividerBefore?: boolean
 }
 
-function OptionsMenu({ anchorRect, items, onClose }: { anchorRect: DOMRect; items: MenuItem[]; onClose: () => void }) {
+function OptionsDropdown({ anchorRect, items, onClose }: {
+  anchorRect: DOMRect
+  items: DropdownItem[]
+  onClose: () => void
+}) {
   const menuW = 220
   const menuH = items.length * 34 + 16
-  const left = anchorRect.right - menuW
-  const top = anchorRect.bottom + 4 + menuH > window.innerHeight
+  const left  = anchorRect.right - menuW
+  const top   = anchorRect.bottom + 4 + menuH > window.innerHeight
     ? anchorRect.top - menuH - 4
     : anchorRect.bottom + 4
 
@@ -42,7 +43,7 @@ function OptionsMenu({ anchorRect, items, onClose }: { anchorRect: DOMRect; item
       >
         {items.map((item, i) => (
           <div key={i}>
-            {item.dividerBefore && <div className="my-1 h-px bg-[var(--border-faint)] mx-1" />}
+            {item.dividerBefore && <div className="my-1 mx-1 h-px bg-[var(--border-faint)]" />}
             <button
               onClick={() => { item.onClick(); onClose() }}
               className={cn(
@@ -66,65 +67,26 @@ function OptionsMenu({ anchorRect, items, onClose }: { anchorRect: DOMRect; item
 // ── Action bar ────────────────────────────────────────────────────────────────
 
 export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
-  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null)
-  const btnRef = useRef<HTMLButtonElement>(null)
-  const navigate = useNavigate()
-  const { id: workflowId } = useParams<{ id: string }>()
-  const { fitView } = useReactFlow()
+  const {
+    btnRef, anchorRect,
+    openMenu, closeMenu, openCopilot,
+    exportWorkflow, autoLayout, deleteWorkflow,
+  } = useEditorActionBar()
 
-  const setTab = useWorkflowEditorStore(s => s.setInspectorTab)
-  const nodes = useWorkflowEditorStore(s => s.nodes)
-  const edges = useWorkflowEditorStore(s => s.edges)
-
-  const handleExport = () => {
-    const data = JSON.stringify({ nodes, edges }, null, 2)
-    const blob = new Blob([data], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `workflow-${workflowId ?? 'export'}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  const menuItems: MenuItem[] = [
-    {
-      label: 'Auto layout',
-      icon: <LayoutDashboard />,
-      onClick: () => fitView({ duration: 400, padding: 0.2 }),
-    },
-    {
-      label: 'Lock workflow',
-      icon: <Lock />,
-      onClick: () => {},
-      dividerBefore: true,
-    },
-    {
-      label: 'Export workflow',
-      icon: <Download />,
-      onClick: handleExport,
-    },
-    {
-      label: 'Duplicate workflow',
-      icon: <Copy />,
-      onClick: () => {},
-    },
-    {
-      label: 'Delete workflow',
-      icon: <Trash2 />,
-      onClick: () => { if (confirm('Delete this workflow? This cannot be undone.')) navigate('/automations') },
-      variant: 'danger',
-      dividerBefore: true,
-    },
+  const menuItems: DropdownItem[] = [
+    { label: 'Auto layout',        icon: <LayoutDashboard />, onClick: autoLayout },
+    { label: 'Lock workflow',      icon: <Lock />,            onClick: () => {}, dividerBefore: true },
+    { label: 'Export workflow',    icon: <Download />,        onClick: exportWorkflow },
+    { label: 'Duplicate workflow', icon: <Copy />,            onClick: () => {} },
+    { label: 'Delete workflow',    icon: <Trash2 />,          onClick: deleteWorkflow, variant: 'danger', dividerBefore: true },
   ]
 
   return (
     <div className="flex shrink-0 items-center justify-between gap-2 border-b border-[var(--border-faint)] px-3 py-2.5">
-      {/* Left: three-dots + chat */}
       <div className="flex items-center gap-1">
         <button
           ref={btnRef}
-          onClick={() => setAnchorRect(btnRef.current?.getBoundingClientRect() ?? null)}
+          onClick={openMenu}
           className={cn(
             'flex h-7 w-7 items-center justify-center rounded-[7px] text-[var(--text-mute)] transition-colors',
             'hover:bg-[var(--surface)] hover:text-[var(--text)]',
@@ -136,7 +98,7 @@ export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
         </button>
 
         <button
-          onClick={() => setTab('copilot')}
+          onClick={openCopilot}
           className="flex h-7 w-7 items-center justify-center rounded-[7px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
           title="Open Copilot"
         >
@@ -144,12 +106,10 @@ export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
         </button>
       </div>
 
-      {/* Right: Deploy + Run */}
       <div className="flex items-center gap-2">
         <Button variant="secondary" size="sm" leftIcon={<Send className="text-[var(--accent)]" />}>
           Deploy
         </Button>
-
         <Button
           variant="primary"
           size="sm"
@@ -162,11 +122,7 @@ export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
       </div>
 
       {anchorRect && (
-        <OptionsMenu
-          anchorRect={anchorRect}
-          items={menuItems}
-          onClose={() => setAnchorRect(null)}
-        />
+        <OptionsDropdown anchorRect={anchorRect} items={menuItems} onClose={closeMenu} />
       )}
     </div>
   )

@@ -26,9 +26,11 @@ export function WorkflowNode({ id, type, data, selected }: NodeProps) {
   if (!definition) return null
 
   const properties: Record<string, unknown> = data.properties ?? {}
+  const showAdvanced = (data?.showAdvanced as boolean | undefined) ?? false
 
   const visibleProps = definition.properties
     .filter(p => p.visibility !== 'hidden')
+    .filter(p => p.mode !== 'advanced' || showAdvanced)
     .filter(p => shouldShowProperty(p, properties))
 
   const hasErrorHandle = !!definition.allowError

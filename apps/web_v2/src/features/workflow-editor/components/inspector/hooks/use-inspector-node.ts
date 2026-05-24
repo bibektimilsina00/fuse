@@ -75,12 +75,21 @@ export function useInspectorNode({ nodes, updateNodeData }: UseInspectorNodePara
     setInspectorOpen(false)
   }, [setInspectorOpen, setSelectedNodeId])
 
+  const showAdvanced = (selectedNode?.data?.showAdvanced as boolean | undefined) ?? false
+
+  const toggleAdvanced = useCallback(() => {
+    if (!selectedNode) return
+    updateNodeData(selectedNode.id, { showAdvanced: !showAdvanced })
+  }, [selectedNode, showAdvanced, updateNodeData])
+
   return {
     selectedNode,
     definition,
     properties,
     basicGroups: groups.basicGroups,
     advancedGroups: groups.advancedGroups,
+    showAdvanced,
+    toggleAdvanced,
     updateProperty,
     updateLabel,
     ensureDefault,

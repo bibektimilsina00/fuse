@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { useNodesState, useEdgesState } from 'reactflow'
+import { useNodesState, useEdgesState, addEdge, type Connection } from 'reactflow'
 import type { ApiNodeDefinition, NodeDefinition } from '../types/editorTypes'
 
 import { editorAPI } from '../services/editorAPI'
@@ -28,6 +28,7 @@ export function useWorkflowEditor(workflowId: string) {
   const setVersionVector = useWorkflowEditorStore(s => s.setVersionVector)
   const setSelectedNodeId = useWorkflowEditorStore(s => s.setSelectedNodeId)
   const setInspectorOpen = useWorkflowEditorStore(s => s.setInspectorOpen)
+  const setInspectorTab = useWorkflowEditorStore(s => s.setInspectorTab)
   const resetEditorStore = useWorkflowEditorStore(s => s.reset)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -119,12 +120,22 @@ export function useWorkflowEditor(workflowId: string) {
     )
   }, [setNodes])
 
-  const selectNode = useCallback((nodeId: string | null) => {
+  const onConnect = useCallback((connection: Connection) => {
+    setEdges(eds => addEdge({
+      ...connection,
+      type: 'custom',
+      animated: false,
+      style: { stroke: 'var(--border)', strokeWidth: 2 },
+    }, eds))
+  }, [setEdges])
+
+  // Only open inspector on explicit node click — never clear on deselect
+  const selectNode = useCallback((nodeId: string) => {
     const current = useWorkflowEditorStore.getState()
-    const nextOpen = Boolean(nodeId)
     if (current.selectedNodeId !== nodeId) setSelectedNodeId(nodeId)
-    if (current.inspectorOpen !== nextOpen) setInspectorOpen(nextOpen)
-  }, [setInspectorOpen, setSelectedNodeId])
+    if (!current.inspectorOpen) setInspectorOpen(true)
+    setInspectorTab('config')
+  }, [setInspectorOpen, setSelectedNodeId, setInspectorTab])
 
   // ── Run ───────────────────────────────────────────────────────────────────
   const runMutation = useMutation({
@@ -160,6 +171,7 @@ export function useWorkflowEditor(workflowId: string) {
     edges,
     onNodesChange: handleNodesChange,
     onEdgesChange: handleEdgesChange,
+    onConnect,
     setNodes,
     setEdges,
     updateNodeData,

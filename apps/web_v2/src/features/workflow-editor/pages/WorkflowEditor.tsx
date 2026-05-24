@@ -19,6 +19,7 @@ export function WorkflowEditor() {
     edges,
     onNodesChange,
     onEdgesChange,
+    onConnect,
     updateNodeData,
     selectNode,
     run,
@@ -36,6 +37,7 @@ export function WorkflowEditor() {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
         onSelectNode={selectNode}
       />
       <EditorRightPanel

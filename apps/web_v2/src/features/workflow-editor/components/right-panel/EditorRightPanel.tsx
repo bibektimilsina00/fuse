@@ -20,8 +20,8 @@ type Tab = 'copilot' | 'config' | 'library' | 'test'
 
 const TABS: { id: Tab; label: string; Icon: React.FC<{ className?: string }> }[] = [
   { id: 'copilot',  label: 'Copilot',   Icon: ({ className }) => <Sparkles className={className} /> },
-  { id: 'config',   label: 'Inspector', Icon: ({ className }) => <SlidersHorizontal className={className} /> },
   { id: 'library',  label: 'Library',   Icon: ({ className }) => <Library className={className} /> },
+  { id: 'config',   label: 'Inspector', Icon: ({ className }) => <SlidersHorizontal className={className} /> },
   { id: 'test',     label: 'Test',      Icon: ({ className }) => <FlaskConical className={className} /> },
 ]
 

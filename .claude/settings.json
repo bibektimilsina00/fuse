@@ -13,6 +13,15 @@
             "command": "echo '⚠️  Fix-properly: State (1) root cause (2) lazy fix rejected (3) correct fix — before touching any file.'"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/bibektimilsina/projects/fuse_new/.claude/hooks/block-dangerous-commands.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -21,15 +30,32 @@
         "hooks": [
           {
             "type": "command",
-            "command": "FILE=\"$CLAUDE_TOOL_INPUT_FILE_PATH\"; if [[ \"$FILE\" == *.py ]]; then uvx ruff format \"$FILE\" 2>/dev/null && uvx ruff check --fix --silent \"$FILE\" 2>/dev/null; elif [[ \"$FILE\" == *.tsx || \"$FILE\" == *.ts ]]; then cd /Users/bibektimilsina/projects/fuse_new && pnpm --filter web exec eslint --fix \"$FILE\" 2>/dev/null; fi; true"
+            "command": "FILE=\"$CLAUDE_TOOL_INPUT_FILE_PATH\"; if [[ \"$FILE\" == *.py ]]; then uvx ruff format \"$FILE\" 2>/dev/null && uvx ruff check --fix --silent \"$FILE\" 2>/dev/null; elif [[ \"$FILE\" == *.tsx || \"$FILE\" == *.ts ]]; then cd /Users/bibektimilsina/projects/fuse_new && pnpm --filter web_v2 exec eslint --fix \"$FILE\" 2>/dev/null; fi; true"
+          },
+          {
+            "type": "command",
+            "command": "/Users/bibektimilsina/projects/fuse_new/.claude/hooks/format-on-save.sh"
           }
         ]
       }
     ]
   },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm *)",
+      "Bash(uv *)",
+      "Bash(uvx *)",
+      "Bash(ruff *)",
+      "Bash(alembic *)",
+      "Bash(git *)",
+      "Bash(make *)",
+      "Bash(turbo *)"
+    ]
+  },
   "enabledPlugins": {
     "claude-code-setup@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true
+    "ralph-loop@claude-plugins-official": true,
+    "setupdotclaude@dotclaude": true
   }
 }
