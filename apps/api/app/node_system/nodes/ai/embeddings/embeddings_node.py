@@ -97,7 +97,7 @@ class EmbeddingsNode(BaseNode[EmbeddingsProperties]):
         if not self.props.input.strip():
             return NodeResult(success=False, error="Input text is required.")
 
-        api_key = self._get_api_key(context)
+        api_key = self._get_api_key()
         if not api_key:
             return NodeResult(success=False, error=f"{self.props.provider} credential required.")
 
@@ -142,17 +142,8 @@ class EmbeddingsNode(BaseNode[EmbeddingsProperties]):
             "Authorization": f"Bearer {api_key}", "Content-Type": "application/json"
         }
 
-    def _get_api_key(self, context: NodeContext) -> str | None:
-        type_map = {"openai": "openai_api_key", "mistral": "mistral_api_key", "together": "together_api_key"}
-        cred_type = type_map.get(self.props.provider, "openai_api_key")
-        credentials = context.credentials or []
-        cred = None
-        if self.props.credential:
-            cred = next((c for c in credentials if str(c.get("id")) == str(self.props.credential) and c.get("type") == cred_type), None)
-        if cred is None:
-            cred = next((c for c in credentials if c.get("type") == cred_type), None)
-        data = cred.get("data") if cred else None
-        if not isinstance(data, dict):
-            return None
-        key = data.get("api_key")
-        return key if isinstance(key, str) and key.strip() else None
+    def _get_api_key(self) -> str | None:
+        if isinstance(self.credential, dict):
+            key = self.credential.get("api_key")
+            return key if isinstance(key, str) and key.strip() else None
+        return None

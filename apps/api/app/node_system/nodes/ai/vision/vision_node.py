@@ -122,7 +122,7 @@ class VisionNode(BaseNode[VisionProperties]):
         if not ai_provider:
             return NodeResult(success=False, error=f"Unknown provider: {self.props.provider}")
 
-        api_key = self._get_api_key(context)
+        api_key = self._get_api_key()
         if not api_key:
             return NodeResult(success=False, error=f"{ai_provider.name} credential required.")
 
@@ -265,24 +265,11 @@ class VisionNode(BaseNode[VisionProperties]):
             "total_tokens": usage.get("totalTokenCount"),
         }
 
-    def _get_api_key(self, context: NodeContext) -> str | None:
-        ai_provider = get_ai_provider(self.props.provider)
-        if not ai_provider:
-            return None
-        credentials = context.credentials or []
-        cred = None
-        if self.props.credential:
-            cred = next(
-                (c for c in credentials if str(c.get("id")) == str(self.props.credential) and c.get("type") == ai_provider.id),
-                None,
-            )
-        if cred is None:
-            cred = next((c for c in credentials if c.get("type") == ai_provider.id), None)
-        data = cred.get("data") if cred else None
-        if not isinstance(data, dict):
-            return None
-        key = data.get("api_key")
-        return key if isinstance(key, str) and key.strip() else None
+    def _get_api_key(self) -> str | None:
+        if isinstance(self.credential, dict):
+            key = self.credential.get("api_key")
+            return key if isinstance(key, str) and key.strip() else None
+        return None
 
 
 def _default_model(provider: str) -> str:

@@ -115,7 +115,7 @@ class STTNode(BaseNode[STTProperties]):
         if not self.props.audio_url:
             return NodeResult(success=False, error="Audio URL is required.")
 
-        api_key, endpoint = self._provider_config(context)
+        api_key, endpoint = self._provider_config()
         if not api_key:
             return NodeResult(success=False, error=f"{self.props.provider} credential required.")
 
@@ -168,22 +168,13 @@ class STTNode(BaseNode[STTProperties]):
             ext = url.split("?")[0].rsplit(".", 1)[-1] if "." in url else "mp3"
             return resp.content, f"audio.{ext}"
 
-    def _provider_config(self, context: NodeContext) -> tuple[str | None, str]:
-        type_map = {"openai": "openai_api_key", "groq": "groq_api_key"}
+    def _provider_config(self) -> tuple[str | None, str]:
         endpoint_map = {
             "openai": "https://api.openai.com/v1/audio/transcriptions",
             "groq": "https://api.groq.com/openai/v1/audio/transcriptions",
         }
-        cred_type = type_map.get(self.props.provider, "openai_api_key")
         endpoint = endpoint_map.get(self.props.provider, "https://api.openai.com/v1/audio/transcriptions")
-        credentials = context.credentials or []
-        cred = None
-        if self.props.credential:
-            cred = next((c for c in credentials if str(c.get("id")) == str(self.props.credential) and c.get("type") == cred_type), None)
-        if cred is None:
-            cred = next((c for c in credentials if c.get("type") == cred_type), None)
-        data = cred.get("data") if cred else None
-        if not isinstance(data, dict):
+        if not isinstance(self.credential, dict):
             return None, endpoint
-        key = data.get("api_key")
+        key = self.credential.get("api_key")
         return (key if isinstance(key, str) and key.strip() else None), endpoint

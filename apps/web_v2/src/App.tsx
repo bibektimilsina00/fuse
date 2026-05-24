@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ProtectedRoute, PublicRoute } from '@/shared/components'
-import { AppLayout } from '@/shared/layouts'
+import { AppLayout, EditorLayout } from '@/shared/layouts'
 import { APP_ROUTES } from '@/shared/constants/routes'
 import { Login, Register, ForgotPassword, ResetPassword } from '@/features/auth'
 import { Dashboard } from '@/features/dashboard'
@@ -49,6 +49,12 @@ export default function App() {
             <Route path={APP_ROUTES.VARIABLES} element={<Variables />} />
             <Route path={APP_ROUTES.CONNECTIONS} element={<Connections />} />
             <Route path={APP_ROUTES.WORKSPACE_SETTINGS} element={<WorkspaceSettings />} />
+          </Route>
+        </Route>
+
+        {/* Workflow editor — sidebar only, no topbar */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<EditorLayout />}>
             <Route path="/workflows/:id" element={<WorkflowEditor />} />
           </Route>
         </Route>

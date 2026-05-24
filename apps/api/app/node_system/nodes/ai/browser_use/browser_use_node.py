@@ -162,7 +162,7 @@ class BrowserUseNode(BaseNode[BrowserUseProperties]):
         if not self.props.task.strip():
             return NodeResult(success=False, error="Task is required.")
 
-        api_key = self._get_api_key(context)
+        api_key = self._get_api_key()
         if not api_key:
             return NodeResult(success=False, error="Browser Use API key required.")
 
@@ -281,15 +281,8 @@ class BrowserUseNode(BaseNode[BrowserUseProperties]):
             logger.error(f"BrowserUseNode failed: {e}", exc_info=True)
             return NodeResult(success=False, error=str(e))
 
-    def _get_api_key(self, context: NodeContext) -> str | None:
-        credentials = context.credentials or []
-        cred = None
-        if self.props.credential:
-            cred = next((c for c in credentials if str(c.get("id")) == str(self.props.credential) and c.get("type") == "browser_use_api_key"), None)
-        if cred is None:
-            cred = next((c for c in credentials if c.get("type") == "browser_use_api_key"), None)
-        data = cred.get("data") if cred else None
-        if not isinstance(data, dict):
-            return None
-        key = data.get("api_key")
-        return key if isinstance(key, str) and key.strip() else None
+    def _get_api_key(self) -> str | None:
+        if isinstance(self.credential, dict):
+            key = self.credential.get("api_key")
+            return key if isinstance(key, str) and key.strip() else None
+        return None

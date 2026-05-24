@@ -178,7 +178,7 @@ class EvaluatorNode(BaseNode[EvaluatorProperties]):
         if not ai_provider:
             return NodeResult(success=False, error=f"Unknown provider: {self.props.provider}")
 
-        api_key = self._get_api_key(context)
+        api_key = self._get_api_key()
         if not api_key:
             return NodeResult(success=False, error=f"{ai_provider.name} credential required.")
 
@@ -237,21 +237,8 @@ class EvaluatorNode(BaseNode[EvaluatorProperties]):
         except Exception as e:
             return NodeResult(success=False, error=str(e))
 
-    def _get_api_key(self, context: NodeContext) -> str | None:
-        ai_provider = get_ai_provider(self.props.provider)
-        if not ai_provider:
-            return None
-        credentials = context.credentials or []
-        cred = next(
-            (c for c in credentials
-             if c.get("type") == ai_provider.id and
-             (not self.props.credential or str(c.get("id")) == str(self.props.credential))),
-            None,
-        )
-        if not cred:
-            cred = next((c for c in credentials if c.get("type") == ai_provider.id), None)
-        data = cred.get("data") if cred else None
-        if not isinstance(data, dict):
-            return None
-        key = data.get("api_key")
-        return key if isinstance(key, str) and key.strip() else None
+    def _get_api_key(self) -> str | None:
+        if isinstance(self.credential, dict):
+            key = self.credential.get("api_key")
+            return key if isinstance(key, str) and key.strip() else None
+        return None

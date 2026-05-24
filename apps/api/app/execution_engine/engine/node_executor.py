@@ -9,6 +9,109 @@ logger = get_logger(__name__)
 
 
 class NodeExecutor:
+    def _normalize_credential_types(self, credential_type: Any) -> list[str]:
+        if isinstance(credential_type, str):
+            return [credential_type]
+        if isinstance(credential_type, list):
+            return [item for item in credential_type if isinstance(item, str)]
+        return []
+
+    def _condition_matches(self, condition: Any, properties: dict[str, Any]) -> bool:
+        if not isinstance(condition, dict):
+            return True
+
+        field = condition.get("field")
+        expected = condition.get("value")
+        if not isinstance(field, str):
+            return True
+
+        actual = properties.get(field)
+        if isinstance(expected, list):
+            return actual in expected
+        return actual == expected
+
+    def _credential_types_for_property(
+        self,
+        prop: dict[str, Any],
+        properties: dict[str, Any],
+    ) -> list[str]:
+        static_type = prop.get("credentialType")
+        if static_type:
+            return self._normalize_credential_types(static_type)
+
+        dynamic_config = prop.get("credentialTypeByField")
+        if not isinstance(dynamic_config, dict):
+            return []
+
+        field_name = dynamic_config.get("field")
+        values_map = dynamic_config.get("values")
+        if not isinstance(field_name, str) or not isinstance(values_map, dict):
+            return []
+
+        field_value = properties.get(field_name)
+        return self._normalize_credential_types(values_map.get(field_value))
+
+    def _credential_spec(
+        self,
+        metadata_properties: list[dict[str, Any]],
+        metadata_credential_type: Any,
+        properties: dict[str, Any],
+    ) -> tuple[list[str], str | None] | None:
+        credential_props = [
+            prop
+            for prop in metadata_properties
+            if prop.get("type") == "credential" and self._condition_matches(prop.get("condition"), properties)
+        ]
+
+        fallback_spec = None
+        for prop in credential_props:
+            credential_types = self._credential_types_for_property(prop, properties)
+            if credential_types:
+                selected_id = properties.get(prop.get("name", "credential"))
+                if selected_id:
+                    return credential_types, str(selected_id)
+                if fallback_spec is None:
+                    fallback_spec = (credential_types, None)
+
+        if fallback_spec:
+            return fallback_spec
+
+        credential_types = self._normalize_credential_types(metadata_credential_type)
+        if not credential_types:
+            return None
+
+        selected_id = None
+        for prop in credential_props:
+            prop_name = prop.get("name")
+            if isinstance(prop_name, str) and properties.get(prop_name):
+                selected_id = properties[prop_name]
+                break
+
+        if selected_id is None:
+            selected_id = properties.get("credential")
+
+        return credential_types, str(selected_id) if selected_id else None
+
+    def _resolve_credential(
+        self,
+        metadata_properties: list[dict[str, Any]],
+        metadata_credential_type: Any,
+        properties: dict[str, Any],
+        context: NodeContext,
+    ) -> dict[str, Any] | None:
+        spec = self._credential_spec(metadata_properties, metadata_credential_type, properties)
+        if not spec:
+            return None
+
+        allowed_types, selected_cred_id = spec
+        logger.info(
+            "Resolving credential for allowed types %s. Selected ID: %s",
+            allowed_types,
+            selected_cred_id,
+        )
+
+        return context.get_credential_data(allowed_types, selected_cred_id)
+
     async def execute_node(
         self,
         node_type: str,
@@ -24,34 +127,16 @@ class NodeExecutor:
             # 1. Instantiate (Pydantic validation happens in __init__)
             node_instance = node_class(node_id=node_id, properties=properties)
 
-            # 2. Advanced Credential Injection
-            if metadata.credential_type:
-                selected_cred_id = properties.get("credential")
-                credentials = context.credentials or []
-
-                logger.info(
-                    f"Resolving credential for node {node_id}. Type: {metadata.credential_type}, Selected ID: {selected_cred_id}"
-                )
-                logger.info(f"Available credentials IDs: {[c.get('id') for c in credentials]}")
-
-                found_cred = None
-                if selected_cred_id:
-                    found_cred = next(
-                        (c for c in credentials if str(c.get("id")) == str(selected_cred_id)), None
-                    )
-
-                if not found_cred:
-                    found_cred = next(
-                        (c for c in credentials if c.get("type") == metadata.credential_type), None
-                    )
-
-                if found_cred:
-                    logger.info(
-                        f"Found credential: {found_cred.get('id')} of type {found_cred.get('type')}"
-                    )
-                    node_instance.credential = found_cred.get("data")
-                else:
-                    logger.warning(f"No credential found for node {node_id}")
+            # 2. Credential injection
+            found_cred = self._resolve_credential(
+                metadata_properties=metadata.properties,
+                metadata_credential_type=metadata.credential_type,
+                properties=properties,
+                context=context,
+            )
+            if found_cred:
+                logger.info("Found credential data for node %s", node_id)
+                node_instance.credential = found_cred
 
             logger.info(f"Executing node {node_id} of type {node_type}")
             result = await node_instance.execute(input_data, context)

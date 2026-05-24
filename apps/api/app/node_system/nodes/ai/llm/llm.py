@@ -44,9 +44,10 @@ class LLMNode(BaseNode[LLMProperties]):
                 {
                     "name": "provider",
                     "label": "Provider",
-                    "type": "string",
+                    "type": "options",
                     "default": "openai",
                     "loadOptions": "/ai/providers",
+                    "typeOptions": {"searchable": True, "allowCustom": True},
                 },
                 {
                     "name": "credential",
@@ -70,10 +71,12 @@ class LLMNode(BaseNode[LLMProperties]):
                 {
                     "name": "model",
                     "label": "Model",
-                    "type": "string",
+                    "type": "options",
                     "required": True,
                     "loadOptions": "/ai/models",
                     "loadOptionsDependsOn": ["provider", "credential"],
+                    "typeOptions": {"searchable": True, "allowCustom": True},
+                    "placeholder": "Select or type a model ID",
                 },
                 {
                     "name": "system_prompt",
@@ -81,6 +84,7 @@ class LLMNode(BaseNode[LLMProperties]):
                     "type": "string",
                     "required": False,
                     "placeholder": "You are a helpful assistant.",
+                    "typeOptions": {"multiline": True, "rows": 3},
                 },
                 {
                     "name": "user_prompt",
@@ -88,6 +92,7 @@ class LLMNode(BaseNode[LLMProperties]):
                     "type": "string",
                     "required": True,
                     "placeholder": "Summarize the following: {{trigger.output}}",
+                    "typeOptions": {"multiline": True, "rows": 4},
                 },
                 {
                     "name": "response_format",
@@ -105,12 +110,14 @@ class LLMNode(BaseNode[LLMProperties]):
                     "type": "number",
                     "default": 0.7,
                     "mode": "advanced",
+                    "typeOptions": {"min": 0, "max": 2, "step": 0.01},
                 },
                 {
                     "name": "max_tokens",
                     "label": "Max Tokens",
                     "type": "number",
                     "mode": "advanced",
+                    "typeOptions": {"min": 1, "step": 256},
                 },
             ],
             inputs=1,
@@ -130,7 +137,7 @@ class LLMNode(BaseNode[LLMProperties]):
         if not ai_provider:
             return NodeResult(success=False, error=f"Unknown provider: {self.props.provider}")
 
-        api_key = self._get_api_key(context)
+        api_key = self._get_api_key()
         if not api_key:
             return NodeResult(success=False, error=f"{ai_provider.name} credential required.")
 
@@ -273,21 +280,8 @@ class LLMNode(BaseNode[LLMProperties]):
             "total_tokens": usage.get("totalTokenCount"),
         }
 
-    def _get_api_key(self, context: NodeContext) -> str | None:
-        ai_provider = get_ai_provider(self.props.provider)
-        if not ai_provider:
-            return None
-        credentials = context.credentials or []
-        cred = None
-        if self.props.credential:
-            cred = next(
-                (c for c in credentials if str(c.get("id")) == str(self.props.credential) and c.get("type") == ai_provider.id),
-                None,
-            )
-        if cred is None:
-            cred = next((c for c in credentials if c.get("type") == ai_provider.id), None)
-        data = cred.get("data") if cred else None
-        if not isinstance(data, dict):
-            return None
-        key = data.get("api_key")
-        return key if isinstance(key, str) and key.strip() else None
+    def _get_api_key(self) -> str | None:
+        if isinstance(self.credential, dict):
+            key = self.credential.get("api_key")
+            return key if isinstance(key, str) and key.strip() else None
+        return None

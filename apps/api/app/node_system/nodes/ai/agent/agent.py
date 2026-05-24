@@ -78,11 +78,12 @@ class AgentNode(BaseNode[AgentProperties]):
                 {
                     "name": "provider",
                     "label": "Provider",
-                    "type": "string",
+                    "type": "options",
                     "default": "openai",
                     "required": True,
                     "placeholder": "Type or select an AI provider",
                     "loadOptions": "/ai/providers",
+                    "typeOptions": {"searchable": True, "allowCustom": True},
                 },
                 *cls._provider_credential_properties(),
                 {
@@ -99,7 +100,7 @@ class AgentNode(BaseNode[AgentProperties]):
                 {
                     "name": "model",
                     "label": "Model",
-                    "type": "string",
+                    "type": "options",
                     "required": True,
                     "placeholder": "Type or select a model ID",
                     "loadOptions": "/ai/models",
@@ -111,6 +112,7 @@ class AgentNode(BaseNode[AgentProperties]):
                         "googleCredential",
                         "groqCredential",
                     ],
+                    "typeOptions": {"searchable": True, "allowCustom": True},
                 },
                 {
                     "name": "messages",
@@ -148,6 +150,7 @@ class AgentNode(BaseNode[AgentProperties]):
                     "default": 10,
                     "mode": "advanced",
                     "description": "Maximum number of agentic loop iterations.",
+                    "typeOptions": {"min": 1, "max": 100},
                 },
                 {
                     "name": "memoryType",
@@ -167,7 +170,7 @@ class AgentNode(BaseNode[AgentProperties]):
                     "type": "string",
                     "placeholder": "user-{{trigger.user_id}}",
                     "mode": "advanced",
-                    "condition": {"field": "memoryType", "value": ["workflow", "redis"]},
+                    "displayOptions": {"show": {"memoryType": ["workflow", "redis"]}},
                     "description": "Unique key scoping this memory. Use interpolation to make it per-user.",
                 },
                 {
@@ -176,7 +179,7 @@ class AgentNode(BaseNode[AgentProperties]):
                     "type": "number",
                     "default": 10,
                     "mode": "advanced",
-                    "condition": {"field": "memoryType", "value": ["workflow", "redis"]},
+                    "displayOptions": {"show": {"memoryType": ["workflow", "redis"]}},
                 },
                 {
                     "name": "memoryTTL",
@@ -184,7 +187,7 @@ class AgentNode(BaseNode[AgentProperties]):
                     "type": "number",
                     "default": 86400,
                     "mode": "advanced",
-                    "condition": {"field": "memoryType", "value": "redis"},
+                    "displayOptions": {"show": {"memoryType": ["redis"]}},
                     "description": "How long to keep memory in Redis. Default 86400 = 24 hours.",
                 },
                 {
@@ -193,6 +196,7 @@ class AgentNode(BaseNode[AgentProperties]):
                     "type": "number",
                     "default": 0.3,
                     "mode": "advanced",
+                    "typeOptions": {"min": 0, "max": 2, "step": 0.01},
                 },
                 {
                     "name": "maxTokens",
@@ -200,6 +204,7 @@ class AgentNode(BaseNode[AgentProperties]):
                     "type": "number",
                     "default": 4096,
                     "mode": "advanced",
+                    "typeOptions": {"min": 1, "step": 256},
                 },
                 {
                     "name": "responseFormat",
@@ -271,7 +276,7 @@ class AgentNode(BaseNode[AgentProperties]):
                 "type": "credential",
                 "credentialType": "openai_api_key",
                 "required": {"field": "provider", "value": "openai"},
-                "condition": {"field": "provider", "value": "openai"},
+                "displayOptions": {"show": {"provider": ["openai"]}},
             },
             {
                 "name": "anthropicCredential",
@@ -279,7 +284,7 @@ class AgentNode(BaseNode[AgentProperties]):
                 "type": "credential",
                 "credentialType": "anthropic_api_key",
                 "required": {"field": "provider", "value": "anthropic"},
-                "condition": {"field": "provider", "value": "anthropic"},
+                "displayOptions": {"show": {"provider": ["anthropic"]}},
             },
             {
                 "name": "googleCredential",
@@ -287,7 +292,7 @@ class AgentNode(BaseNode[AgentProperties]):
                 "type": "credential",
                 "credentialType": "google_api_key",
                 "required": {"field": "provider", "value": "google"},
-                "condition": {"field": "provider", "value": "google"},
+                "displayOptions": {"show": {"provider": ["google"]}},
             },
             {
                 "name": "groqCredential",
@@ -295,14 +300,14 @@ class AgentNode(BaseNode[AgentProperties]):
                 "type": "credential",
                 "credentialType": "groq_api_key",
                 "required": {"field": "provider", "value": "groq"},
-                "condition": {"field": "provider", "value": "groq"},
+                "displayOptions": {"show": {"provider": ["groq"]}},
             },
         ]
         catalog_by_provider = {
             provider.ai_provider_id: provider for provider in get_ai_providers()
         }
         for prop in credential_properties:
-            provider_id = prop["condition"]["value"]
+            provider_id = prop["displayOptions"]["show"]["provider"][0]
             catalog_provider = catalog_by_provider.get(provider_id)
             if catalog_provider:
                 prop["label"] = f"{catalog_provider.name} API Key"
@@ -328,7 +333,7 @@ class AgentNode(BaseNode[AgentProperties]):
             import apps.api.app.node_system.tools.loader  # noqa: F401
             from apps.api.app.node_system.tools.registry import tool_registry
 
-            api_key = self._get_api_key(context)
+            api_key = self._get_api_key()
             if not api_key:
                 provider_name = self._provider_name()
                 return NodeResult(success=False, error=f"{provider_name} API key credential is required.")
@@ -1625,35 +1630,11 @@ class AgentNode(BaseNode[AgentProperties]):
     # Credentials + model helpers (unchanged from original)
     # ------------------------------------------------------------------
 
-    def _get_api_key(self, context: NodeContext) -> str | None:
-        ai_provider = get_ai_provider(self.props.provider)
-        if not ai_provider:
-            return None
-
-        credential_type = ai_provider.id
-        selected_credential_id = self.props.credential or self._legacy_selected_credential()
-        credentials = context.credentials or []
-
-        credential = None
-        if selected_credential_id:
-            credential = next(
-                (
-                    item
-                    for item in credentials
-                    if str(item.get("id")) == str(selected_credential_id)
-                    and item.get("type") == credential_type
-                ),
-                None,
-            )
-
-        if credential is None:
-            credential = next((item for item in credentials if item.get("type") == credential_type), None)
-
-        data = credential.get("data") if credential else None
-        if not isinstance(data, dict):
-            return None
-        api_key = data.get("api_key")
-        return api_key if isinstance(api_key, str) and api_key.strip() else None
+    def _get_api_key(self) -> str | None:
+        if isinstance(self.credential, dict):
+            key = self.credential.get("api_key")
+            return key if isinstance(key, str) and key.strip() else None
+        return None
 
     def _legacy_selected_credential(self) -> str | None:
         return {
@@ -1764,11 +1745,8 @@ class AgentNode(BaseNode[AgentProperties]):
         elif self.props.memoryType == "workflow":
             backend = "workflow"
         # Extract OpenAI API key for embedding (used by Pinecone/Qdrant)
-        openai_key = ""
-        for cred in (context.credentials or []):
-            if cred.get("type") == "openai_api_key":
-                openai_key = (cred.get("data") or {}).get("api_key", "")
-                break
+        openai_data = context.get_credential_data("openai_api_key")
+        openai_key = openai_data.get("api_key", "") if openai_data else ""
         return get_memory_provider(
             backend,
             context,

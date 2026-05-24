@@ -22,9 +22,10 @@ interface Props {
   onNodesChange: OnNodesChange
   onEdgesChange: OnEdgesChange
   onConnect?: OnConnect
+  onSelectNode?: (nodeId: string | null) => void
 }
 
-function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect }: Props) {
+function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectNode }: Props) {
   const nodeDefinitions = useWorkflowEditorStore(useShallow(s => s.nodeDefinitions))
 
   // Computed once after definitions load — never changes reference after first mount.
@@ -48,6 +49,9 @@ function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect }: Props) 
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={handleConnect}
+      onSelectionChange={({ nodes: selectedNodes }) => {
+        onSelectNode?.(selectedNodes[0]?.id ?? null)
+      }}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
       fitView

@@ -4,6 +4,7 @@ from typing import Any
 import httpx
 import pytest
 
+from apps.api.app.execution_engine.engine.node_executor import NodeExecutor
 from apps.api.app.node_system.base.node_context import NodeContext
 from apps.api.app.node_system.nodes.ai.agent.agent import AgentNode
 
@@ -61,6 +62,30 @@ def make_context(
     )
 
 
+def inject_credential(node: AgentNode, credentials: list[dict[str, Any]], credential_id: str) -> None:
+    credential = next(item for item in credentials if item["id"] == credential_id)
+    node.credential = credential["data"]
+
+
+@pytest.mark.anyio
+async def test_node_executor_resolves_dynamic_agent_credential_by_visible_field():
+    metadata = AgentNode.get_metadata()
+    credentials = [
+        {"id": "fallback", "type": "openai_api_key", "data": {"api_key": "fallback-key"}},
+        {"id": "selected", "type": "openai_api_key", "data": {"api_key": "selected-key"}},
+    ]
+
+    async with httpx.AsyncClient() as client:
+        credential_data = NodeExecutor()._resolve_credential(
+            metadata_properties=metadata.properties,
+            metadata_credential_type=metadata.credential_type,
+            properties={"provider": "openai", "credential": "selected"},
+            context=make_context(client, credentials),
+        )
+
+    assert credential_data == {"api_key": "selected-key"}
+
+
 @pytest.mark.anyio
 async def test_agent_node_sends_openai_request_and_returns_output():
     captured_request: dict[str, Any] = {}
@@ -101,6 +126,7 @@ async def test_agent_node_sends_openai_request_and_returns_output():
                 "maxTokens": 512,
             },
         )
+        inject_credential(node, credentials, "cred-1")
 
         result = await node.execute({"input": "hello"}, make_context(client, credentials))
 
@@ -202,6 +228,7 @@ async def test_agent_node_sends_anthropic_request_with_tools():
                 "toolChoice": "required",
             },
         )
+        inject_credential(node, credentials, "cred-2")
 
         result = await node.execute({}, make_context(client, credentials))
 
@@ -310,6 +337,7 @@ async def test_agent_node_sends_google_request_with_response_schema_and_memory()
                 "tools": [{"name": "search_docs", "parameters": {"type": "object"}}],
             },
         )
+        inject_credential(node, credentials, "cred-3")
 
         result = await node.execute({}, make_context(client, credentials, variables))
 

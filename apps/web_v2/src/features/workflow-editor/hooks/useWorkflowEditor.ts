@@ -18,7 +18,17 @@ function normalizeDefinition(d: ApiNodeDefinition): NodeDefinition {
 }
 
 export function useWorkflowEditor(workflowId: string) {
-  const store = useWorkflowEditorStore()
+  const storeWorkflow = useWorkflowEditorStore(s => s.workflow)
+  const saveState = useWorkflowEditorStore(s => s.saveState)
+  const setWorkflow = useWorkflowEditorStore(s => s.setWorkflow)
+  const setNodeDefinitions = useWorkflowEditorStore(s => s.setNodeDefinitions)
+  const setStoreNodes = useWorkflowEditorStore(s => s.setNodes)
+  const setStoreEdges = useWorkflowEditorStore(s => s.setEdges)
+  const setSaveState = useWorkflowEditorStore(s => s.setSaveState)
+  const setVersionVector = useWorkflowEditorStore(s => s.setVersionVector)
+  const setSelectedNodeId = useWorkflowEditorStore(s => s.setSelectedNodeId)
+  const setInspectorOpen = useWorkflowEditorStore(s => s.setInspectorOpen)
+  const resetEditorStore = useWorkflowEditorStore(s => s.reset)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── Fetch node definitions (shared, long-lived cache) ─────────────────────
@@ -30,10 +40,9 @@ export function useWorkflowEditor(workflowId: string) {
 
   useEffect(() => {
     if (rawDefinitions && rawDefinitions.length > 0) {
-      store.setNodeDefinitions(rawDefinitions.map(normalizeDefinition))
+      setNodeDefinitions(rawDefinitions.map(normalizeDefinition))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rawDefinitions])
+  }, [rawDefinitions, setNodeDefinitions])
 
   // ── Fetch workflow ────────────────────────────────────────────────────────
   const { data: workflow, isLoading, error } = useQuery({
@@ -49,12 +58,14 @@ export function useWorkflowEditor(workflowId: string) {
   // Populate graph when workflow loads
   useEffect(() => {
     if (!workflow) return
-    store.setWorkflow(workflow)
-    store.setVersionVector(workflow.version_vector ?? 0)
+    setWorkflow(workflow)
+    setVersionVector(workflow.version_vector ?? 0)
 
     const graph = workflow.graph ?? { nodes: [], edges: [] }
     setNodes(graph.nodes ?? [])
     setEdges(graph.edges ?? [])
+    setStoreNodes(graph.nodes ?? [])
+    setStoreEdges(graph.edges ?? [])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workflow?.id])
 
@@ -62,24 +73,24 @@ export function useWorkflowEditor(workflowId: string) {
   const saveMutation = useMutation({
     mutationFn: ({ graph, version }: { graph: object; version: number }) =>
       editorAPI.saveGraph(workflowId, graph, version),
-    onMutate: () => store.setSaveState('saving'),
+    onMutate: () => setSaveState('saving'),
     onSuccess: (updated) => {
-      store.setSaveState('saved')
-      store.setVersionVector(updated.version_vector ?? 0)
+      setSaveState('saved')
+      setVersionVector(updated.version_vector ?? 0)
     },
-    onError: () => store.setSaveState('error'),
+    onError: () => setSaveState('error'),
   })
 
   const triggerSave = useCallback((newNodes: typeof nodes, newEdges: typeof edges) => {
     if (saveTimer.current) clearTimeout(saveTimer.current)
-    store.setSaveState('unsaved')
+    setSaveState('unsaved')
     saveTimer.current = setTimeout(() => {
       saveMutation.mutate({
         graph: { nodes: newNodes, edges: newEdges },
         version: useWorkflowEditorStore.getState().versionVector,
       })
     }, AUTOSAVE_DELAY)
-  }, [saveMutation])
+  }, [saveMutation, setSaveState])
 
   const handleNodesChange = useCallback((changes: Parameters<typeof onNodesChange>[0]) => {
     onNodesChange(changes)
@@ -92,9 +103,28 @@ export function useWorkflowEditor(workflowId: string) {
   // Trigger save on graph changes
   useEffect(() => {
     if (!workflow) return
+    setStoreNodes(nodes)
+    setStoreEdges(edges)
     triggerSave(nodes, edges)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges])
+
+  const updateNodeData = useCallback((nodeId: string, data: Record<string, unknown>) => {
+    setNodes(currentNodes =>
+      currentNodes.map(node =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, ...data } }
+          : node,
+      ),
+    )
+  }, [setNodes])
+
+  const selectNode = useCallback((nodeId: string | null) => {
+    const current = useWorkflowEditorStore.getState()
+    const nextOpen = Boolean(nodeId)
+    if (current.selectedNodeId !== nodeId) setSelectedNodeId(nodeId)
+    if (current.inspectorOpen !== nextOpen) setInspectorOpen(nextOpen)
+  }, [setInspectorOpen, setSelectedNodeId])
 
   // ── Run ───────────────────────────────────────────────────────────────────
   const runMutation = useMutation({
@@ -104,23 +134,22 @@ export function useWorkflowEditor(workflowId: string) {
   // ── Rename ────────────────────────────────────────────────────────────────
   const renameMutation = useMutation({
     mutationFn: (name: string) => editorAPI.rename(workflowId, name),
-    onSuccess: (updated) => store.setWorkflow(updated),
+    onSuccess: (updated) => setWorkflow(updated),
   })
 
   // ── Toggle active ─────────────────────────────────────────────────────────
   const toggleMutation = useMutation({
     mutationFn: () => editorAPI.toggleActive(workflowId),
     onSuccess: (res) => {
-      if (store.workflow) store.setWorkflow({ ...store.workflow, is_active: res.is_active })
+      if (storeWorkflow) setWorkflow({ ...storeWorkflow, is_active: res.is_active })
     },
   })
 
   // Cleanup on unmount
   useEffect(() => () => {
     if (saveTimer.current) clearTimeout(saveTimer.current)
-    store.reset()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    resetEditorStore()
+  }, [resetEditorStore])
 
   return {
     workflow,
@@ -133,11 +162,13 @@ export function useWorkflowEditor(workflowId: string) {
     onEdgesChange: handleEdgesChange,
     setNodes,
     setEdges,
+    updateNodeData,
+    selectNode,
     // Actions
     run: runMutation.mutate,
     rename: renameMutation.mutate,
     toggle: toggleMutation.mutate,
     isRunning: runMutation.isPending,
-    saveState: store.saveState,
+    saveState,
   }
 }

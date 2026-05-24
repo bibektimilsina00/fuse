@@ -11,6 +11,7 @@ _RETRY_PROPERTIES: list[dict[str, Any]] = [
         "mode": "advanced",
         "group": "Retry",
         "description": "Number of times to retry this node on failure (0 = no retries).",
+        "typeOptions": {"min": 0, "max": 5},
     },
     {
         "name": "retry_delay_ms",
@@ -19,8 +20,9 @@ _RETRY_PROPERTIES: list[dict[str, Any]] = [
         "default": 1000,
         "mode": "advanced",
         "group": "Retry",
-        "condition": {"field": "retries", "value": [1, 2, 3, 4, 5]},
+        "displayOptions": {"show": {"retries": [1, 2, 3, 4, 5]}},
         "description": "Milliseconds to wait between retries.",
+        "typeOptions": {"min": 100, "step": 100},
     },
 ]
 

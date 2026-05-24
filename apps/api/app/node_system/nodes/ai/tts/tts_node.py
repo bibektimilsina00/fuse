@@ -168,9 +168,9 @@ class TTSNode(BaseNode[TTSProperties]):
 
         try:
             if self.props.provider == "openai":
-                return await self._openai_tts(context)
+                return await self._openai_tts()
             elif self.props.provider == "elevenlabs":
-                return await self._elevenlabs_tts(context)
+                return await self._elevenlabs_tts()
             else:
                 return NodeResult(success=False, error=f"Unknown provider: {self.props.provider}")
         except httpx.HTTPStatusError as e:
@@ -179,8 +179,8 @@ class TTSNode(BaseNode[TTSProperties]):
             logger.error(f"TTSNode failed: {e}", exc_info=True)
             return NodeResult(success=False, error=str(e))
 
-    async def _openai_tts(self, context: NodeContext) -> NodeResult:
-        api_key = self._get_cred_key(context, "openai_api_key", self.props.credential)
+    async def _openai_tts(self) -> NodeResult:
+        api_key = self._get_cred_key()
         if not api_key:
             return NodeResult(success=False, error="OpenAI credential required.")
 
@@ -209,8 +209,8 @@ class TTSNode(BaseNode[TTSProperties]):
             "provider": "openai",
         })
 
-    async def _elevenlabs_tts(self, context: NodeContext) -> NodeResult:
-        api_key = self._get_cred_key(context, "elevenlabs_api_key", self.props.elevenlabs_credential)
+    async def _elevenlabs_tts(self) -> NodeResult:
+        api_key = self._get_cred_key()
         if not api_key:
             return NodeResult(success=False, error="ElevenLabs credential required.")
         if not self.props.elevenlabs_voice_id.strip():
@@ -233,15 +233,8 @@ class TTSNode(BaseNode[TTSProperties]):
             "provider": "elevenlabs",
         })
 
-    def _get_cred_key(self, context: NodeContext, cred_type: str, selected_id: str | None) -> str | None:
-        credentials = context.credentials or []
-        cred = None
-        if selected_id:
-            cred = next((c for c in credentials if str(c.get("id")) == str(selected_id) and c.get("type") == cred_type), None)
-        if cred is None:
-            cred = next((c for c in credentials if c.get("type") == cred_type), None)
-        data = cred.get("data") if cred else None
-        if not isinstance(data, dict):
+    def _get_cred_key(self) -> str | None:
+        if not isinstance(self.credential, dict):
             return None
-        key = data.get("api_key")
+        key = self.credential.get("api_key")
         return key if isinstance(key, str) and key.strip() else None
