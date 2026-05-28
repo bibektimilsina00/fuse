@@ -4,11 +4,11 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, String
+from sqlalchemy import JSON, Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlmodel import Field
 
-from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
+from apps.api.app.shared.sqlmodel import SQLModelBase, created_at_field, updated_at_field
 
 
 class CopilotSession(SQLModelBase, table=True):
@@ -37,11 +37,5 @@ class CopilotSession(SQLModelBase, table=True):
     messages: list[dict[str, Any]] = Field(
         default_factory=list, sa_column=Column(JSON, nullable=False)
     )
-    created_at: datetime = Field(
-        default_factory=utc_now,
-        sa_column=Column(DateTime, default=utc_now),
-    )
-    updated_at: datetime = Field(
-        default_factory=utc_now,
-        sa_column=Column(DateTime, default=utc_now, onupdate=utc_now),
-    )
+    created_at: datetime = created_at_field()
+    updated_at: datetime = updated_at_field()

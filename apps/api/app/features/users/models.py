@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship
 
-from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
+from apps.api.app.shared.sqlmodel import SQLModelBase, created_at_field
 
 if TYPE_CHECKING:
     from apps.api.app.features.api_keys.models import ApiKey
@@ -24,7 +24,7 @@ class User(SQLModelBase, table=True):
     full_name: str | None = Field(default=None, max_length=200)
     avatar_url: str | None = Field(default=None, max_length=500)
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=utc_now)
+    created_at: datetime = created_at_field()
 
     workflows: list["Workflow"] = Relationship(
         back_populates="user",

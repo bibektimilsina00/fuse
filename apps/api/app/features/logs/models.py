@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship
 
-from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
+from apps.api.app.shared.sqlmodel import SQLModelBase, created_at_field
 
 if TYPE_CHECKING:
     from apps.api.app.features.users.models import User
@@ -26,6 +26,6 @@ class AuditLog(SQLModelBase, table=True):
     resource_id: str = Field(max_length=100)
     resource_name: str = Field(max_length=200)
     meta: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
-    created_at: datetime = Field(default_factory=utc_now)
+    created_at: datetime = created_at_field()
 
     user: "User" = Relationship(sa_relationship_kwargs={"lazy": "joined"})

@@ -5,7 +5,7 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy import Column
 from sqlmodel import Field, Relationship
 
-from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
+from apps.api.app.shared.sqlmodel import SQLModelBase, created_at_field, updated_at_field
 
 
 class KnowledgeBase(SQLModelBase, table=True):
@@ -21,8 +21,8 @@ class KnowledgeBase(SQLModelBase, table=True):
     chunk_size: int = Field(default=4096)
     chunk_overlap: int = Field(default=800)
     chunking_strategy: str = Field(default="auto", max_length=50)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now})
+    created_at: datetime = created_at_field()
+    updated_at: datetime = updated_at_field()
 
     documents: list["KBDocument"] = Relationship(
         back_populates="knowledge_base",
@@ -38,7 +38,7 @@ class KBDocument(SQLModelBase, table=True):
     chunk_count: int = Field(default=0)
     status: str = Field(default="pending", max_length=20)
     raw_content: str | None = Field(default=None)
-    created_at: datetime = Field(default_factory=utc_now)
+    created_at: datetime = created_at_field()
 
     knowledge_base: "KnowledgeBase" = Relationship(back_populates="documents")
     chunks: list["KBChunk"] = Relationship(

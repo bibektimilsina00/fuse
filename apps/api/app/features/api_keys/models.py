@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship
 
-from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
+from apps.api.app.shared.sqlmodel import SQLModelBase, created_at_field
 
 if TYPE_CHECKING:
     from apps.api.app.features.users.models import User
@@ -20,6 +20,6 @@ class ApiKey(SQLModelBase, table=True):
     name: str = Field(max_length=200)
     key_hash: str = Field(max_length=64, unique=True, index=True)
     key_preview: str = Field(max_length=50)
-    created_at: datetime = Field(default_factory=utc_now)
+    created_at: datetime = created_at_field()
 
     user: User = Relationship(back_populates="api_keys")

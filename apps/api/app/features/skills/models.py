@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship
 
-from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
+from apps.api.app.shared.sqlmodel import SQLModelBase, created_at_field, updated_at_field
 
 if TYPE_CHECKING:
     from apps.api.app.features.users.models import User
@@ -21,7 +21,7 @@ class Skill(SQLModelBase, table=True):
     icon: str = Field(default="BookOpen", max_length=64)
     color: str = Field(default="#8b5cf6", max_length=32)
     content: str = Field()
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now})
+    created_at: datetime = created_at_field()
+    updated_at: datetime = updated_at_field()
 
     user: "User" = Relationship(back_populates="skills")

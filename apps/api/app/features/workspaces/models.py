@@ -2,10 +2,15 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import Column, UniqueConstraint
 from sqlmodel import Field, Relationship
 
-from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
+from apps.api.app.shared.sqlmodel import (
+    SQLModelBase,
+    UTCDateTime,
+    created_at_field,
+    updated_at_field,
+)
 
 if TYPE_CHECKING:
     from apps.api.app.features.users.models import User
@@ -19,8 +24,8 @@ class Workspace(SQLModelBase, table=True):
     is_personal: bool = Field(default=False)
     avatar_url: str | None = Field(default=None, max_length=500)
     plan: str = Field(default="free", max_length=50)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now})
+    created_at: datetime = created_at_field()
+    updated_at: datetime = updated_at_field()
 
     members: list["WorkspaceMember"] = Relationship(
         back_populates="workspace",
@@ -40,7 +45,7 @@ class WorkspaceMember(SQLModelBase, table=True):
     user_id: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE", index=True)
     role: str = Field(default="member", max_length=20)
     invited_by: uuid.UUID | None = Field(default=None, foreign_key="user.id", ondelete="SET NULL")
-    joined_at: datetime = Field(default_factory=utc_now)
+    joined_at: datetime = created_at_field()
 
     workspace: "Workspace" = Relationship(back_populates="members")
     user: "User" = Relationship(
@@ -56,9 +61,9 @@ class WorkspaceInvite(SQLModelBase, table=True):
     role: str = Field(default="member", max_length=20)
     token: str = Field(max_length=64, unique=True, index=True)
     invited_by: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE")
-    expires_at: datetime = Field()
-    accepted_at: datetime | None = Field(default=None)
-    created_at: datetime = Field(default_factory=utc_now)
+    expires_at: datetime = Field(sa_column=Column(UTCDateTime(), nullable=False))
+    accepted_at: datetime | None = Field(default=None, sa_column=Column(UTCDateTime()))
+    created_at: datetime = created_at_field()
 
     workspace: "Workspace" = Relationship(back_populates="invites")
 

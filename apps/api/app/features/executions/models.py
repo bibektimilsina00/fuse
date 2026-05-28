@@ -1,39 +1,14 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import JSON, Column, DateTime
-from sqlalchemy.types import TypeDecorator
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship
 
-from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
+from apps.api.app.shared.sqlmodel import SQLModelBase, UTCDateTime, utc_now
 
 if TYPE_CHECKING:
     from apps.api.app.features.workflows.models import Workflow
-
-
-class UTCDateTime(TypeDecorator):
-    """Execution timestamp type that always returns timezone-aware UTC datetimes."""
-
-    impl = DateTime
-    cache_ok = True
-
-    def load_dialect_impl(self, dialect):
-        return dialect.type_descriptor(DateTime(timezone=True))
-
-    def process_bind_param(self, value: datetime | None, dialect) -> datetime | None:
-        if value is None:
-            return None
-        if value.tzinfo is None:
-            return value.replace(tzinfo=UTC)
-        return value.astimezone(UTC)
-
-    def process_result_value(self, value: datetime | None, dialect) -> datetime | None:
-        if value is None:
-            return None
-        if value.tzinfo is None:
-            return value.replace(tzinfo=UTC)
-        return value.astimezone(UTC)
 
 
 class Execution(SQLModelBase, table=True):

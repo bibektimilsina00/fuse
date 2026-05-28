@@ -5,7 +5,7 @@ from datetime import datetime
 
 from sqlmodel import Field
 
-from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
+from apps.api.app.shared.sqlmodel import SQLModelBase, created_at_field, updated_at_field
 
 
 class Asset(SQLModelBase, table=True):
@@ -17,7 +17,5 @@ class Asset(SQLModelBase, table=True):
     file_type: str = Field(max_length=255)
     file_size: int = Field()
     source_type: str = Field(default="uploaded", max_length=50)
-    created_at: datetime | None = Field(default_factory=utc_now)
-    updated_at: datetime | None = Field(
-        default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now}
-    )
+    created_at: datetime = created_at_field()
+    updated_at: datetime = updated_at_field()

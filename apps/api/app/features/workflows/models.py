@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship
 
-from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
+from apps.api.app.shared.sqlmodel import SQLModelBase, created_at_field, updated_at_field
 
 if TYPE_CHECKING:
     from apps.api.app.features.executions.models import Execution
@@ -25,8 +25,8 @@ class Workflow(SQLModelBase, table=True):
         sa_column=Column(JSON, nullable=False, default=lambda: {"nodes": [], "edges": []}),
     )
     is_active: bool = Field(default=False)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now})
+    created_at: datetime = created_at_field()
+    updated_at: datetime = updated_at_field()
     position: int = Field(default=0)
     color: str | None = Field(default=None, max_length=50)
     env: dict[str, str] | None = Field(default=None, sa_column=Column(JSON))
@@ -51,5 +51,5 @@ class WorkflowVersion(SQLModelBase, table=True):
     version: int = Field()
     label: str | None = Field(default=None, max_length=200)
     graph: str = Field()
-    created_at: datetime = Field(default_factory=utc_now)
+    created_at: datetime = created_at_field()
 

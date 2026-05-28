@@ -5,7 +5,7 @@ from datetime import datetime
 
 from sqlmodel import Field
 
-from apps.api.app.shared.sqlmodel import SQLModelBase, utc_now
+from apps.api.app.shared.sqlmodel import SQLModelBase, created_at_field, updated_at_field
 
 
 class Secret(SQLModelBase, table=True):
@@ -16,5 +16,5 @@ class Secret(SQLModelBase, table=True):
     encrypted_value: str = Field(max_length=2000)
     scope: str = Field(default="workspace", max_length=50)
     is_secret: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now, sa_column_kwargs={"onupdate": utc_now})
+    created_at: datetime = created_at_field()
+    updated_at: datetime = updated_at_field()

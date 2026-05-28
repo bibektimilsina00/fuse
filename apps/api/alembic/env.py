@@ -5,16 +5,10 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlmodel import SQLModel
 
-import apps.api.app.models.audit_log  # noqa: F401
-import apps.api.app.models.copilot_session  # noqa: F401
-import apps.api.app.models.credential  # noqa: F401
-import apps.api.app.models.folder  # noqa: F401 — register models
-import apps.api.app.models.secret  # noqa: F401
-import apps.api.app.models.user  # noqa: F401
-import apps.api.app.models.workflow  # noqa: F401
+import apps.api.app.shared.model  # noqa: F401 — register all feature models with SQLModel.metadata
 from apps.api.app.core.config import settings
-from apps.api.app.models.base import Base  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.async_sqlalchemy_database_uri)
@@ -22,7 +16,7 @@ config.set_main_option("sqlalchemy.url", settings.async_sqlalchemy_database_uri)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = Base.metadata
+target_metadata = SQLModel.metadata
 
 
 def run_migrations_offline() -> None:
