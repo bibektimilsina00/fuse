@@ -13,6 +13,10 @@ class AESEncryptionService:
         if not raw_key:
             from apps.api.app.core.logger import logger
 
+            if settings.ENVIRONMENT == "production":
+                raise RuntimeError(
+                    "ENCRYPTION_KEY is required in production (refusing an ephemeral key)."
+                )
             logger.warning(
                 "ENCRYPTION_KEY missing — generating ephemeral key. WARNING: API and Worker will not share credentials!"
             )
@@ -32,6 +36,8 @@ class AESEncryptionService:
         except Exception as e:
             from apps.api.app.core.logger import logger
 
+            if settings.ENVIRONMENT == "production":
+                raise RuntimeError(f"Invalid ENCRYPTION_KEY: {e}") from e
             logger.error(f"Invalid ENCRYPTION_KEY format: {e}. Falling back to ephemeral key.")
             self.fernet = Fernet(Fernet.generate_key())
 

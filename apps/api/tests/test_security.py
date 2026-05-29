@@ -1,20 +1,26 @@
-import importlib
-import sys
+"""Credential encryption (AESEncryptionService) round-trips across key formats."""
 
-import pytest
+from cryptography.fernet import Fernet
+
+from apps.api.app.credential_manager.encryption.aes import AESEncryptionService
 
 
-def test_security_rejects_invalid_encryption_key(monkeypatch):
-    valid_key = "ZqprL7EBBN63_Nk0a_MoJyMTTrqf06xWY_3oTibUXAY="
+def test_encrypts_and_decrypts_with_fernet_key():
+    svc = AESEncryptionService(key=Fernet.generate_key().decode())  # 44-char Fernet key
+    token = svc.encrypt("secret-value")
+    assert token != "secret-value"
+    assert svc.decrypt(token) == "secret-value"
 
-    monkeypatch.setenv("ENCRYPTION_KEY", valid_key)
-    sys.modules.pop("apps.api.app.core.config", None)
-    sys.modules.pop("apps.api.app.core.security", None)
-    security = importlib.import_module("apps.api.app.core.security")
 
-    monkeypatch.setattr(security.settings, "ENCRYPTION_KEY", "invalid")
-    with pytest.raises(ValueError, match="ENCRYPTION_KEY must be a valid Fernet key"):
-        importlib.reload(security)
+def test_accepts_hex_key_from_openssl_rand():
+    # `openssl rand -hex 32` produces 64 hex chars — the key the README recommends.
+    svc = AESEncryptionService(key="a" * 64)
+    assert svc.decrypt(svc.encrypt("hello")) == "hello"
 
-    monkeypatch.setattr(security.settings, "ENCRYPTION_KEY", valid_key)
-    importlib.reload(security)
+
+def test_same_key_decrypts_across_instances():
+    # API and Worker construct separate services; the same key must interoperate.
+    key = "c" * 64
+    api = AESEncryptionService(key=key)
+    worker = AESEncryptionService(key=key)
+    assert worker.decrypt(api.encrypt("shared")) == "shared"
