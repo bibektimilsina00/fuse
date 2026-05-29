@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from apps.api.app.api.v1.router import router as v1_router
+from apps.api.app.api.router import router as api_router
 from apps.api.app.core.config import settings
 from apps.api.app.core.logger import get_logger
 from apps.api.app.core.observability import init_sentry
@@ -98,4 +98,4 @@ async def root():
     return {"message": "Welcome to Fuse API", "version": "1.0.0"}
 
 
-app.include_router(v1_router, prefix=settings.API_V1_STR)
+app.include_router(api_router)
