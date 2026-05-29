@@ -1,6 +1,36 @@
-import { Send, Sparkles, Zap } from 'lucide-react'
+import { Send, Sparkles, Zap, Check, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useCopilotChat } from '../../../hooks/useCopilotChat'
+import { useCopilotDiffStore } from '../../../stores/copilotDiffStore'
+
+function DiffBanner() {
+  const { active, summary, accept, reject } = useCopilotDiffStore()
+  if (!active || !summary) return null
+  const parts = [
+    summary.added.length ? `+${summary.added.length} new` : '',
+    summary.edited.length ? `~${summary.edited.length} edited` : '',
+    summary.deleted.length ? `-${summary.deleted.length} removed` : '',
+  ].filter(Boolean)
+  return (
+    <div className="mx-3 mb-2 flex items-center gap-2 rounded-[10px] border border-[var(--accent-line)] bg-[var(--accent-line)]/10 px-3 py-2">
+      <span className="flex-1 text-[12px] text-[var(--text)]">
+        Copilot proposed changes — {parts.join(', ')}
+      </span>
+      <button
+        onClick={reject}
+        className="flex items-center gap-1 rounded-[6px] px-2 py-1 text-[11.5px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+      >
+        <X className="h-3 w-3" /> Reject
+      </button>
+      <button
+        onClick={accept}
+        className="flex items-center gap-1 rounded-[6px] bg-[var(--text)] px-2 py-1 text-[11.5px] text-[var(--bg)] transition-colors hover:opacity-90"
+      >
+        <Check className="h-3 w-3" /> Accept
+      </button>
+    </div>
+  )
+}
 
 function TypingDots() {
   return (
@@ -18,7 +48,7 @@ function TypingDots() {
 
 export function CopilotPanel() {
   const {
-    msgs, input, setInput, busy,
+    msgs, input, setInput, busy, error,
     slashOpen, slashIdx, setSlashIdx, slashFilter,
     streamRef, inputRef,
     quickActions, send, onKeyDown, selectSlashCommand,
@@ -87,6 +117,15 @@ export function CopilotPanel() {
             </button>
           ))}
         </div>
+
+        {/* Proposed-changes diff banner */}
+        <DiffBanner />
+
+        {error && (
+          <div className="mx-3 mb-2 rounded-[8px] border border-[var(--err)]/30 bg-[var(--err)]/10 px-3 py-2 text-[11.5px] text-[var(--err)]">
+            {error}
+          </div>
+        )}
 
         {/* Composer */}
         <div className="shrink-0 border-t border-[var(--border-faint)] p-3">
