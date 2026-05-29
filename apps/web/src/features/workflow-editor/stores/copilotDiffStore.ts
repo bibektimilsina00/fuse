@@ -16,6 +16,7 @@ interface DiffSummary {
 interface CopilotDiffState {
   active: boolean
   proposed: ProposedGraph | null
+  baseline: ProposedGraph | null
   summary: DiffSummary | null
   setProposal: (graph: ProposedGraph) => void
   accept: () => void
@@ -42,16 +43,22 @@ function diffNodes(baseNodes: Node[], proposedNodes: Node[]): DiffSummary {
 export const useCopilotDiffStore = create<CopilotDiffState>((set, get) => ({
   active: false,
   proposed: null,
+  baseline: null,
   summary: null,
 
   setProposal: (graph) => {
     const editor = useWorkflowEditorStore.getState()
     const summary = diffNodes(editor.nodes, graph.nodes || [])
     if (!summary.added.length && !summary.edited.length && !summary.deleted.length) {
-      set({ active: false, proposed: null, summary: null })
+      set({ active: false, proposed: null, baseline: null, summary: null })
       return
     }
-    set({ active: true, proposed: graph, summary })
+    set({
+      active: true,
+      proposed: graph,
+      baseline: { nodes: editor.nodes, edges: editor.edges },
+      summary,
+    })
   },
 
   accept: () => {
@@ -61,8 +68,8 @@ export const useCopilotDiffStore = create<CopilotDiffState>((set, get) => ({
     editor.pushHistory()
     editor.setNodes(proposed.nodes || [])
     editor.setEdges((proposed.edges || []).map(e => ({ ...e, type: e.type || 'custom' })))
-    set({ active: false, proposed: null, summary: null })
+    set({ active: false, proposed: null, baseline: null, summary: null })
   },
 
-  reject: () => set({ active: false, proposed: null, summary: null }),
+  reject: () => set({ active: false, proposed: null, baseline: null, summary: null }),
 }))

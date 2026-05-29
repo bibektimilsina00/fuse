@@ -26,6 +26,7 @@ interface Props {
   onEdgesChange: OnEdgesChange
   onConnect?: OnConnect
   onSelectNode?: (nodeId: string) => void
+  interactive?: boolean
 }
 
 interface MenuState {
@@ -35,7 +36,7 @@ interface MenuState {
   nodeId?: string
 }
 
-function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectNode }: Props) {
+function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectNode, interactive = true }: Props) {
   const nodeDefinitions = useWorkflowEditorStore(useShallow(s => s.nodeDefinitions))
   const setInspectorTab = useWorkflowEditorStore(s => s.setInspectorTab)
   const setNodes = useWorkflowEditorStore(s => s.setNodes)
@@ -117,9 +118,12 @@ function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectN
         onDragOver={onDragOver}
         onDrop={onDrop}
         onNodeClick={(_, node) => onSelectNode?.(node.id)}
-        onNodeContextMenu={onNodeContextMenu}
-        onPaneContextMenu={onPaneContextMenu}
+        onNodeContextMenu={interactive ? onNodeContextMenu : undefined}
+        onPaneContextMenu={interactive ? onPaneContextMenu : undefined}
         onNodeDragStart={onNodeDragStart}
+        nodesDraggable={interactive}
+        nodesConnectable={interactive}
+        elementsSelectable={interactive}
         deleteKeyCode={null}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
