@@ -189,36 +189,39 @@ async def run_copilot(
 
     async with httpx.AsyncClient(timeout=120.0) as client:
         for _iter in range(MAX_ITERATIONS):
+            content = ""
+            tool_calls: list[dict[str, Any]] = []
             try:
                 if ai_api_type == "openai_compatible":
-                    raw = await _call_openai(
+                    stream = _stream_openai(
                         client, chat_completions_url, api_key, model, conversation, tool_specs
                     )
-                    content, tool_calls = _extract_openai(raw)
                 elif ai_api_type == "anthropic":
-                    raw = await _call_anthropic(
+                    stream = _stream_anthropic(
                         client, chat_completions_url, api_key, model, conversation, tool_specs
                     )
-                    content, tool_calls = _extract_anthropic(raw)
                 elif ai_api_type == "google":
-                    raw = await _call_google(
+                    stream = _stream_google(
                         client, chat_completions_url, api_key, model, conversation, tool_specs
                     )
-                    content, tool_calls = _extract_google(raw)
                 else:
                     yield _sse("error", {"message": f"Unsupported AI provider type: {ai_api_type}"})
                     return
+                async for ev in stream:
+                    if ev["type"] == "delta":
+                        if ev.get("text"):
+                            yield _sse("text_delta", {"content": ev["text"]})
+                    elif ev["type"] == "final":
+                        content = ev["content"]
+                        tool_calls = ev["tool_calls"]
             except httpx.HTTPStatusError as e:
-                yield _sse("error", {"message": f"LLM API error: HTTP {e.response.status_code}"})
+                code = e.response.status_code if e.response is not None else "?"
+                yield _sse("error", {"message": f"LLM API error: HTTP {code}"})
                 return
             except Exception as e:
                 logger.error(f"Copilot LLM call failed (iter {_iter}): {e}", exc_info=True)
                 yield _sse("error", {"message": str(e)})
                 return
-
-            # Emit text content to client
-            if content:
-                yield _sse("text_delta", {"content": content})
 
             # No tool calls → conversation complete
             if not tool_calls:
@@ -412,35 +415,79 @@ async def run_copilot(
 # ── LLM callers ───────────────────────────────────────────────────────────────
 
 
-async def _call_openai(
+async def _stream_openai(
     client: httpx.AsyncClient,
     url: str,
     api_key: str,
     model: str,
     messages: list[dict[str, Any]],
     tool_specs: list[dict[str, Any]],
-) -> dict[str, Any]:
-    payload: dict[str, Any] = {"model": model, "messages": messages}
+) -> AsyncGenerator[dict[str, Any]]:
+    payload: dict[str, Any] = {"model": model, "messages": messages, "stream": True}
     if tool_specs:
         payload["tools"] = tool_specs
         payload["tool_choice"] = "auto"
-    resp = await client.post(
+    content = ""
+    acc: dict[int, dict[str, str]] = {}  # index -> {id, name, args(str)}
+    async with client.stream(
+        "POST",
         url,
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         json=payload,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    ) as resp:
+        if resp.status_code >= 400:
+            await resp.aread()
+            resp.raise_for_status()
+        async for line in resp.aiter_lines():
+            if not line.startswith("data:"):
+                continue
+            data = line[5:].strip()
+            if not data or data == "[DONE]":
+                continue
+            try:
+                chunk = json.loads(data)
+            except json.JSONDecodeError:
+                continue
+            choices = chunk.get("choices") or []
+            if not choices:
+                continue
+            delta = choices[0].get("delta") or {}
+            text = delta.get("content")
+            if text:
+                content += text
+                yield {"type": "delta", "text": text}
+            for tcd in delta.get("tool_calls") or []:
+                slot = acc.setdefault(tcd.get("index", 0), {"id": "", "name": "", "args": ""})
+                if tcd.get("id"):
+                    slot["id"] = tcd["id"]
+                fn = tcd.get("function") or {}
+                if fn.get("name"):
+                    slot["name"] += fn["name"]
+                if fn.get("arguments"):
+                    slot["args"] += fn["arguments"]
+    yield {"type": "final", "content": content, "tool_calls": _finalize_openai_calls(acc)}
 
 
-async def _call_anthropic(
+def _finalize_openai_calls(acc: dict[int, dict[str, str]]) -> list[dict[str, Any]]:
+    calls: list[dict[str, Any]] = []
+    for idx in sorted(acc):
+        slot = acc[idx]
+        try:
+            args = json.loads(slot["args"]) if slot["args"].strip() else {}
+        except json.JSONDecodeError:
+            args = {}
+        calls.append({"id": slot["id"] or f"call_{idx}", "name": slot["name"], "arguments": args})
+    return calls
+
+
+async def _stream_anthropic(
     client: httpx.AsyncClient,
     url: str,
     api_key: str,
     model: str,
     messages: list[dict[str, Any]],
     tool_specs: list[dict[str, Any]],
-) -> dict[str, Any]:
+) -> AsyncGenerator[dict[str, Any]]:
     system_msgs = [m["content"] for m in messages if m.get("role") == "system"]
     chat_msgs = [
         {
@@ -454,13 +501,17 @@ async def _call_anthropic(
         "model": model,
         "max_tokens": 4096,
         "messages": chat_msgs,
+        "stream": True,
     }
     if system_msgs:
         payload["system"] = "\n\n".join(system_msgs)
     if tool_specs:
         payload["tools"] = [_to_anthropic_tool(t) for t in tool_specs]
         payload["tool_choice"] = {"type": "auto"}
-    resp = await client.post(
+    content = ""
+    blocks: dict[int, dict[str, Any]] = {}  # index -> {type, id, name, text, json}
+    async with client.stream(
+        "POST",
         url,
         headers={
             "x-api-key": api_key,
@@ -468,31 +519,76 @@ async def _call_anthropic(
             "Content-Type": "application/json",
         },
         json=payload,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    ) as resp:
+        if resp.status_code >= 400:
+            await resp.aread()
+            resp.raise_for_status()
+        async for line in resp.aiter_lines():
+            if not line.startswith("data:"):
+                continue
+            data = line[5:].strip()
+            if not data:
+                continue
+            try:
+                ev = json.loads(data)
+            except json.JSONDecodeError:
+                continue
+            etype = ev.get("type")
+            if etype == "content_block_start":
+                cb = ev.get("content_block") or {}
+                blocks[ev.get("index", 0)] = {
+                    "type": cb.get("type"),
+                    "id": cb.get("id", ""),
+                    "name": cb.get("name", ""),
+                    "text": "",
+                    "json": "",
+                }
+            elif etype == "content_block_delta":
+                slot = blocks.setdefault(
+                    ev.get("index", 0), {"type": "text", "text": "", "json": ""}
+                )
+                delta = ev.get("delta") or {}
+                if delta.get("type") == "text_delta":
+                    text = delta.get("text", "")
+                    if text:
+                        slot["text"] += text
+                        content += text
+                        yield {"type": "delta", "text": text}
+                elif delta.get("type") == "input_json_delta":
+                    slot["json"] += delta.get("partial_json", "")
+    tool_calls: list[dict[str, Any]] = []
+    for idx in sorted(blocks):
+        b = blocks[idx]
+        if b.get("type") == "tool_use":
+            try:
+                args = json.loads(b["json"]) if b["json"].strip() else {}
+            except json.JSONDecodeError:
+                args = {}
+            tool_calls.append(
+                {"id": b.get("id") or f"toolu_{idx}", "name": b.get("name", ""), "arguments": args}
+            )
+    yield {"type": "final", "content": content, "tool_calls": tool_calls}
 
 
-async def _call_google(
+async def _stream_google(
     client: httpx.AsyncClient,
     url_template: str,
     api_key: str,
     model: str,
     messages: list[dict[str, Any]],
     tool_specs: list[dict[str, Any]],
-) -> dict[str, Any]:
+) -> AsyncGenerator[dict[str, Any]]:
     system_msgs = [m["content"] for m in messages if m.get("role") == "system"]
     contents: list[dict[str, Any]] = []
     for m in messages:
         if m.get("role") == "system":
             continue
         role = "model" if m.get("role") == "assistant" else "user"
-        # Handle content that's already in Google parts format
-        content = m.get("content", "")
-        if isinstance(content, list):
-            contents.append({"role": role, "parts": content})
+        content_val = m.get("content", "")
+        if isinstance(content_val, list):
+            contents.append({"role": role, "parts": content_val})
         else:
-            contents.append({"role": role, "parts": [{"text": str(content)}]})
+            contents.append({"role": role, "parts": [{"text": str(content_val)}]})
 
     payload: dict[str, Any] = {"contents": contents}
     if system_msgs:
@@ -502,74 +598,49 @@ async def _call_google(
 
     model_path = model.removeprefix("models/")
     url = url_template.format(model=model_path)
-    resp = await client.post(
+    if ":generateContent" in url:
+        url = url.replace(":generateContent", ":streamGenerateContent")
+
+    content = ""
+    tool_calls: list[dict[str, Any]] = []
+    async with client.stream(
+        "POST",
         url,
-        params={"key": api_key},
+        params={"key": api_key, "alt": "sse"},
         headers={"Content-Type": "application/json"},
         json=payload,
-    )
-    resp.raise_for_status()
-    return resp.json()
-
-
-# ── Response extractors ───────────────────────────────────────────────────────
-
-
-def _extract_openai(raw: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
-    choices = raw.get("choices") or []
-    message = (choices[0] if choices else {}).get("message") or {}
-    content = str(message.get("content") or "")
-    tool_calls: list[dict[str, Any]] = []
-    for tc in message.get("tool_calls") or []:
-        fn = tc.get("function") or {}
-        try:
-            args = json.loads(fn.get("arguments", "{}"))
-        except json.JSONDecodeError:
-            args = {}
-        tool_calls.append({"id": tc.get("id", ""), "name": fn.get("name", ""), "arguments": args})
-    return content, tool_calls
-
-
-def _extract_anthropic(raw: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
-    blocks = raw.get("content") or []
-    text_parts: list[str] = []
-    tool_calls: list[dict[str, Any]] = []
-    for block in blocks:
-        if not isinstance(block, dict):
-            continue
-        if block.get("type") == "text":
-            text_parts.append(block.get("text", ""))
-        elif block.get("type") == "tool_use":
-            tool_calls.append(
-                {
-                    "id": block.get("id", ""),
-                    "name": block.get("name", ""),
-                    "arguments": block.get("input") or {},
-                }
-            )
-    return "".join(text_parts), tool_calls
-
-
-def _extract_google(raw: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
-    candidates = raw.get("candidates") or []
-    parts = (candidates[0] if candidates else {}).get("content", {}).get("parts", [])
-    text_parts: list[str] = []
-    tool_calls: list[dict[str, Any]] = []
-    for part in parts:
-        if not isinstance(part, dict):
-            continue
-        if "text" in part:
-            text_parts.append(part["text"])
-        if "functionCall" in part:
-            call = part["functionCall"]
-            tool_calls.append(
-                {
-                    "id": call.get("name", ""),
-                    "name": call.get("name", ""),
-                    "arguments": call.get("args") or {},
-                }
-            )
-    return "".join(text_parts), tool_calls
+    ) as resp:
+        if resp.status_code >= 400:
+            await resp.aread()
+            resp.raise_for_status()
+        async for line in resp.aiter_lines():
+            if not line.startswith("data:"):
+                continue
+            data = line[5:].strip()
+            if not data:
+                continue
+            try:
+                chunk = json.loads(data)
+            except json.JSONDecodeError:
+                continue
+            candidates = chunk.get("candidates") or []
+            parts = (candidates[0].get("content") or {}).get("parts", []) if candidates else []
+            for part in parts:
+                if not isinstance(part, dict):
+                    continue
+                if part.get("text"):
+                    content += part["text"]
+                    yield {"type": "delta", "text": part["text"]}
+                if "functionCall" in part:
+                    call = part["functionCall"]
+                    tool_calls.append(
+                        {
+                            "id": call.get("name", ""),
+                            "name": call.get("name", ""),
+                            "arguments": call.get("args") or {},
+                        }
+                    )
+    yield {"type": "final", "content": content, "tool_calls": tool_calls}
 
 
 # ── Message builders ──────────────────────────────────────────────────────────
