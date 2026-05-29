@@ -1,24 +1,24 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 
-# Install uv
+# uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Copy dependency files
+# Workspace metadata + lockfile (the lock lives at the workspace root).
+COPY pyproject.toml uv.lock ./
 COPY apps/api/pyproject.toml ./apps/api/
+COPY apps/worker/pyproject.toml ./apps/worker/
 
-# Install dependencies
-RUN cd apps/api && uv sync --frozen
-
-# Copy the rest of the application
+# Both apps: the API imports the worker's Celery task at module load to enqueue.
 COPY apps/api ./apps/api
-COPY packages ./packages
+COPY apps/worker ./apps/worker
 
-# Set environment variables
+# Resolve the full workspace environment from the frozen lock.
+RUN uv sync --frozen
+
 ENV PYTHONPATH=/app
 ENV PORT=8000
-
 EXPOSE 8000
 
-CMD ["uv", "run", "--project", "apps/api", "uvicorn", "apps.api.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "--no-sync", "uvicorn", "apps.api.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
