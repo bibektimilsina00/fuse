@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import json
-import uuid
 from collections.abc import AsyncGenerator
 from typing import Any
 
 import httpx
 
 from apps.api.app.core.logger import get_logger
+from apps.api.app.features.copilot.engine_core.node_schema import (
+    list_trigger_node_types,
+    project_node,
+    search_node_types,
+)
 from apps.api.app.features.copilot.engine_core.operations import apply_operations
 from apps.api.app.features.copilot.engine_core.system_prompt import build_system_prompt
 
@@ -86,17 +90,49 @@ _GET_NODE_METADATA_TOOL: dict[str, Any] = {
     "type": "function",
     "function": {
         "name": "get_node_metadata",
-        "description": "Get the full metadata (all properties and their types) for a specific node type.",
+        "description": (
+            "Get the full field schema (required/optional inputs, per-operation fields, "
+            "outputs, credential) for one or more node types. Call this before adding/editing "
+            "those node types so you use valid field names."
+        ),
         "parameters": {
             "type": "object",
             "properties": {
-                "node_type": {
-                    "type": "string",
-                    "description": "Node type ID — e.g. 'action.agent', 'action.http_request'",
+                "node_types": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Node type IDs — e.g. ['action.agent', 'action.http_request']",
                 }
             },
-            "required": ["node_type"],
+            "required": ["node_types"],
         },
+    },
+}
+
+_SEARCH_NODE_TYPES_TOOL: dict[str, Any] = {
+    "type": "function",
+    "function": {
+        "name": "search_node_types",
+        "description": (
+            "Search the full node catalog by keyword to discover node types not shown in the "
+            "index. Returns matching {type, name, description}."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Keywords, e.g. 'slack', 'send email'"}
+            },
+            "required": ["query"],
+        },
+    },
+}
+
+_GET_TRIGGER_NODES_TOOL: dict[str, Any] = {
+    "type": "function",
+    "function": {
+        "name": "get_trigger_nodes",
+        "description": "List node types that can start a workflow (triggers).",
+        "parameters": {"type": "object", "properties": {}},
     },
 }
 
@@ -133,17 +169,22 @@ async def run_copilot(
 
     from apps.api.app.features.copilot.models import CopilotSession as CopilotSessionModel
     from apps.api.app.features.copilot.repository import CopilotSessionRepository
-    from apps.api.app.features.workflows.repository import WorkflowRepository
 
     meta_by_type = {m["type"]: m for m in node_metadata}
     system_prompt = build_system_prompt(graph, node_metadata)
     current_graph = json.loads(json.dumps(graph))
+    graph_dirty = False  # any edit_workflow applied → emit workflow_proposed at the end
 
     conversation: list[dict[str, Any]] = [
         {"role": "system", "content": system_prompt},
         *messages,
     ]
-    tool_specs = [_EDIT_WORKFLOW_TOOL, _GET_NODE_METADATA_TOOL]
+    tool_specs = [
+        _EDIT_WORKFLOW_TOOL,
+        _GET_NODE_METADATA_TOOL,
+        _SEARCH_NODE_TYPES_TOOL,
+        _GET_TRIGGER_NODES_TOOL,
+    ]
     all_tool_calls: list[dict[str, Any]] = []
 
     async with httpx.AsyncClient(timeout=120.0) as client:
@@ -197,15 +238,7 @@ async def run_copilot(
                     operations: list[dict[str, Any]] = args.get("operations", [])
                     res = apply_operations(current_graph, operations, meta_by_type)
                     current_graph = res["graph"]
-
-                    # Persist updated graph to DB (interim — switches to propose/accept in M3/M4)
-                    try:
-                        repo = WorkflowRepository(db)
-                        wf = await repo.get_by_id(uuid.UUID(workflow_id))
-                        if wf:
-                            await repo.update(wf, {"graph": current_graph})
-                    except Exception as e:
-                        logger.error(f"Failed to persist graph: {e}", exc_info=True)
+                    graph_dirty = True  # propose at the end; never persists here
 
                     # Structured feedback so the model self-corrects (save valid parts)
                     result: dict[str, Any] = {
@@ -252,17 +285,43 @@ async def run_copilot(
                             ),
                         },
                     )
-                    yield _sse("workflow_updated", {"graph": current_graph})
 
-                # ── get_node_metadata ─────────────────────────────────────
+                # ── get_node_metadata (batched, compressed projection) ─────
                 elif tool_name == "get_node_metadata":
-                    node_type = args.get("node_type", "")
-                    meta = next((m for m in node_metadata if m["type"] == node_type), None)
-                    result = meta if meta else {"error": f"Node type '{node_type}' not found"}
-                    all_tool_calls.append(
-                        {"name": tool_name, "success": meta is not None, "result": result}
+                    requested = args.get("node_types") or (
+                        [args["node_type"]] if args.get("node_type") else []
                     )
-                    yield _sse("tool_result", {"tool": tool_name, "success": meta is not None})
+                    metadata: dict[str, Any] = {}
+                    missing: list[str] = []
+                    for nt in requested:
+                        meta = meta_by_type.get(nt)
+                        if meta:
+                            metadata[nt] = project_node(meta)
+                        else:
+                            missing.append(nt)
+                    result = {"metadata": metadata}
+                    if missing:
+                        result["unknown_types"] = missing
+                    all_tool_calls.append(
+                        {"name": tool_name, "success": bool(metadata), "result": result}
+                    )
+                    yield _sse("tool_result", {"tool": tool_name, "success": bool(metadata)})
+
+                # ── search_node_types ──────────────────────────────────────
+                elif tool_name == "search_node_types":
+                    matches = search_node_types(node_metadata, args.get("query", ""))
+                    result = {"results": matches}
+                    all_tool_calls.append({"name": tool_name, "success": True, "result": result})
+                    yield _sse(
+                        "tool_result",
+                        {"tool": tool_name, "success": True, "count": len(matches)},
+                    )
+
+                # ── get_trigger_nodes ──────────────────────────────────────
+                elif tool_name == "get_trigger_nodes":
+                    result = {"triggers": list_trigger_node_types(node_metadata)}
+                    all_tool_calls.append({"name": tool_name, "success": True, "result": result})
+                    yield _sse("tool_result", {"tool": tool_name, "success": True})
 
                 else:
                     result = {"error": f"Unknown tool: '{tool_name}'"}
@@ -270,6 +329,10 @@ async def run_copilot(
                     yield _sse("tool_result", {"tool": tool_name, "success": False})
 
                 conversation.append(_build_tool_result_msg(tc, result, ai_api_type))
+
+    # ── Propose changes (no DB write — client diffs + Accept persists) ──────────
+    if graph_dirty:
+        yield _sse("workflow_proposed", {"graph": current_graph})
 
     # ── Save session ──────────────────────────────────────────────────────────
     if user_id and workflow_id:
