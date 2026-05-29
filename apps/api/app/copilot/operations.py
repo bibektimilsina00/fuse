@@ -77,8 +77,7 @@ def apply_operations(
             if node_id in nodes:
                 del nodes[node_id]
                 edges = [
-                    e for e in edges
-                    if e.get("source") != node_id and e.get("target") != node_id
+                    e for e in edges if e.get("source") != node_id and e.get("target") != node_id
                 ]
             else:
                 errors.append(f"delete_node: node '{node_id}' not found")
@@ -110,10 +109,7 @@ def apply_operations(
         elif op_type == "delete_edge":
             src = str(op.get("source_id", ""))
             tgt = str(op.get("target_id", ""))
-            edges = [
-                e for e in edges
-                if not (e.get("source") == src and e.get("target") == tgt)
-            ]
+            edges = [e for e in edges if not (e.get("source") == src and e.get("target") == tgt)]
 
         else:
             errors.append(f"Unknown operation type: '{op_type}'")

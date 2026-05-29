@@ -123,18 +123,23 @@ class CodeNode(BaseNode[CodeProperties]):
                     timeout=timeout,
                 )
             else:
-                return NodeResult(success=False, error=f"Unsupported language: {self.props.language}")
+                return NodeResult(
+                    success=False, error=f"Unsupported language: {self.props.language}"
+                )
         except TimeoutError:
             return NodeResult(success=False, error=f"Code execution timed out after {timeout}s.")
         except Exception as e:
             return NodeResult(success=False, error=str(e))
 
-        return NodeResult(success=True, output_data={
-            "output": output,
-            "logs": logs,
-            "language": self.props.language,
-            **output,  # spread output fields so downstream can reference them directly
-        })
+        return NodeResult(
+            success=True,
+            output_data={
+                "output": output,
+                "logs": logs,
+                "language": self.props.language,
+                **output,  # spread output fields so downstream can reference them directly
+            },
+        )
 
     # ── Python ──────────────────────────────────────────────────────────────
 
@@ -159,7 +164,7 @@ class CodeNode(BaseNode[CodeProperties]):
         logs = []
         raw_logs = namespace.get("logs", [])
         if isinstance(raw_logs, list):
-            logs.extend(str(l) for l in raw_logs)
+            logs.extend(str(line) for line in raw_logs)
         stdout_text = stdout_buf.getvalue().strip()
         stderr_text = stderr_buf.getvalue().strip()
         if stdout_text:
@@ -173,6 +178,7 @@ class CodeNode(BaseNode[CodeProperties]):
 
     async def _run_javascript(self, input_data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
         import shutil
+
         node_bin = shutil.which("node")
         if not node_bin:
             raise RuntimeError("Node.js not found. Install Node.js to run JavaScript code.")
@@ -183,7 +189,9 @@ class CodeNode(BaseNode[CodeProperties]):
         )
 
         proc = await asyncio.create_subprocess_exec(
-            node_bin, "-e", script,
+            node_bin,
+            "-e",
+            script,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -196,8 +204,8 @@ class CodeNode(BaseNode[CodeProperties]):
         raw = stdout_bytes.decode("utf-8", errors="replace").strip()
         try:
             result = json.loads(raw)
-        except json.JSONDecodeError:
-            raise RuntimeError(f"Unexpected JS output (not JSON): {raw[:200]}")
+        except json.JSONDecodeError as e:
+            raise RuntimeError(f"Unexpected JS output (not JSON): {raw[:200]}") from e
 
         output = result.get("output", {})
         if not isinstance(output, dict):

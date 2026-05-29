@@ -36,17 +36,35 @@ _EDIT_WORKFLOW_TOOL: dict[str, Any] = {
                         "properties": {
                             "type": {
                                 "type": "string",
-                                "enum": ["add_node", "edit_node", "delete_node", "add_edge", "delete_edge"],
+                                "enum": [
+                                    "add_node",
+                                    "edit_node",
+                                    "delete_node",
+                                    "add_edge",
+                                    "delete_edge",
+                                ],
                                 "description": "Operation type",
                             },
                             "node_id": {
                                 "type": "string",
                                 "description": "Node ID. For add_node: desired ID. For edit/delete_node: existing ID.",
                             },
-                            "source_id": {"type": "string", "description": "Source node ID (add_edge / delete_edge)"},
-                            "target_id": {"type": "string", "description": "Target node ID (add_edge / delete_edge)"},
-                            "source_handle": {"type": "string", "description": "Source handle (optional)"},
-                            "target_handle": {"type": "string", "description": "Target handle (optional)"},
+                            "source_id": {
+                                "type": "string",
+                                "description": "Source node ID (add_edge / delete_edge)",
+                            },
+                            "target_id": {
+                                "type": "string",
+                                "description": "Target node ID (add_edge / delete_edge)",
+                            },
+                            "source_handle": {
+                                "type": "string",
+                                "description": "Source handle (optional)",
+                            },
+                            "target_handle": {
+                                "type": "string",
+                                "description": "Target handle (optional)",
+                            },
                             "params": {
                                 "type": "object",
                                 "description": (
@@ -85,11 +103,13 @@ _GET_NODE_METADATA_TOOL: dict[str, Any] = {
 
 # ── SSE helper ────────────────────────────────────────────────────────────────
 
+
 def _sse(event_type: str, payload: dict[str, Any]) -> str:
     return f"data: {json.dumps({'type': event_type, **payload})}\n\n"
 
 
 # ── Main copilot loop ─────────────────────────────────────────────────────────
+
 
 async def run_copilot(
     *,
@@ -130,13 +150,19 @@ async def run_copilot(
         for _iter in range(MAX_ITERATIONS):
             try:
                 if ai_api_type == "openai_compatible":
-                    raw = await _call_openai(client, chat_completions_url, api_key, model, conversation, tool_specs)
+                    raw = await _call_openai(
+                        client, chat_completions_url, api_key, model, conversation, tool_specs
+                    )
                     content, tool_calls = _extract_openai(raw)
                 elif ai_api_type == "anthropic":
-                    raw = await _call_anthropic(client, chat_completions_url, api_key, model, conversation, tool_specs)
+                    raw = await _call_anthropic(
+                        client, chat_completions_url, api_key, model, conversation, tool_specs
+                    )
                     content, tool_calls = _extract_anthropic(raw)
                 elif ai_api_type == "google":
-                    raw = await _call_google(client, chat_completions_url, api_key, model, conversation, tool_specs)
+                    raw = await _call_google(
+                        client, chat_completions_url, api_key, model, conversation, tool_specs
+                    )
                     content, tool_calls = _extract_google(raw)
                 else:
                     yield _sse("error", {"message": f"Unsupported AI provider type: {ai_api_type}"})
@@ -173,8 +199,12 @@ async def run_copilot(
 
                     if errors:
                         result: dict[str, Any] = {"success": False, "errors": errors}
-                        all_tool_calls.append({"name": tool_name, "success": False, "result": {"error": str(errors)}})
-                        yield _sse("tool_result", {"tool": tool_name, "success": False, "errors": errors})
+                        all_tool_calls.append(
+                            {"name": tool_name, "success": False, "result": {"error": str(errors)}}
+                        )
+                        yield _sse(
+                            "tool_result", {"tool": tool_name, "success": False, "errors": errors}
+                        )
                     else:
                         current_graph = updated_graph
 
@@ -192,7 +222,9 @@ async def run_copilot(
                             "nodes": len(current_graph.get("nodes", [])),
                             "edges": len(current_graph.get("edges", [])),
                         }
-                        all_tool_calls.append({"name": tool_name, "success": True, "result": result})
+                        all_tool_calls.append(
+                            {"name": tool_name, "success": True, "result": result}
+                        )
                         yield _sse("tool_result", {"tool": tool_name, "success": True})
                         yield _sse("workflow_updated", {"graph": current_graph})
 
@@ -201,7 +233,9 @@ async def run_copilot(
                     node_type = args.get("node_type", "")
                     meta = next((m for m in node_metadata if m["type"] == node_type), None)
                     result = meta if meta else {"error": f"Node type '{node_type}' not found"}
-                    all_tool_calls.append({"name": tool_name, "success": meta is not None, "result": result})
+                    all_tool_calls.append(
+                        {"name": tool_name, "success": meta is not None, "result": result}
+                    )
                     yield _sse("tool_result", {"tool": tool_name, "success": meta is not None})
 
                 else:
@@ -288,6 +322,7 @@ async def run_copilot(
 
 # ── LLM callers ───────────────────────────────────────────────────────────────
 
+
 async def _call_openai(
     client: httpx.AsyncClient,
     url: str,
@@ -319,8 +354,12 @@ async def _call_anthropic(
 ) -> dict[str, Any]:
     system_msgs = [m["content"] for m in messages if m.get("role") == "system"]
     chat_msgs = [
-        {"role": "assistant" if m.get("role") == "assistant" else "user", "content": m.get("content", "")}
-        for m in messages if m.get("role") != "system"
+        {
+            "role": "assistant" if m.get("role") == "assistant" else "user",
+            "content": m.get("content", ""),
+        }
+        for m in messages
+        if m.get("role") != "system"
     ]
     payload: dict[str, Any] = {
         "model": model,
@@ -370,9 +409,7 @@ async def _call_google(
     if system_msgs:
         payload["systemInstruction"] = {"parts": [{"text": "\n\n".join(system_msgs)}]}
     if tool_specs:
-        payload["tools"] = [
-            {"functionDeclarations": [_to_google_tool(t) for t in tool_specs]}
-        ]
+        payload["tools"] = [{"functionDeclarations": [_to_google_tool(t) for t in tool_specs]}]
 
     model_path = model.removeprefix("models/")
     url = url_template.format(model=model_path)
@@ -387,6 +424,7 @@ async def _call_google(
 
 
 # ── Response extractors ───────────────────────────────────────────────────────
+
 
 def _extract_openai(raw: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
     choices = raw.get("choices") or []
@@ -413,11 +451,13 @@ def _extract_anthropic(raw: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
         if block.get("type") == "text":
             text_parts.append(block.get("text", ""))
         elif block.get("type") == "tool_use":
-            tool_calls.append({
-                "id": block.get("id", ""),
-                "name": block.get("name", ""),
-                "arguments": block.get("input") or {},
-            })
+            tool_calls.append(
+                {
+                    "id": block.get("id", ""),
+                    "name": block.get("name", ""),
+                    "arguments": block.get("input") or {},
+                }
+            )
     return "".join(text_parts), tool_calls
 
 
@@ -433,15 +473,18 @@ def _extract_google(raw: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
             text_parts.append(part["text"])
         if "functionCall" in part:
             call = part["functionCall"]
-            tool_calls.append({
-                "id": call.get("name", ""),
-                "name": call.get("name", ""),
-                "arguments": call.get("args") or {},
-            })
+            tool_calls.append(
+                {
+                    "id": call.get("name", ""),
+                    "name": call.get("name", ""),
+                    "arguments": call.get("args") or {},
+                }
+            )
     return "".join(text_parts), tool_calls
 
 
 # ── Message builders ──────────────────────────────────────────────────────────
+
 
 def _build_assistant_msg(
     content: str,
@@ -453,12 +496,14 @@ def _build_assistant_msg(
         if content:
             blocks.append({"type": "text", "text": content})
         for tc in tool_calls:
-            blocks.append({
-                "type": "tool_use",
-                "id": tc["id"],
-                "name": tc["name"],
-                "input": tc.get("arguments") or {},
-            })
+            blocks.append(
+                {
+                    "type": "tool_use",
+                    "id": tc["id"],
+                    "name": tc["name"],
+                    "input": tc.get("arguments") or {},
+                }
+            )
         return {"role": "assistant", "content": blocks}
 
     if api_type == "google":
@@ -466,9 +511,7 @@ def _build_assistant_msg(
         if content:
             gparts.append({"text": content})
         for tc in tool_calls:
-            gparts.append({
-                "functionCall": {"name": tc["name"], "args": tc.get("arguments") or {}}
-            })
+            gparts.append({"functionCall": {"name": tc["name"], "args": tc.get("arguments") or {}}})
         return {"role": "model", "parts": gparts}  # type: ignore[return-value]
 
     # OpenAI-compatible
@@ -479,7 +522,10 @@ def _build_assistant_msg(
             {
                 "id": tc["id"],
                 "type": "function",
-                "function": {"name": tc["name"], "arguments": json.dumps(tc.get("arguments") or {})},
+                "function": {
+                    "name": tc["name"],
+                    "arguments": json.dumps(tc.get("arguments") or {}),
+                },
             }
             for tc in tool_calls
         ],
@@ -511,8 +557,13 @@ def _build_tool_result_msg(
 
 # ── Tool format converters ────────────────────────────────────────────────────
 
+
 def _to_anthropic_tool(openai_spec: dict[str, Any]) -> dict[str, Any]:
-    fn = openai_spec.get("function") if isinstance(openai_spec.get("function"), dict) else openai_spec
+    fn = (
+        openai_spec.get("function")
+        if isinstance(openai_spec.get("function"), dict)
+        else openai_spec
+    )
     return {
         "name": fn.get("name", ""),
         "description": fn.get("description", ""),
@@ -521,11 +572,19 @@ def _to_anthropic_tool(openai_spec: dict[str, Any]) -> dict[str, Any]:
 
 
 def _to_google_tool(openai_spec: dict[str, Any]) -> dict[str, Any]:
-    fn = openai_spec.get("function") if isinstance(openai_spec.get("function"), dict) else openai_spec
+    fn = (
+        openai_spec.get("function")
+        if isinstance(openai_spec.get("function"), dict)
+        else openai_spec
+    )
     params = fn.get("parameters") or {"type": "object", "properties": {}}
     # Google doesn't support additionalProperties or default — strip them
     params = _clean_for_google(params)
-    return {"name": fn.get("name", ""), "description": fn.get("description", ""), "parameters": params}
+    return {
+        "name": fn.get("name", ""),
+        "description": fn.get("description", ""),
+        "parameters": params,
+    }
 
 
 def _clean_for_google(schema: dict[str, Any]) -> dict[str, Any]:
@@ -537,7 +596,9 @@ def _clean_for_google(schema: dict[str, Any]) -> dict[str, Any]:
         if isinstance(v, dict):
             cleaned[k] = _clean_for_google(v)
         elif k == "properties" and isinstance(v, dict):
-            cleaned[k] = {pk: _clean_for_google(pv) if isinstance(pv, dict) else pv for pk, pv in v.items()}
+            cleaned[k] = {
+                pk: _clean_for_google(pv) if isinstance(pv, dict) else pv for pk, pv in v.items()
+            }
         elif k == "items" and isinstance(v, dict):
             cleaned[k] = _clean_for_google(v)
         else:

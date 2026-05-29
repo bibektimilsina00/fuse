@@ -19,15 +19,14 @@ def build_system_prompt(
         category = meta.get("category", "")
 
         visible_props = [
-            p for p in meta.get("properties", [])
+            p
+            for p in meta.get("properties", [])
             if p.get("visibility") != "hidden" and p.get("mode") != "advanced"
         ]
         key_props = visible_props[:6]
         line = f"• `{ntype}` **{name}** [{category}]: {desc}"
         if key_props:
-            plist = ", ".join(
-                f"`{p['name']}`({p.get('type','string')})" for p in key_props
-            )
+            plist = ", ".join(f"`{p['name']}`({p.get('type', 'string')})" for p in key_props)
             line += f"\n  Key props: {plist}"
         catalog_lines.append(line)
 
@@ -41,10 +40,7 @@ def build_system_prompt(
             }
             for n in graph.get("nodes", [])
         ],
-        "edges": [
-            {"source": e["source"], "target": e["target"]}
-            for e in graph.get("edges", [])
-        ],
+        "edges": [{"source": e["source"], "target": e["target"]} for e in graph.get("edges", [])],
     }
     graph_json = json.dumps(simplified, indent=2)
     catalog = "\n".join(catalog_lines)
