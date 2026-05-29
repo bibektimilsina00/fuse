@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field, computed_field
+from pydantic import Field, computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -68,6 +68,25 @@ class Settings(BaseSettings):
         case_sensitive=True,
         extra="ignore",
     )
+
+    @model_validator(mode="after")
+    def _require_strong_secrets_in_production(self) -> "Settings":
+        """Refuse to boot in production with the shipped default/empty secrets —
+        otherwise JWTs are forgeable and every stored credential is decryptable
+        with a publicly-known key."""
+        if self.ENVIRONMENT == "production":
+            fields = type(self).model_fields
+            weak = [
+                name
+                for name in ("SECRET_KEY", "ENCRYPTION_KEY")
+                if not getattr(self, name) or getattr(self, name) == fields[name].default
+            ]
+            if weak:
+                raise ValueError(
+                    f"Refusing to start in production with default/empty {', '.join(weak)}. "
+                    "Set strong unique values (e.g. `openssl rand -hex 32`)."
+                )
+        return self
 
     @computed_field  # type: ignore[prop-decorator]
     @property

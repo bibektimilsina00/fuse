@@ -1,18 +1,12 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from cryptography.fernet import Fernet
 from jose import jwt
 from passlib.context import CryptContext
 
 from apps.api.app.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-try:
-    fernet = Fernet(settings.ENCRYPTION_KEY)
-except ValueError as exc:
-    raise ValueError("ENCRYPTION_KEY must be a valid Fernet key") from exc
 
 ALGORITHM = "HS256"
 
@@ -33,14 +27,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
-
-
-def encrypt_credential(value: str) -> str:
-    return fernet.encrypt(value.encode()).decode()
-
-
-def decrypt_credential(token: str) -> str:
-    return fernet.decrypt(token.encode()).decode()
 
 
 async def get_current_user_from_token(token: str) -> Any | None:
