@@ -6,10 +6,12 @@ from slowapi.middleware import SlowAPIMiddleware
 from apps.api.app.api.router import router as api_router
 from apps.api.app.core.config import settings
 from apps.api.app.core.logger import get_logger
+from apps.api.app.core.observability import init_sentry
 from apps.api.app.middleware.logging import LoggingMiddleware
 from apps.api.app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 
 logger = get_logger(__name__)
+init_sentry()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

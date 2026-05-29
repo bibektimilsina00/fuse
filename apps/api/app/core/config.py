@@ -62,6 +62,10 @@ class Settings(BaseSettings):
     CODE_SANDBOX_NODE_IMAGE: str = "node:22-alpine"
     CODE_SANDBOX_MEMORY_MB: int = 512
 
+    # Observability — error tracking is off unless SENTRY_DSN is set.
+    SENTRY_DSN: str = ""
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.0
+
     # Email (SMTP) — works with Gmail, SendGrid, Mailgun, SES, etc.
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587

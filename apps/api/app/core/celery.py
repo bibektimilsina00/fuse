@@ -2,6 +2,10 @@ from celery import Celery
 from celery.schedules import crontab
 
 from apps.api.app.core.config import settings
+from apps.api.app.core.observability import init_sentry
+
+# Initialize Sentry for the worker process (no-op unless SENTRY_DSN is set).
+init_sentry()
 
 celery_app = Celery(
     "fuse",
