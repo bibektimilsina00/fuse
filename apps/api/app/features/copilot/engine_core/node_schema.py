@@ -1,47 +1,27 @@
 """Node-schema discovery & compression for the Copilot.
 
 Two-tier strategy so node context scales to hundreds/1000+ node types without
-prompt bloat:
+prompt bloat — and without a curated allow-list that drifts as nodes are added:
 
-  • Tier 1 (in the system prompt): a *bounded* index — all triggers + a curated
-    `CORE_NODE_TYPES` set — one line each. `build_node_index`.
-  • Tier 2 (on demand, via tools): `search_node_types` finds the long tail;
-    `get_node_metadata([...])` returns `project_node` — a compressed projection
-    (NOT the raw NodeMetadata) for only the requested types.
+  • Tier 1 (in the system prompt): a *complete* index of every registered
+    workflow node, split by category. Triggers and logic nodes get the full
+    `type **Name** — description` line because they shape control flow. Action
+    nodes get a compact `type **Name**` roster — name alone is enough for the
+    model to know they exist and decide to fetch metadata. `build_node_index`.
+  • Tier 2 (on demand, via tools): `get_node_metadata([...])` returns
+    `project_node` — a compressed projection (NOT the raw NodeMetadata) with
+    fields, operations, outputs, etc. `search_node_types` covers fuzzy queries
+    (e.g. "crm" → hubspot/salesforce).
 
-`project_node` is the single shared projection consumed by the prompt index,
-the metadata tool, and the validator, so they never drift.
+`project_node` is the single shared projection consumed by the metadata tool
+and the validator, so they never drift. The prompt index is derived purely
+from registered metadata — adding a new node automatically surfaces it; no
+curated `CORE_NODE_TYPES` to maintain.
 """
 
 from __future__ import annotations
 
 from typing import Any
-
-# Surfaced in the Tier-1 prompt index in addition to all triggers. The long tail
-# (integrations etc.) is discovered via search_node_types / get_node_metadata.
-CORE_NODE_TYPES: list[str] = [
-    # AI / generic
-    "action.agent",
-    "action.llm",
-    "action.http_request",
-    # Logic / control flow
-    "logic.condition",
-    "logic.switch",
-    "logic.loop",
-    "logic.foreach",
-    "logic.code",
-    "logic.merge",
-    "logic.set_variable",
-    "logic.json_transform",
-    "logic.sub_workflow",
-    "action.delay",
-    # Common integrations (the model would otherwise miss these and decline)
-    "action.slack",
-    "action.gmail",
-    "action.github",
-    "action.notion",
-    "action.discord",
-]
 
 # Map the rich UI property types down to a few JSON types the model reasons about.
 _SIMPLE_TYPE_MAP: dict[str, str] = {
@@ -64,7 +44,9 @@ _SIMPLE_TYPE_MAP: dict[str, str] = {
 }
 
 _WORKFLOW_NODE_PREFIXES = ("trigger.", "action.", "logic.")
-_CATEGORY_ORDER = ["trigger", "action", "logic"]
+# Triggers and logic (control flow) come first because they shape the workflow;
+# everything else (action / ai / integration / …) follows in registry order.
+_CATEGORY_ORDER = ["trigger", "logic"]
 
 
 def is_workflow_node(meta: dict[str, Any]) -> bool:
@@ -193,31 +175,47 @@ def project_node(meta: dict[str, Any]) -> dict[str, Any]:
 
 # ── Tier-1 index + discovery helpers ──────────────────────────────────────────
 
+# Categories that get the full `type **Name** — description` line in the index
+# because they shape workflow control flow and the model needs to reason about
+# *which* one to pick before calling get_node_metadata. Everything else (i.e.
+# the long tail of integrations and actions) gets the compact roster format,
+# which scales linearly with the registry size without prompt bloat.
+_FULL_LINE_CATEGORIES: frozenset[str] = frozenset({"trigger", "logic"})
 
-def build_node_index(
-    node_metadata: list[dict[str, Any]],
-    core_types: list[str] | None = None,
-) -> str:
-    """Bounded prompt index: all triggers + curated core, grouped by category,
-    one line each. Stays ~constant in size as the registry grows."""
-    core = set(core_types or CORE_NODE_TYPES)
+
+def _full_line(meta: dict[str, Any]) -> str:
+    return f"- `{meta.get('type', '')}` **{meta.get('name', '')}** — {meta.get('description', '')}"
+
+
+def _roster_line(meta: dict[str, Any]) -> str:
+    return f"- `{meta.get('type', '')}` **{meta.get('name', '')}**"
+
+
+def build_node_index(node_metadata: list[dict[str, Any]]) -> str:
+    """Complete prompt index of every registered workflow node, grouped by
+    category. Triggers + logic get full descriptions; actions get the compact
+    roster (name only). Derived purely from metadata — no curated allow-list.
+    """
     by_category: dict[str, list[str]] = {}
-
     for meta in node_metadata:
         if not is_workflow_node(meta):
             continue
-        node_type = meta.get("type", "")
         category = meta.get("category", "other")
-        if category == "trigger" or node_type in core:
-            line = f"- `{node_type}` **{meta.get('name', '')}** — {meta.get('description', '')}"
-            by_category.setdefault(category, []).append(line)
+        line = _full_line(meta) if category in _FULL_LINE_CATEGORIES else _roster_line(meta)
+        by_category.setdefault(category, []).append(line)
 
     categories = _CATEGORY_ORDER + [c for c in by_category if c not in _CATEGORY_ORDER]
     sections: list[str] = []
     for category in categories:
         lines = by_category.get(category)
-        if lines:
-            sections.append(f"### {category}\n" + "\n".join(sorted(lines)))
+        if not lines:
+            continue
+        heading = (
+            f"### {category} (full details below — pick by description)"
+            if category in _FULL_LINE_CATEGORIES
+            else f"### {category} (roster — call `get_node_metadata` for fields)"
+        )
+        sections.append(f"{heading}\n" + "\n".join(sorted(lines)))
     return "\n\n".join(sections)
 
 

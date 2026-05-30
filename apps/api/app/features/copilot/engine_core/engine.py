@@ -543,7 +543,9 @@ async def _stream_anthropic(
     ]
     payload: dict[str, Any] = {
         "model": model,
-        "max_tokens": 4096,
+        # Match the Gemini path: multi-node edit_workflow calls can blow past
+        # a 4k cap and truncate mid-tool-use (leaving the user with no graph).
+        "max_tokens": 16384,
         "messages": chat_msgs,
         "stream": True,
     }
@@ -640,7 +642,15 @@ async def _stream_google(
         else:
             contents.append({"role": role, "parts": [{"text": str(content_val)}]})
 
-    payload: dict[str, Any] = {"contents": contents}
+    payload: dict[str, Any] = {
+        "contents": contents,
+        # A single edit_workflow call easily exceeds the default ~2k output
+        # token cap for a multi-node workflow (each node's properties + edges
+        # are emitted inline). Raising this prevents the model from truncating
+        # mid-tool-call, which manifests as "text-only" iterations that leave
+        # the user with no workflow.
+        "generationConfig": {"maxOutputTokens": 16384},
+    }
     if system_msgs:
         payload["systemInstruction"] = {"parts": [{"text": "\n\n".join(system_msgs)}]}
     if tool_specs:
