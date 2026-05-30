@@ -625,9 +625,15 @@ async def _stream_google(
     system_msgs = [m["content"] for m in messages if m.get("role") == "system"]
     contents: list[dict[str, Any]] = []
     for m in messages:
-        if m.get("role") == "system":
+        role_in = m.get("role")
+        if role_in == "system":
             continue
-        role = "model" if m.get("role") == "assistant" else "user"
+        # Messages built by _build_assistant_msg / _build_tool_result_msg for Google
+        # already carry the Gemini shape: role ∈ {"model","user"} + "parts".
+        if "parts" in m:
+            contents.append({"role": role_in or "user", "parts": m["parts"]})
+            continue
+        role = "model" if role_in == "assistant" else "user"
         content_val = m.get("content", "")
         if isinstance(content_val, list):
             contents.append({"role": role, "parts": content_val})
