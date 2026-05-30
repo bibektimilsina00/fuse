@@ -1,4 +1,4 @@
-import { Send, Sparkles, Zap, Check, X, Plus, History, ChevronDown } from 'lucide-react'
+import { Send, Sparkles, Zap, Check, X, Plus, History } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Dropdown, DropdownTrigger, DropdownContent } from '@/shared/components'
 import { useCopilotChat } from '../../../hooks/useCopilotChat'
@@ -53,7 +53,6 @@ export function CopilotPanel() {
     slashOpen, slashIdx, setSlashIdx, slashFilter,
     streamRef, inputRef,
     quickActions, send, onKeyDown, selectSlashCommand,
-    providers, provider, chooseProvider,
     sessions, sessionId, newChat, loadSession, deleteSession,
   } = useCopilotChat()
 
@@ -116,22 +115,6 @@ export function CopilotPanel() {
             </DropdownContent>
           </Dropdown>
 
-          <div className="relative ml-auto">
-            <select
-              value={provider}
-              onChange={e => chooseProvider(e.target.value)}
-              className="appearance-none rounded-[6px] border border-[var(--border-faint)] bg-[var(--surface)] py-1 pl-2 pr-6 text-[11.5px] text-[var(--text)] outline-none transition-colors hover:border-[var(--border-soft)]"
-            >
-              {providers.length === 0 && <option value={provider}>{provider}</option>}
-              {providers.map(p => (
-                <option key={p.id} value={p.id} disabled={!p.hasCredential}>
-                  {p.name}
-                  {p.hasCredential ? '' : ' (no key)'}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-[var(--text-faint)]" />
-          </div>
         </div>
 
         {/* Message stream */}

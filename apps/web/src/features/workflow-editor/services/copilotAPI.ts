@@ -94,23 +94,7 @@ export async function* streamCopilotChat(
   }
 }
 
-// ── REST: providers, settings, sessions ───────────────────────────────────────
-
-export interface CopilotProvider {
-  id: string
-  name: string
-  credentialType: string
-  defaultModel: string
-  hasCredential: boolean
-  credentials: { id: string; name: string }[]
-}
-
-export interface CopilotSettings {
-  provider: string
-  model: string
-  credential_id: string | null
-  model_mode: string
-}
+// ── REST: chat sessions ───────────────────────────────────────────────────────
 
 export interface SessionItem {
   id: string
@@ -120,14 +104,10 @@ export interface SessionItem {
 }
 
 export const copilotAPI = {
-  providers: () =>
-    apiClient.get<{ providers: CopilotProvider[] }>('/copilot/providers').then(r => r.data.providers),
-  getSettings: (workflowId: string) =>
-    apiClient.get<CopilotSettings>(`/copilot/${workflowId}/settings`).then(r => r.data),
-  updateSettings: (workflowId: string, body: Partial<CopilotSettings>) =>
-    apiClient.put<CopilotSettings>(`/copilot/${workflowId}/settings`, body).then(r => r.data),
   listSessions: (workflowId: string) =>
-    apiClient.get<{ sessions: SessionItem[] }>(`/copilot/${workflowId}/sessions`).then(r => r.data.sessions),
+    apiClient
+      .get<{ sessions: SessionItem[] }>(`/copilot/${workflowId}/sessions`)
+      .then(r => r.data.sessions),
   getSession: (workflowId: string, sessionId: string) =>
     apiClient
       .get<{ id: string; title: string; messages: { role: string; content: string }[] }>(

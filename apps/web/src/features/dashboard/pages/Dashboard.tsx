@@ -13,7 +13,6 @@ import { useToast }         from '@/shared/components'
 import { workflowAPI }      from '@/features/workflows/services/workflowAPI'
 import { workflowKeys }     from '@/features/workflows/hooks/keys'
 import { useWorkspaceStore } from '@/features/workspaces/store/workspaceStore'
-import { copilotAPI }       from '@/features/workflow-editor/services/copilotAPI'
 import type { DashboardStat } from '../services/dashboardAPI'
 
 const SKELETON_STATS: DashboardStat[] = [
@@ -37,14 +36,14 @@ export function Dashboard() {
   const connections = data?.connections ?? []
   const totalToday  = data?.total_today ?? 0
 
-  // Generate a workflow with Copilot: create the workflow, save the chosen
-  // provider, then open the editor with the prompt as a seed message.
-  const handlePrompt = async (prompt: string, provider: string) => {
+  // Generate a workflow with Copilot: create the workflow and open the editor
+  // with the prompt as a seed message. Provider/key come from the backend
+  // (env-key fallback).
+  const handlePrompt = async (prompt: string) => {
     setCreating(true)
     try {
       const name = prompt.slice(0, 60).trim() || 'New AI workflow'
       const wf = await workflowAPI.create({ name })
-      await copilotAPI.updateSettings(wf.id, { provider }).catch(() => {})
       qc.invalidateQueries({ queryKey: workflowKeys.lists(workspaceId) })
       navigate(`/workflows/${wf.id}`, { state: { copilotSeed: prompt } })
     } catch {

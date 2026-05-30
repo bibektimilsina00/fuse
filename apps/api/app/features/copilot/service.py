@@ -1,4 +1,5 @@
 import json
+import os
 import uuid
 
 from fastapi import Depends, HTTPException, status
@@ -26,6 +27,15 @@ _PROVIDER_DEFAULT_MODELS: dict[str, str] = {
     "anthropic": "claude-haiku-4-5-20251001",
     "google": "gemini-2.5-flash",
     "groq": "llama-3.3-70b-versatile",
+}
+
+# Per-provider env var checked when the user has no stored credential — lets the
+# Copilot run against a shared/dev key without provisioning credentials per user.
+_PROVIDER_ENV_KEYS: dict[str, str] = {
+    "openai": "OPENAI_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+    "google": "GEMINI_API_KEY",
+    "groq": "GROQ_API_KEY",
 }
 
 _COPILOT_SETTINGS_KEY = "__copilot_settings__"
@@ -80,6 +90,13 @@ class CopilotService:
                 return data.get("api_key") or None
             except Exception:
                 pass
+
+        # Final fallback: a shared key from the environment (dev/single-user setups).
+        env_var = _PROVIDER_ENV_KEYS.get(provider)
+        if env_var:
+            env_key = os.environ.get(env_var)
+            if env_key:
+                return env_key
 
         return None
 

@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import type { Node, Edge } from 'reactflow'
 import { HelpCircle, Code2, Search, Wrench, Sparkles } from 'lucide-react'
-import {
-  streamCopilotChat,
-  copilotAPI,
-  type CopilotProvider,
-  type SessionItem,
-} from '../services/copilotAPI'
+import { streamCopilotChat, copilotAPI, type SessionItem } from '../services/copilotAPI'
 import { useWorkflowEditorStore } from '../stores/workflowEditorStore'
 import { useCopilotDiffStore } from '../stores/copilotDiffStore'
 
@@ -44,10 +39,6 @@ export function useCopilotChat() {
   const [slashOpen, setSlashOpen] = useState(false)
   const [slashIdx, setSlashIdx] = useState(0)
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [providers, setProviders] = useState<CopilotProvider[]>([])
-  const [provider, setProvider] = useState('anthropic')
-  const [model, setModel] = useState('')
-  const [credentialId, setCredentialId] = useState<string | null>(null)
   const [sessions, setSessions] = useState<SessionItem[]>([])
   const streamRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -58,29 +49,16 @@ export function useCopilotChat() {
   const selectedNode = nodes.find(n => n.id === selectedNodeId)
   const workflowId = useWorkflowEditorStore(s => s.workflow?.id)
 
-  // Load providers, saved settings, and sessions when the workflow opens.
+  // Load sessions when the workflow opens.
   useEffect(() => {
     if (!workflowId) return
     let cancelled = false
-    void (async () => {
-      try {
-        const [provs, settings, sess] = await Promise.all([
-          copilotAPI.providers(),
-          copilotAPI.getSettings(workflowId).catch(() => null),
-          copilotAPI.listSessions(workflowId).catch(() => []),
-        ])
-        if (cancelled) return
-        setProviders(provs)
-        setSessions(sess)
-        const chosen = settings?.provider || provs.find(p => p.hasCredential)?.id || provs[0]?.id || 'anthropic'
-        const provDef = provs.find(p => p.id === chosen)
-        setProvider(chosen)
-        setModel(settings?.model || provDef?.defaultModel || '')
-        setCredentialId(settings?.credential_id ?? provDef?.credentials[0]?.id ?? null)
-      } catch {
-        // providers unavailable — keep defaults
-      }
-    })()
+    void copilotAPI
+      .listSessions(workflowId)
+      .then(s => {
+        if (!cancelled) setSessions(s)
+      })
+      .catch(() => {})
     return () => {
       cancelled = true
     }
@@ -88,22 +66,6 @@ export function useCopilotChat() {
 
   const refreshSessions = () => {
     if (workflowId) void copilotAPI.listSessions(workflowId).then(setSessions).catch(() => {})
-  }
-
-  const chooseProvider = (id: string) => {
-    const provDef = providers.find(p => p.id === id)
-    setProvider(id)
-    setModel(provDef?.defaultModel || '')
-    setCredentialId(provDef?.credentials[0]?.id ?? null)
-    if (workflowId) {
-      void copilotAPI
-        .updateSettings(workflowId, {
-          provider: id,
-          model: provDef?.defaultModel || '',
-          credential_id: provDef?.credentials[0]?.id ?? null,
-        })
-        .catch(() => {})
-    }
   }
 
   const newChat = () => {
@@ -192,9 +154,6 @@ export function useCopilotChat() {
         {
           messages: history,
           graph: { nodes: editor.nodes, edges: editor.edges },
-          provider,
-          model: model || null,
-          credential_id: credentialId,
           session_id: sessionId,
         },
         controller.signal,
@@ -313,11 +272,7 @@ export function useCopilotChat() {
     cancel,
     onKeyDown,
     selectSlashCommand,
-    // provider + sessions
-    providers,
-    provider,
-    chooseProvider,
-    model,
+    // sessions
     sessions,
     sessionId,
     newChat,
