@@ -20,9 +20,11 @@ from typing import Any
 # Surfaced in the Tier-1 prompt index in addition to all triggers. The long tail
 # (integrations etc.) is discovered via search_node_types / get_node_metadata.
 CORE_NODE_TYPES: list[str] = [
+    # AI / generic
     "action.agent",
     "action.llm",
     "action.http_request",
+    # Logic / control flow
     "logic.condition",
     "logic.switch",
     "logic.loop",
@@ -33,6 +35,12 @@ CORE_NODE_TYPES: list[str] = [
     "logic.json_transform",
     "logic.sub_workflow",
     "action.delay",
+    # Common integrations (the model would otherwise miss these and decline)
+    "action.slack",
+    "action.gmail",
+    "action.github",
+    "action.notion",
+    "action.discord",
 ]
 
 # Map the rich UI property types down to a few JSON types the model reasons about.
