@@ -3,7 +3,9 @@ packages:
   - 'packages/*'
 
 allowBuilds:
+  '@sentry/cli': true
   esbuild: true
 
 onlyBuiltDependencies:
   - esbuild
+  - '@sentry/cli'

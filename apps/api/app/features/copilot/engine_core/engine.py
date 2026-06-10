@@ -79,7 +79,15 @@ _EDIT_WORKFLOW_TOOL: dict[str, Any] = {
                         },
                         "required": ["type"],
                     },
-                }
+                },
+                "workflow_name": {
+                    "type": "string",
+                    "description": (
+                        "Short Title Case name for the workflow (e.g. 'Notion Welcome Email'). "
+                        "Set ONLY on first build of a new/empty workflow, or when the user "
+                        "explicitly asks to rename. Omit on follow-up edits."
+                    ),
+                },
             },
             "required": ["operations"],
         },
@@ -186,6 +194,7 @@ async def run_copilot(
     system_prompt = build_system_prompt(graph, node_metadata)
     current_graph = json.loads(json.dumps(graph))
     graph_dirty = False  # any edit_workflow applied → emit workflow_proposed at the end
+    proposed_name: str | None = None  # set by model via edit_workflow.workflow_name
 
     conversation: list[dict[str, Any]] = [
         {"role": "system", "content": system_prompt},
@@ -204,18 +213,40 @@ async def run_copilot(
         for _iter in range(MAX_ITERATIONS):
             content = ""
             tool_calls: list[dict[str, Any]] = []
+            # First iteration of every user turn must produce a tool call. Without
+            # this, models often return an announcement ("I'll build…") and stop,
+            # leaving the editor empty. After iter 0, AUTO lets the model summarize.
+            force_tool = _iter == 0
             try:
                 if ai_api_type == "openai_compatible":
                     stream = _stream_openai(
-                        client, chat_completions_url, api_key, model, conversation, tool_specs
+                        client,
+                        chat_completions_url,
+                        api_key,
+                        model,
+                        conversation,
+                        tool_specs,
+                        force_tool=force_tool,
                     )
                 elif ai_api_type == "anthropic":
                     stream = _stream_anthropic(
-                        client, chat_completions_url, api_key, model, conversation, tool_specs
+                        client,
+                        chat_completions_url,
+                        api_key,
+                        model,
+                        conversation,
+                        tool_specs,
+                        force_tool=force_tool,
                     )
                 elif ai_api_type == "google":
                     stream = _stream_google(
-                        client, chat_completions_url, api_key, model, conversation, tool_specs
+                        client,
+                        chat_completions_url,
+                        api_key,
+                        model,
+                        conversation,
+                        tool_specs,
+                        force_tool=force_tool,
                     )
                 else:
                     yield _sse("error", {"message": f"Unsupported AI provider type: {ai_api_type}"})
@@ -255,6 +286,9 @@ async def run_copilot(
                     res = apply_operations(current_graph, operations, meta_by_type)
                     current_graph = res["graph"]
                     graph_dirty = True  # propose at the end; never persists here
+                    name_arg = args.get("workflow_name")
+                    if isinstance(name_arg, str) and name_arg.strip():
+                        proposed_name = name_arg.strip()
 
                     # Structured feedback so the model self-corrects (save valid parts)
                     result: dict[str, Any] = {
@@ -379,7 +413,10 @@ async def run_copilot(
 
     # ── Propose changes (no DB write — client diffs + Accept persists) ──────────
     if graph_dirty:
-        yield _sse("workflow_proposed", {"graph": current_graph})
+        payload: dict[str, Any] = {"graph": current_graph}
+        if proposed_name:
+            payload["name"] = proposed_name
+        yield _sse("workflow_proposed", payload)
 
     # ── Save session ──────────────────────────────────────────────────────────
     if user_id and workflow_id:
@@ -466,11 +503,12 @@ async def _stream_openai(
     model: str,
     messages: list[dict[str, Any]],
     tool_specs: list[dict[str, Any]],
+    force_tool: bool = False,
 ) -> AsyncGenerator[dict[str, Any]]:
     payload: dict[str, Any] = {"model": model, "messages": messages, "stream": True}
     if tool_specs:
         payload["tools"] = tool_specs
-        payload["tool_choice"] = "auto"
+        payload["tool_choice"] = "required" if force_tool else "auto"
     content = ""
     acc: dict[int, dict[str, str]] = {}  # index -> {id, name, args(str)}
     async with client.stream(
@@ -531,6 +569,7 @@ async def _stream_anthropic(
     model: str,
     messages: list[dict[str, Any]],
     tool_specs: list[dict[str, Any]],
+    force_tool: bool = False,
 ) -> AsyncGenerator[dict[str, Any]]:
     system_msgs = [m["content"] for m in messages if m.get("role") == "system"]
     chat_msgs = [
@@ -553,7 +592,7 @@ async def _stream_anthropic(
         payload["system"] = "\n\n".join(system_msgs)
     if tool_specs:
         payload["tools"] = [_to_anthropic_tool(t) for t in tool_specs]
-        payload["tool_choice"] = {"type": "auto"}
+        payload["tool_choice"] = {"type": "any"} if force_tool else {"type": "auto"}
     content = ""
     blocks: dict[int, dict[str, Any]] = {}  # index -> {type, id, name, text, json}
     async with client.stream(
@@ -623,6 +662,7 @@ async def _stream_google(
     model: str,
     messages: list[dict[str, Any]],
     tool_specs: list[dict[str, Any]],
+    force_tool: bool = False,
 ) -> AsyncGenerator[dict[str, Any]]:
     system_msgs = [m["content"] for m in messages if m.get("role") == "system"]
     contents: list[dict[str, Any]] = []
@@ -655,6 +695,8 @@ async def _stream_google(
         payload["systemInstruction"] = {"parts": [{"text": "\n\n".join(system_msgs)}]}
     if tool_specs:
         payload["tools"] = [{"functionDeclarations": [_to_google_tool(t) for t in tool_specs]}]
+        if force_tool:
+            payload["toolConfig"] = {"functionCallingConfig": {"mode": "ANY"}}
 
     model_path = model.removeprefix("models/")
     url = url_template.format(model=model_path)

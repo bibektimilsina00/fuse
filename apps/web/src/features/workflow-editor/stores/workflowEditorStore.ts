@@ -58,10 +58,6 @@ interface WorkflowEditorState {
   // UI state
   selectedNodeId: string | null
   setSelectedNodeId: (id: string | null) => void
-  inspectorOpen: boolean
-  setInspectorOpen: (open: boolean) => void
-  inspectorTab: 'config' | 'copilot' | 'library' | 'logs' | 'test'
-  setInspectorTab: (tab: WorkflowEditorState['inspectorTab']) => void
 
   // Reset when leaving editor
   reset: () => void
@@ -212,10 +208,6 @@ export const useWorkflowEditorStore = create<WorkflowEditorState>((set, get) => 
 
   selectedNodeId: null,
   setSelectedNodeId: (selectedNodeId) => set({ selectedNodeId }),
-  inspectorOpen: false,
-  setInspectorOpen: (inspectorOpen) => set({ inspectorOpen }),
-  inspectorTab: 'config',
-  setInspectorTab: (inspectorTab) => set({ inspectorTab }),
 
   reset: () => set({
     workflow: null,
@@ -228,7 +220,5 @@ export const useWorkflowEditorStore = create<WorkflowEditorState>((set, get) => 
     saveState: 'saved',
     versionVector: 0,
     selectedNodeId: null,
-    inspectorOpen: false,
-    inspectorTab: 'config',
   }),
 }))

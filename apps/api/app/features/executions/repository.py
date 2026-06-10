@@ -129,7 +129,7 @@ class ExecutionRepository:
         level: str = "info",
         node_id: str | None = None,
         payload: dict | None = None,
-    ) -> None:
+    ) -> ExecutionLog:
         log = ExecutionLog(
             execution_id=execution_id,
             node_id=node_id,
@@ -139,6 +139,8 @@ class ExecutionRepository:
         )
         self.db.add(log)
         await self.db.commit()
+        await self.db.refresh(log)
+        return log
 
     async def save_pause(
         self,

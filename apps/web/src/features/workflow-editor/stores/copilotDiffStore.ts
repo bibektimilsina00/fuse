@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Node, Edge } from 'reactflow'
 import { useWorkflowEditorStore } from './workflowEditorStore'
+import { editorAPI } from '../services/editorAPI'
 
 interface ProposedGraph {
   nodes: Node[]
@@ -18,8 +19,9 @@ interface CopilotDiffState {
   proposed: ProposedGraph | null
   baseline: ProposedGraph | null
   summary: DiffSummary | null
-  setProposal: (graph: ProposedGraph) => void
-  accept: () => void
+  proposedName: string | null
+  setProposal: (graph: ProposedGraph, name?: string | null) => void
+  accept: () => Promise<void>
   reject: () => void
 }
 
@@ -45,12 +47,15 @@ export const useCopilotDiffStore = create<CopilotDiffState>((set, get) => ({
   proposed: null,
   baseline: null,
   summary: null,
+  proposedName: null,
 
-  setProposal: (graph) => {
+  setProposal: (graph, name) => {
     const editor = useWorkflowEditorStore.getState()
     const summary = diffNodes(editor.nodes, graph.nodes || [])
-    if (!summary.added.length && !summary.edited.length && !summary.deleted.length) {
-      set({ active: false, proposed: null, baseline: null, summary: null })
+    const trimmedName = typeof name === 'string' ? name.trim() : ''
+    const nameChange = trimmedName && trimmedName !== editor.workflow?.name
+    if (!summary.added.length && !summary.edited.length && !summary.deleted.length && !nameChange) {
+      set({ active: false, proposed: null, baseline: null, summary: null, proposedName: null })
       return
     }
     set({
@@ -58,18 +63,27 @@ export const useCopilotDiffStore = create<CopilotDiffState>((set, get) => ({
       proposed: graph,
       baseline: { nodes: editor.nodes, edges: editor.edges },
       summary,
+      proposedName: nameChange ? trimmedName : null,
     })
   },
 
-  accept: () => {
-    const { proposed } = get()
+  accept: async () => {
+    const { proposed, proposedName } = get()
     if (!proposed) return
     const editor = useWorkflowEditorStore.getState()
     editor.pushHistory()
     editor.setNodes(proposed.nodes || [])
     editor.setEdges((proposed.edges || []).map(e => ({ ...e, type: e.type || 'custom' })))
-    set({ active: false, proposed: null, baseline: null, summary: null })
+    set({ active: false, proposed: null, baseline: null, summary: null, proposedName: null })
+    if (proposedName && editor.workflow?.id) {
+      try {
+        const updated = await editorAPI.rename(editor.workflow.id, proposedName)
+        useWorkflowEditorStore.getState().setWorkflow(updated)
+      } catch {
+        // Rename failure leaves graph accepted; topbar still shows old name.
+      }
+    }
   },
 
-  reject: () => set({ active: false, proposed: null, baseline: null, summary: null }),
+  reject: () => set({ active: false, proposed: null, baseline: null, summary: null, proposedName: null }),
 }))

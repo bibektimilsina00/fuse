@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ProtectedRoute, PublicRoute } from '@/shared/components'
+import { useReportBugShortcut } from '@/shared/observability/useReportBugShortcut'
 import { AppLayout, EditorLayout } from '@/shared/layouts'
 import { APP_ROUTES } from '@/shared/constants/routes'
 import { Login, Register, ForgotPassword, ResetPassword } from '@/features/auth'
@@ -20,6 +21,7 @@ import { Connections } from '@/features/connections'
 import { WorkspaceSettings, InviteAccept } from '@/features/workspaces'
 
 export default function App() {
+  useReportBugShortcut()
   return (
     <BrowserRouter>
       <Routes>

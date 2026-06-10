@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from 'react'
 import type { Node } from 'reactflow'
 import { useWorkflowEditorStore } from '../../../stores/workflowEditorStore'
+import { useEditorLayoutStore } from '../../../stores/editorLayoutStore'
 import type { NodeDefinition } from '../../../types/editorTypes'
 import { getDefaultPropertyValue, splitPropertyGroups } from '../utils/inspector-visibility'
 
@@ -13,7 +14,7 @@ export function useInspectorNode({ nodes, updateNodeData }: UseInspectorNodePara
   const selectedNodeId = useWorkflowEditorStore(s => s.selectedNodeId)
   const nodeDefinitions = useWorkflowEditorStore(s => s.nodeDefinitions)
   const setSelectedNodeId = useWorkflowEditorStore(s => s.setSelectedNodeId)
-  const setInspectorOpen = useWorkflowEditorStore(s => s.setInspectorOpen)
+  const closeTabPanel = useEditorLayoutStore(s => s.closeTabPanel)
 
   const selectedNode = useMemo(
     () => nodes.find(node => node.id === selectedNodeId) ?? null,
@@ -72,8 +73,8 @@ export function useInspectorNode({ nodes, updateNodeData }: UseInspectorNodePara
 
   const closeInspector = useCallback(() => {
     setSelectedNodeId(null)
-    setInspectorOpen(false)
-  }, [setInspectorOpen, setSelectedNodeId])
+    closeTabPanel('config')
+  }, [closeTabPanel, setSelectedNodeId])
 
   const showAdvanced = (selectedNode?.data?.showAdvanced as boolean | undefined) ?? false
 

@@ -6,9 +6,17 @@ import { useWorkflowEditorStore } from '../stores/workflowEditorStore'
 import { useCopilotDiffStore } from '../stores/copilotDiffStore'
 import { useCopilotPendingStore } from '../stores/copilotPendingStore'
 
+export type ToolCallStatus = 'running' | 'success' | 'failed'
+
+export interface ToolCall {
+  tool: string
+  status: ToolCallStatus
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+  toolCalls?: ToolCall[]
 }
 
 export interface SlashCommand {
@@ -25,12 +33,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
   { cmd: '/find', hint: 'Find a node or integration', Icon: Search },
 ]
 
-const INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    role: 'assistant',
-    content: "Hi — describe what you want to build or change, and I'll edit the workflow. Try a slash command, or just ask.",
-  },
-]
+const INITIAL_MESSAGES: ChatMessage[] = []
 
 export function useCopilotChat() {
   const [msgs, setMsgs] = useState<ChatMessage[]>(INITIAL_MESSAGES)
@@ -124,7 +127,37 @@ export function useCopilotChat() {
     scrollToBottom()
   }
 
-  const send = async (text?: string) => {
+  const appendToolCall = (tool: string) => {
+    setMsgs(m => {
+      const copy = [...m]
+      const last = copy[copy.length - 1]
+      if (last?.role !== 'assistant') return copy
+      copy[copy.length - 1] = {
+        ...last,
+        toolCalls: [...(last.toolCalls ?? []), { tool, status: 'running' }],
+      }
+      return copy
+    })
+  }
+
+  const finalizeToolCall = (tool: string, status: 'success' | 'failed') => {
+    setMsgs(m => {
+      const copy = [...m]
+      const last = copy[copy.length - 1]
+      if (last?.role !== 'assistant' || !last.toolCalls?.length) return copy
+      const calls = [...last.toolCalls]
+      for (let i = calls.length - 1; i >= 0; i--) {
+        if (calls[i].status === 'running' && (calls[i].tool === tool || !tool)) {
+          calls[i] = { ...calls[i], status }
+          break
+        }
+      }
+      copy[copy.length - 1] = { ...last, toolCalls: calls }
+      return copy
+    })
+  }
+
+  const send = async (text?: string, baseMsgs?: ChatMessage[]) => {
     const content = (text ?? input).trim()
     if (!content || busy) return
 
@@ -135,12 +168,13 @@ export function useCopilotChat() {
       return
     }
 
+    const seed = baseMsgs ?? msgs
     const userMsg: ChatMessage = { role: 'user', content }
-    const history = [...msgs, userMsg]
+    const history = [...seed, userMsg]
       .filter(m => m.content)
       .map(m => ({ role: m.role, content: m.content }))
 
-    setMsgs(m => [...m, userMsg, { role: 'assistant', content: '' }])
+    setMsgs(() => [...seed, userMsg, { role: 'assistant', content: '' }])
     updateInput('')
     setBusy(true)
     setError(null)
@@ -162,9 +196,14 @@ export function useCopilotChat() {
       for await (const ev of stream) {
         if (ev.type === 'text_delta') {
           appendToAssistant(String(ev.content ?? ''))
+        } else if (ev.type === 'tool_start') {
+          appendToolCall(String(ev.tool ?? 'tool'))
+        } else if (ev.type === 'tool_result') {
+          finalizeToolCall(String(ev.tool ?? ''), ev.success === false ? 'failed' : 'success')
         } else if (ev.type === 'workflow_proposed') {
           useCopilotDiffStore.getState().setProposal(
             ev.graph as { nodes: Node[]; edges: Edge[] },
+            typeof ev.name === 'string' ? ev.name : null,
           )
         } else if (ev.type === 'session_saved') {
           setSessionId(String(ev.session_id ?? '') || null)
@@ -193,6 +232,27 @@ export function useCopilotChat() {
   const cancel = () => {
     abortRef.current?.abort()
     setBusy(false)
+  }
+
+  /** Re-run the user prompt that produced the given assistant message. */
+  const retryFromAssistant = (assistantIdx: number) => {
+    let userIdx = -1
+    for (let i = assistantIdx - 1; i >= 0; i--) {
+      if (msgs[i].role === 'user') { userIdx = i; break }
+    }
+    if (userIdx < 0) return
+    const userText = msgs[userIdx].content
+    const truncated = msgs.slice(0, userIdx)
+    setMsgs(truncated)
+    void send(userText, truncated)
+  }
+
+  /** Replace a user message's content and re-run from that point. */
+  const editAndResend = (userIdx: number, newContent: string) => {
+    if (msgs[userIdx]?.role !== 'user') return
+    const truncated = msgs.slice(0, userIdx)
+    setMsgs(truncated)
+    void send(newContent, truncated)
   }
 
   // "Fix with Copilot" and other surfaces dispatch a prefilled message.
@@ -282,6 +342,8 @@ export function useCopilotChat() {
     quickActions,
     send,
     cancel,
+    retryFromAssistant,
+    editAndResend,
     onKeyDown,
     selectSlashCommand,
     // sessions

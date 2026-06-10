@@ -16,6 +16,7 @@ import { buildNodeTypes } from '../../constants/nodeTypes'
 import { CustomEdge } from '../edges/CustomEdge'
 import { ContextMenu, type ContextMenuItem } from '../context-menu/ContextMenu'
 import { useWorkflowEditorStore } from '../../stores/workflowEditorStore'
+import { useEditorLayoutStore } from '../../stores/editorLayoutStore'
 
 const edgeTypes = { custom: CustomEdge }
 
@@ -38,7 +39,7 @@ interface MenuState {
 
 function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectNode, interactive = true }: Props) {
   const nodeDefinitions = useWorkflowEditorStore(useShallow(s => s.nodeDefinitions))
-  const setInspectorTab = useWorkflowEditorStore(s => s.setInspectorTab)
+  const focusTab = useEditorLayoutStore(s => s.focusTab)
   const setNodes = useWorkflowEditorStore(s => s.setNodes)
   const pushHistory = useWorkflowEditorStore(s => s.pushHistory)
   const { screenToFlowPosition, fitView } = useReactFlow()
@@ -94,7 +95,7 @@ function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectN
       const label = (node?.data?.label as string) || node?.type || 'this node'
       const fixWithCopilot = () => {
         s.setSelectedNodeId(id)
-        s.setInspectorTab('copilot')
+        useEditorLayoutStore.getState().focusTab('copilot')
         // Defer so the Copilot panel mounts + registers its listener first.
         setTimeout(
           () =>
@@ -117,7 +118,7 @@ function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectN
     return [
       { label: 'Paste', shortcut: '⌘V', disabled: !s.clipboard, onClick: () => s.paste() },
       { label: 'Select all', shortcut: '⌘A', onClick: () => s.selectAll() },
-      { label: 'Add node', dividerBefore: true, onClick: () => s.setInspectorTab('library') },
+      { label: 'Add node', dividerBefore: true, onClick: () => useEditorLayoutStore.getState().focusTab('library') },
       { label: 'Fit view', onClick: () => fitView({ duration: 300, padding: 0.2 }) },
       { label: 'Undo', shortcut: '⌘Z', dividerBefore: true, disabled: !s.past.length, onClick: () => s.undo() },
       { label: 'Redo', shortcut: '⌘⇧Z', disabled: !s.future.length, onClick: () => s.redo() },
@@ -170,7 +171,7 @@ function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectN
             style={{ zIndex: 4 }}
           >
             <button
-              onClick={() => setInspectorTab('library')}
+              onClick={() => focusTab('library')}
               className="flex w-[48px] h-[48px] rounded-[12px] bg-[var(--surface)] border border-[var(--border-faint)] items-center justify-center transition-colors hover:bg-[var(--surface-2)] hover:border-[var(--border-soft)]"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" strokeWidth="1.5">

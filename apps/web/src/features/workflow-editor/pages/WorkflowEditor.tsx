@@ -7,10 +7,11 @@ import { useWorkflowEditor } from '../hooks/useWorkflowEditor'
 import { useEditorShortcuts } from '../hooks/useEditorShortcuts'
 import { useCopilotDiffStore } from '../stores/copilotDiffStore'
 import { useCopilotPendingStore } from '../stores/copilotPendingStore'
-import { useWorkflowEditorStore } from '../stores/workflowEditorStore'
+import { useEditorLayoutStore } from '../stores/editorLayoutStore'
 import { EditorTopbar } from '../components/topbar/EditorTopbar'
 import { EditorCanvas } from '../components/canvas/EditorCanvas'
 import { EditorRightPanel } from '../components/right-panel/EditorRightPanel'
+import { BottomPanel } from '../components/bottom-panel/BottomPanel'
 import { EditorLoading } from '../components/overlays/EditorLoading'
 import { EditorError } from '../components/overlays/EditorError'
 
@@ -60,12 +61,12 @@ export function WorkflowEditor() {
 
   const canvasEdges = diffActive && proposed ? proposed.edges : edges
 
-  // If we arrived with a parked prompt (e.g. from the dashboard), open the
-  // Copilot tab so the panel mounts and consumes it on its own.
+  // If we arrived with a parked prompt (e.g. from the dashboard), focus the
+  // Copilot tab in whichever zone hosts it.
   const hasPending = useCopilotPendingStore(s => !!s.prompt)
   useEffect(() => {
     if (hasPending && workflow?.id) {
-      useWorkflowEditorStore.getState().setInspectorTab('copilot')
+      useEditorLayoutStore.getState().focusTab('copilot')
     }
   }, [hasPending, workflow?.id])
 
@@ -83,15 +84,23 @@ export function WorkflowEditor() {
           onRename={(name) => rename(name)}
         />
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          <EditorCanvas
-            nodes={canvasNodes}
-            edges={canvasEdges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onSelectNode={selectNode}
-            interactive={!diffActive}
-          />
+          <div className="relative flex min-w-0 flex-1">
+            <EditorCanvas
+              nodes={canvasNodes}
+              edges={canvasEdges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onSelectNode={selectNode}
+              interactive={!diffActive}
+            />
+            <BottomPanel
+              nodes={nodes}
+              updateNodeData={updateNodeData}
+              onRun={() => run()}
+              isRunning={isRunning}
+            />
+          </div>
           <EditorRightPanel
             nodes={nodes}
             updateNodeData={updateNodeData}

@@ -61,6 +61,7 @@ export function AppSidebar({ controller }: AppSidebarProps) {
               sectionName={section.group}
               isWorkflows={section.isWorkflows}
               workflowCount={workflows.length}
+              isOpen={!!openGroups[section.group]}
               onToggle={() => toggleGroup(section.group)}
               onOpenMenu={event => openAnchoredMenu(event, 'group')}
               onCreateWorkflow={() => openCreateWorkflow()}
@@ -136,9 +137,9 @@ export function AppSidebar({ controller }: AppSidebarProps) {
         ))}
       </div>
 
-      <div className="shrink-0 p-[8px] border-t border-[var(--border-faint)] flex gap-[4px] group-data-[collapsed=true]/shell:hidden">
-        <button className="flex-1 inline-flex items-center justify-center gap-[6px] py-[7px] px-[8px] rounded-[7px] text-[12px] text-[var(--text-mute)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px]" type="button"><Icons.Help /> Help &amp; docs</button>
-        <button className="flex-1 inline-flex items-center justify-center gap-[6px] py-[7px] px-[8px] rounded-[7px] text-[12px] text-[var(--text-mute)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px]" type="button"><Icons.Feedback /> Feedback</button>
+      <div className="shrink-0 h-[36px] px-[6px] border-t border-[var(--border-faint)] flex items-center gap-[4px] group-data-[collapsed=true]/shell:hidden">
+        <button className="flex-1 inline-flex items-center justify-center gap-[6px] py-[4px] px-[8px] rounded-[7px] text-[12px] text-[var(--text-mute)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px]" type="button"><Icons.Help /> Help &amp; docs</button>
+        <button className="flex-1 inline-flex items-center justify-center gap-[6px] py-[4px] px-[8px] rounded-[7px] text-[12px] text-[var(--text-mute)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px]" type="button"><Icons.Feedback /> Feedback</button>
       </div>
     </aside>
   )
@@ -178,6 +179,7 @@ interface SidebarGroupHeaderProps {
   isWorkflows?: boolean
   workflowCount: number
   menuOpen: string | null
+  isOpen: boolean
   onToggle: () => void
   onOpenMenu: (event: React.MouseEvent) => void
   onCreateWorkflow: () => void
@@ -188,13 +190,21 @@ function SidebarGroupHeader({
   isWorkflows,
   workflowCount,
   menuOpen,
+  isOpen,
   onToggle,
   onOpenMenu,
   onCreateWorkflow,
 }: SidebarGroupHeaderProps) {
   return (
     <div className="flex items-center gap-[6px] pt-[8px] px-[10px] pb-[4px] font-mono text-[10px] tracking-widest uppercase text-[var(--text-dim)] font-medium cursor-pointer w-full text-left transition-colors duration-100 hover:text-[var(--text-mute)] group-data-[collapsed=true]/shell:hidden relative" onClick={onToggle}>
-      <span className="inline-flex w-[12px] h-[12px] transition-transform duration-160 [&_svg]:w-[11px] [&_svg]:h-[11px]"><Icons.Caret /></span>
+      <span
+        className={cn(
+          'inline-flex w-[12px] h-[12px] transition-transform duration-160 [&_svg]:w-[11px] [&_svg]:h-[11px]',
+          !isOpen && '-rotate-90',
+        )}
+      >
+        <Icons.Caret />
+      </span>
       <span className="flex-1">{sectionName}</span>
       {isWorkflows && (
         <>
@@ -265,7 +275,7 @@ function WorkflowTree({
   onToggleWorkflowActive,
 }: WorkflowTreeProps) {
   return (
-    <div ref={setRootNodeRef} className="flex flex-col gap-[1px] group-data-[collapsed=true]/shell:hidden">
+    <div ref={setRootNodeRef} className="flex flex-col gap-[1px] pl-[14px] group-data-[collapsed=true]/shell:hidden group-data-[collapsed=true]/shell:pl-0">
       {isLoading ? (
         <div className="flex items-center justify-center py-4">
           <Spinner />
