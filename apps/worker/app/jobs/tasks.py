@@ -96,23 +96,29 @@ async def _run_workflow(
     async def log_and_emit(
         message: str, level: str = "info", node_id: str | None = None, payload: Any = None
     ) -> None:
-        from datetime import UTC, datetime
-
         async with AsyncSessionLocal() as db:
             repo = ExecutionRepository(db)
-            await repo.add_log(
+            log = await repo.add_log(
                 uuid.UUID(execution_id), message, level=level, node_id=node_id, payload=payload
             )
+        # Use the DB-stored timestamp so live + catch-up events carry the
+        # exact same timestamp string (catch-up reads `log.timestamp`).
+        ts = log.timestamp.isoformat()
+        if not ts.endswith("Z") and "+00:00" not in ts:
+            ts += "Z"
         await emitter.emit(
             "log_synced",
             {
                 "type": "log_synced",
+                # Stable DB id so the frontend dedupes live + catch-up events.
+                "id": str(log.id),
                 "node_id": node_id,
                 "lvl": "err" if level == "error" else ("warn" if level == "warn" else "info"),
                 "src": workflow_name,
                 "msg": message,
                 "payload": payload,
-                "t": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+                "t": ts,
+                "timestamp": ts,
             },
         )
 

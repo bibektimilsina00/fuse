@@ -1,21 +1,40 @@
-import React, { useState } from 'react'
-import { Icons, useToast } from '@/shared/components'
+import { useState, type KeyboardEvent } from 'react'
+import { Mic, ArrowUp, Loader2, X } from 'lucide-react'
+import { cn } from '@/lib/cn'
+import { useVoiceInput } from '@/shared/hooks/useVoiceInput'
 
 interface PromptCardProps {
-  onSubmit: (prompt: string, mode: 'flow' | 'agent') => void
+  prompt: string
+  onPromptChange: (next: string) => void
+  onSubmit: () => void
+  busy?: boolean
+  statusMessage?: string
+  onCancel?: () => void
+  placeholder?: string
 }
 
-export function PromptCard({ onSubmit }: PromptCardProps) {
-  const { toast } = useToast()
-  const [prompt, setPrompt] = useState('')
-  const [mode, setMode] = useState<'flow' | 'agent'>('flow')
+/**
+ * Controlled prompt card (Stitch-inspired): gradient border on focus / busy,
+ * generous textarea, footer swaps to a status row while busy.
+ */
+export function PromptCard({
+  prompt,
+  onPromptChange,
+  onSubmit,
+  busy = false,
+  statusMessage,
+  onCancel,
+  placeholder = 'What workflow shall we automate?',
+}: PromptCardProps) {
+  const [focused, setFocused] = useState(false)
+  const voice = useVoiceInput({ value: prompt, onChange: onPromptChange })
 
   const handleSend = () => {
-    onSubmit(prompt, mode)
-    setPrompt('')
+    if (!prompt.trim() || busy) return
+    onSubmit()
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
@@ -23,67 +42,90 @@ export function PromptCard({ onSubmit }: PromptCardProps) {
   }
 
   return (
-    <div className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px] pt-[16px] px-[18px] pb-[12px] transition-colors duration-200 focus-within:border-[var(--accent-line)]">
-      <textarea className="w-full bg-transparent border-none outline-none resize-none text-[14.5px] text-[var(--text)] min-h-[60px] leading-[1.5] placeholder:text-[var(--text-faint)]"
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Describe an automation. fuse drafts the flow, wires the connectors, and tests it before shipping."
-      />
-      <div className="flex items-center justify-between mt-[6px] gap-[8px]">
-        <div className="flex items-center gap-[4px]">
-          <button
-            className="w-[28px] h-[28px] inline-flex items-center justify-center rounded-[7px] text-[var(--text-mute)] transition-colors duration-120 hover:bg-[var(--surface)] hover:text-[var(--text)]"
-            title="Attach"
-            onClick={() => toast('Attachment feature', { description: 'File uploads will be available in the next release.' })}
-          >
-            <Icons.Plus className="w-3.5 h-3.5" />
-          </button>
-          <div className="inline-flex bg-[var(--surface)] rounded-[7px] p-[2px] ml-[4px]">
-            <button
-              className={mode === 'flow' ? "bg-[var(--surface-2)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)] flex items-center gap-[6px] py-[5px] px-[10px] text-[12px] rounded-[5px] font-medium" : "flex items-center gap-[6px] py-[5px] px-[10px] text-[12px] text-[var(--text-mute)] rounded-[5px] font-medium"}
-              onClick={() => setMode('flow')}
-            >
-              <Icons.Flow className="w-3 h-3" />
-              <span>Flow</span>
-            </button>
-            <button
-              className={mode === 'agent' ? "bg-[var(--surface-2)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)] flex items-center gap-[6px] py-[5px] px-[10px] text-[12px] rounded-[5px] font-medium" : "flex items-center gap-[6px] py-[5px] px-[10px] text-[12px] text-[var(--text-mute)] rounded-[5px] font-medium"}
-              onClick={() => setMode('agent')}
-            >
-              <Icons.Spark className="w-3 h-3 text-accent" />
-              <span>Agent</span>
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center gap-[4px]">
-          <button
-            className="w-[28px] h-[28px] inline-flex items-center justify-center rounded-[7px] text-[var(--text-mute)] transition-colors duration-120 hover:bg-[var(--surface)] hover:text-[var(--text)]"
-            title="Connections"
-            onClick={() => toast('Quick connections view', { description: 'Showing 18 active connectors.' })}
-          >
-            <Icons.Plug className="w-3.5 h-3.5" />
-          </button>
-          <div
-            className={`inline-flex items-center gap-[6px] py-[5px] pr-[9px] pl-[8px] rounded-[7px] bg-[var(--surface)] text-[12px] text-[var(--text)] border border-[var(--border-faint)] font-medium cursor-pointer`}
-            onClick={() => toast('Model selected', { description: 'Currently utilizing Filament 2 for generation.' })}
-          >
-            <span className="text-[var(--accent)] inline-flex">
-              <Icons.Spark style={{ width: 12, height: 12 }} />
-            </span>
-            <span>Filament 2</span>
-            <Icons.Caret style={{ width: 11, height: 11, color: 'var(--text-mute)' }} />
-          </div>
-          <button
-            className="w-[28px] h-[28px] inline-flex items-center justify-center rounded-[7px] text-[var(--text-mute)] transition-colors duration-120 hover:bg-[var(--surface)] hover:text-[var(--text)]"
-            title="Dictate"
-            onClick={() => toast('Voice Input', { description: 'Speech-to-text is currently being trained.' })}
-          >
-            <Icons.Mic className="w-3.5 h-3.5" />
-          </button>
-          <button className="w-[28px] h-[28px] rounded-[7px] bg-[var(--text)] text-[var(--bg)] inline-flex items-center justify-center hover:bg-[var(--accent)] hover:text-[oklch(0.18_0.02_250)]" onClick={handleSend} title="Send prompt">
-            <Icons.ArrowUp className="w-3.5 h-3.5" />
-          </button>
+    <div
+      className={cn(
+        'rounded-[16px] p-px transition-all duration-200',
+        focused || busy
+          ? 'bg-gradient-to-br from-[var(--accent)] via-[var(--accent-line)] to-[var(--accent-soft)]'
+          : 'bg-[var(--border-faint)]',
+      )}
+    >
+      <div className="rounded-[15px] bg-[var(--bg)] px-5 pt-5 pb-3">
+        <textarea
+          value={prompt}
+          onChange={e => onPromptChange(e.target.value)}
+          onKeyDown={onKey}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          disabled={busy}
+          rows={5}
+          placeholder={placeholder}
+          className="block min-h-[120px] w-full resize-none border-none bg-transparent text-[15px] leading-[1.55] text-[var(--text)] outline-none placeholder:text-[var(--text-faint)] disabled:opacity-70"
+        />
+
+        <div className="mt-2 flex items-center justify-between gap-2">
+          {busy ? (
+            <div className="flex w-full items-center gap-2">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--accent)]" />
+              <span className="flex-1 text-[12.5px] text-[var(--text-mute)]">
+                {statusMessage ?? 'Working…'}
+              </span>
+              {onCancel && (
+                <button
+                  onClick={onCancel}
+                  title="Cancel"
+                  className="inline-flex h-7 items-center gap-1 rounded-[7px] px-2 text-[11.5px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+                >
+                  <X className="h-3 w-3" /> Cancel
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              <span className="select-none text-[11px] text-[var(--text-faint)]">
+                <kbd className="rounded border border-[var(--border-faint)] bg-[var(--surface)] px-1 py-px font-mono text-[10px]">
+                  ↵
+                </kbd>{' '}
+                send ·{' '}
+                <kbd className="rounded border border-[var(--border-faint)] bg-[var(--surface)] px-1 py-px font-mono text-[10px]">
+                  ⇧↵
+                </kbd>{' '}
+                new line
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={voice.toggle}
+                  disabled={!voice.supported}
+                  title={
+                    voice.supported
+                      ? voice.listening
+                        ? 'Stop dictation'
+                        : 'Dictate'
+                      : 'Voice not supported in this browser'
+                  }
+                  className={cn(
+                    'inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+                    voice.listening
+                      ? 'animate-pulse bg-[var(--err)]/15 text-[var(--err)]'
+                      : 'text-[var(--text-mute)] hover:bg-[var(--surface)] hover:text-[var(--text)]',
+                    !voice.supported && 'cursor-not-allowed opacity-40',
+                  )}
+                >
+                  <Mic className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSend}
+                  disabled={!prompt.trim()}
+                  title="Send to Copilot"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--text)] text-[var(--bg)] transition-all duration-150 hover:-translate-y-px hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:translate-y-0"
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -27,6 +27,7 @@ export function WorkflowNode({ id, type, data, selected }: NodeProps) {
 
   const properties: Record<string, unknown> = data.properties ?? {}
   const showAdvanced = (data?.showAdvanced as boolean | undefined) ?? false
+  const diffMark = data?.__diff as 'new' | 'edited' | 'deleted' | undefined
 
   const visibleProps = getVisibleNodeProperties(definition.properties, properties, showAdvanced)
 
@@ -40,11 +41,15 @@ export function WorkflowNode({ id, type, data, selected }: NodeProps) {
         className={cn(
           'workflow-drag-handle relative z-[20] w-[168px] select-none rounded-[10px] border bg-bg2 transition-colors',
           !isLocked ? 'cursor-grab active:cursor-grabbing' : 'cursor-default',
-          executionStatus === 'completed' && 'node-status-completed',
-          executionStatus === 'failed'    && 'node-status-failed',
-          executionStatus === 'running'   && 'border-border',
-          !executionStatus && selected && !isLocked && 'border-[var(--text-dim)] shadow-[0_0_0_1px_var(--text-dim)]',
-          !executionStatus && (!selected || isLocked) && 'border-border',
+          // Copilot diff overlay takes precedence over normal state styling
+          diffMark === 'new'     && 'border-[var(--ok)] shadow-[0_0_0_1px_var(--ok)]',
+          diffMark === 'edited'  && 'border-[var(--warn)] shadow-[0_0_0_1px_var(--warn)]',
+          diffMark === 'deleted' && 'border-dashed border-[var(--err)] opacity-50',
+          !diffMark && executionStatus === 'completed' && 'node-status-completed',
+          !diffMark && executionStatus === 'failed'    && 'node-status-failed',
+          !diffMark && executionStatus === 'running'   && 'border-border',
+          !diffMark && !executionStatus && selected && !isLocked && 'border-[var(--text-dim)] shadow-[0_0_0_1px_var(--text-dim)]',
+          !diffMark && !executionStatus && (!selected || isLocked) && 'border-border',
         )}
       >
         <NodeToolbar id={id} />

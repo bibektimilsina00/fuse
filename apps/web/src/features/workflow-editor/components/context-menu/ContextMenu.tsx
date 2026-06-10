@@ -24,14 +24,17 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const onDown = (e: MouseEvent) => {
+    // Capture phase — ReactFlow stops bubble propagation of pointerdown on its
+    // pane, so a bubble-phase listener never sees the click and the menu
+    // refuses to close. Capture fires before any handler can cancel it.
+    const onDown = (e: PointerEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose()
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('mousedown', onDown)
+    document.addEventListener('pointerdown', onDown, true)
     document.addEventListener('keydown', onKey)
     return () => {
-      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('pointerdown', onDown, true)
       document.removeEventListener('keydown', onKey)
     }
   }, [onClose])

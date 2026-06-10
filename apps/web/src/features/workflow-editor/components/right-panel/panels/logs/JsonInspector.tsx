@@ -1,0 +1,246 @@
+import { useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import {
+  Copy, Download, WrapText, MoreVertical, Search, X,
+  Maximize2, Minimize2, SlidersHorizontal, Braces, ListTree, FileJson2,
+} from 'lucide-react'
+import { cn } from '@/lib/cn'
+import { useWorkflowEditorStore } from '../../../../stores/workflowEditorStore'
+import { useEditorLayoutStore } from '../../../../stores/editorLayoutStore'
+import { IconBtn } from './IconBtn'
+import { OverflowMenu, type OverflowItem } from './OverflowMenu'
+import { JsonCodeView } from './JsonCodeView'
+import { JsonTreeView } from './JsonTreeView'
+import { stringifyJson } from './json-utils'
+import type { Tab, ViewMode } from './types'
+
+interface Props {
+  payload: unknown
+  nodeId: string | null
+  /** When provided, renders a header row with Output/Input tabs. */
+  tab?: Tab
+  onTabChange?: (tab: Tab) => void
+  /** Filename stem used when the user downloads the JSON (default: `nodeId`). */
+  downloadName?: string
+  /** Extra label shown in the header when no tab row is rendered. */
+  title?: string
+  /** Optional banner rendered between the toolbar/search row and the body. */
+  headerBanner?: React.ReactNode
+  /** Optional row rendered below the body — e.g. action buttons. */
+  footer?: React.ReactNode
+}
+
+/**
+ * Generic JSON inspector — toolbar (Copy / Download / Wrap / More) plus a
+ * body that switches between a collapsible tree and a syntax-highlighted
+ * code view. Can render with or without the Output/Input tabs.
+ *
+ * Fullscreen mode portals the inspector into a backdrop-dimmed modal.
+ */
+export function JsonInspector({
+  payload,
+  nodeId,
+  tab,
+  onTabChange,
+  downloadName,
+  title,
+  headerBanner,
+  footer,
+}: Props) {
+  const [view, setView] = useState<ViewMode>('tree')
+  const [wrap, setWrap] = useState(true)
+  const [pretty, setPretty] = useState(true)
+  const [searchActive, setSearchActive] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [fullscreen, setFullscreen] = useState(false)
+  const [menuRect, setMenuRect] = useState<DOMRect | null>(null)
+  const menuBtnRef = useRef<HTMLButtonElement>(null)
+
+  const empty = payload === null || payload === undefined
+
+  const codeSource = useMemo(() => stringifyJson(payload, pretty), [payload, pretty])
+
+  const visibleCode = useMemo(() => {
+    if (!searchActive || !searchQuery.trim()) return codeSource
+    const q = searchQuery.toLowerCase()
+    return codeSource
+      .split('\n')
+      .filter((line) => line.toLowerCase().includes(q))
+      .join('\n')
+  }, [codeSource, searchActive, searchQuery])
+
+  const copyJson = () => { void navigator.clipboard.writeText(codeSource) }
+  const copyNodeId = () => { if (nodeId) void navigator.clipboard.writeText(nodeId) }
+  const downloadJson = () => {
+    const blob = new Blob([codeSource], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${downloadName ?? nodeId ?? 'log'}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+  const openInspector = () => {
+    if (!nodeId) return
+    useWorkflowEditorStore.getState().setSelectedNodeId(nodeId)
+    useEditorLayoutStore.getState().focusTab('config')
+  }
+  const openMenu = () => setMenuRect(menuBtnRef.current?.getBoundingClientRect() ?? null)
+  const closeMenu = () => setMenuRect(null)
+
+  const overflowItems: OverflowItem[] = [
+    {
+      label: view === 'tree' ? 'Switch to JSON view' : 'Switch to tree view',
+      icon: view === 'tree' ? <FileJson2 /> : <ListTree />,
+      onClick: () => setView((v) => (v === 'tree' ? 'code' : 'tree')),
+      disabled: empty,
+    },
+    {
+      label: pretty ? 'Show raw JSON' : 'Show pretty JSON',
+      icon: <Braces />,
+      onClick: () => setPretty((p) => !p),
+      disabled: empty || view !== 'code',
+    },
+    {
+      label: searchActive ? 'Close search' : 'Search in JSON',
+      icon: <Search />,
+      onClick: () => setSearchActive((s) => !s),
+      disabled: empty || view !== 'code',
+    },
+    {
+      label: 'Copy nodeId',
+      icon: <Copy />,
+      onClick: copyNodeId,
+      disabled: !nodeId,
+      dividerBefore: true,
+    },
+    {
+      label: 'Open node in Inspector',
+      icon: <SlidersHorizontal />,
+      onClick: openInspector,
+      disabled: !nodeId,
+    },
+    {
+      label: fullscreen ? 'Exit fullscreen' : 'Fullscreen',
+      icon: fullscreen ? <Minimize2 /> : <Maximize2 />,
+      onClick: () => setFullscreen((f) => !f),
+      dividerBefore: true,
+    },
+  ]
+
+  const body = (
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Header */}
+      <div className="flex h-[36px] shrink-0 items-center gap-1 border-b border-[var(--border-faint)] px-3">
+        {tab && onTabChange ? (
+          (['output', 'input'] as Tab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => onTabChange(t)}
+              className={cn(
+                'rounded-[6px] px-2 py-1 text-[11.5px] capitalize transition-colors',
+                tab === t
+                  ? 'bg-[var(--surface-2)] text-[var(--text)]'
+                  : 'text-[var(--text-mute)] hover:text-[var(--text)]',
+              )}
+            >
+              {t}
+            </button>
+          ))
+        ) : title ? (
+          <span className="px-1 text-[11.5px] font-medium text-[var(--text)]">{title}</span>
+        ) : null}
+
+        <div className="ml-auto flex items-center gap-0.5">
+          <IconBtn
+            icon={view === 'tree' ? <FileJson2 className="h-3.5 w-3.5" /> : <ListTree className="h-3.5 w-3.5" />}
+            title={view === 'tree' ? 'Switch to JSON view' : 'Switch to tree view'}
+            onClick={() => setView((v) => (v === 'tree' ? 'code' : 'tree'))}
+            disabled={empty}
+          />
+          <IconBtn
+            icon={<Copy className="h-3.5 w-3.5" />}
+            title="Copy JSON"
+            onClick={copyJson}
+            disabled={empty}
+          />
+          <IconBtn
+            icon={<Download className="h-3.5 w-3.5" />}
+            title="Download .json"
+            onClick={downloadJson}
+            disabled={empty}
+          />
+          <IconBtn
+            icon={<WrapText className="h-3.5 w-3.5" />}
+            title={wrap ? 'Disable wrap' : 'Wrap lines'}
+            onClick={() => setWrap((w) => !w)}
+            active={wrap}
+            disabled={empty || view !== 'code'}
+          />
+          <IconBtn
+            icon={<MoreVertical className="h-3.5 w-3.5" />}
+            title="More"
+            onClick={openMenu}
+            btnRef={menuBtnRef}
+          />
+        </div>
+      </div>
+
+      {/* Search bar */}
+      {searchActive && view === 'code' && (
+        <div className="flex shrink-0 items-center gap-2 border-b border-[var(--border-faint)] bg-[var(--surface)] px-3 py-1.5">
+          <Search className="h-3.5 w-3.5 text-[var(--text-faint)]" />
+          <input
+            autoFocus
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Filter lines…"
+            className="flex-1 bg-transparent text-[11.5px] text-[var(--text)] outline-none placeholder:text-[var(--text-faint)]"
+          />
+          <button
+            onClick={() => { setSearchActive(false); setSearchQuery('') }}
+            className="text-[var(--text-faint)] transition-colors hover:text-[var(--text)]"
+            title="Close search"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Optional banner (e.g. ErrorView headline) */}
+      {headerBanner}
+
+      {/* Body */}
+      <div className="min-h-0 flex-1 overflow-auto px-3 py-2 text-left">
+        {empty ? (
+          <div className="text-[var(--text-faint)] italic font-mono text-[11.5px]">
+            No data available.
+          </div>
+        ) : view === 'tree' ? (
+          <JsonTreeView value={payload} />
+        ) : (
+          <JsonCodeView source={visibleCode} wrap={wrap} />
+        )}
+      </div>
+
+      {/* Optional footer (e.g. ErrorView action buttons) */}
+      {footer}
+
+      {menuRect && (
+        <OverflowMenu anchorRect={menuRect} items={overflowItems} onClose={closeMenu} />
+      )}
+    </div>
+  )
+
+  if (fullscreen) {
+    return createPortal(
+      <div className="fixed inset-0 z-[9990] flex items-stretch bg-[oklch(0_0_0/0.55)] p-6 backdrop-blur-sm">
+        <div className="flex h-full w-full flex-col overflow-hidden rounded-[12px] border border-[var(--border-faint)] bg-[var(--bg-2)] shadow-[0_24px_60px_-20px_oklch(0_0_0/0.7)]">
+          {body}
+        </div>
+      </div>,
+      document.body,
+    )
+  }
+  return body
+}

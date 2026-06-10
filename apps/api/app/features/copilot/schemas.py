@@ -4,7 +4,7 @@ from sqlmodel import Field, SQLModel
 
 
 class CopilotSettingsBody(SQLModel):
-    provider: str = "anthropic"
+    provider: str = "google"
     model: str = ""
     credential_id: str | None = None
     model_mode: str = "dynamic"  # "manual" | "dynamic"
@@ -18,7 +18,7 @@ class ChatMessage(SQLModel):
 class CopilotChatRequest(SQLModel):
     messages: list[ChatMessage]
     graph: dict[str, Any] | None = None  # if None, load from DB
-    provider: str = "anthropic"
+    provider: str = "google"
     model: str | None = None
     credential_id: str | None = None
     session_id: str | None = None

@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import json
-import uuid
 from collections.abc import AsyncGenerator
 from typing import Any
 
 import httpx
 
 from apps.api.app.core.logger import get_logger
+from apps.api.app.features.copilot.engine_core.node_schema import (
+    list_trigger_node_types,
+    project_node,
+    search_node_types,
+)
 from apps.api.app.features.copilot.engine_core.operations import apply_operations
 from apps.api.app.features.copilot.engine_core.system_prompt import build_system_prompt
 
@@ -75,7 +79,15 @@ _EDIT_WORKFLOW_TOOL: dict[str, Any] = {
                         },
                         "required": ["type"],
                     },
-                }
+                },
+                "workflow_name": {
+                    "type": "string",
+                    "description": (
+                        "Short Title Case name for the workflow (e.g. 'Notion Welcome Email'). "
+                        "Set ONLY on first build of a new/empty workflow, or when the user "
+                        "explicitly asks to rename. Omit on follow-up edits."
+                    ),
+                },
             },
             "required": ["operations"],
         },
@@ -86,17 +98,61 @@ _GET_NODE_METADATA_TOOL: dict[str, Any] = {
     "type": "function",
     "function": {
         "name": "get_node_metadata",
-        "description": "Get the full metadata (all properties and their types) for a specific node type.",
+        "description": (
+            "Get the full field schema (required/optional inputs, per-operation fields, "
+            "outputs, credential) for one or more node types. Call this before adding/editing "
+            "those node types so you use valid field names."
+        ),
         "parameters": {
             "type": "object",
             "properties": {
-                "node_type": {
-                    "type": "string",
-                    "description": "Node type ID — e.g. 'action.agent', 'action.http_request'",
+                "node_types": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Node type IDs — e.g. ['action.agent', 'action.http_request']",
                 }
             },
-            "required": ["node_type"],
+            "required": ["node_types"],
         },
+    },
+}
+
+_SEARCH_NODE_TYPES_TOOL: dict[str, Any] = {
+    "type": "function",
+    "function": {
+        "name": "search_node_types",
+        "description": (
+            "Search the full node catalog by keyword to discover node types not shown in the "
+            "index. Returns matching {type, name, description}."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Keywords, e.g. 'slack', 'send email'"}
+            },
+            "required": ["query"],
+        },
+    },
+}
+
+_GET_TRIGGER_NODES_TOOL: dict[str, Any] = {
+    "type": "function",
+    "function": {
+        "name": "get_trigger_nodes",
+        "description": "List node types that can start a workflow (triggers).",
+        "parameters": {"type": "object", "properties": {}},
+    },
+}
+
+_GET_RECENT_RUN_TOOL: dict[str, Any] = {
+    "type": "function",
+    "function": {
+        "name": "get_recent_run",
+        "description": (
+            "Get the most recent execution of this workflow: status and per-node error "
+            "messages. Use this to diagnose failures before fixing the workflow."
+        ),
+        "parameters": {"type": "object", "properties": {}},
     },
 }
 
@@ -133,51 +189,83 @@ async def run_copilot(
 
     from apps.api.app.features.copilot.models import CopilotSession as CopilotSessionModel
     from apps.api.app.features.copilot.repository import CopilotSessionRepository
-    from apps.api.app.features.workflows.repository import WorkflowRepository
 
-    known_types = {m["type"] for m in node_metadata}
+    meta_by_type = {m["type"]: m for m in node_metadata}
     system_prompt = build_system_prompt(graph, node_metadata)
     current_graph = json.loads(json.dumps(graph))
+    graph_dirty = False  # any edit_workflow applied → emit workflow_proposed at the end
+    proposed_name: str | None = None  # set by model via edit_workflow.workflow_name
 
     conversation: list[dict[str, Any]] = [
         {"role": "system", "content": system_prompt},
         *messages,
     ]
-    tool_specs = [_EDIT_WORKFLOW_TOOL, _GET_NODE_METADATA_TOOL]
+    tool_specs = [
+        _EDIT_WORKFLOW_TOOL,
+        _GET_NODE_METADATA_TOOL,
+        _SEARCH_NODE_TYPES_TOOL,
+        _GET_TRIGGER_NODES_TOOL,
+        _GET_RECENT_RUN_TOOL,
+    ]
     all_tool_calls: list[dict[str, Any]] = []
 
     async with httpx.AsyncClient(timeout=120.0) as client:
         for _iter in range(MAX_ITERATIONS):
+            content = ""
+            tool_calls: list[dict[str, Any]] = []
+            # First iteration of every user turn must produce a tool call. Without
+            # this, models often return an announcement ("I'll build…") and stop,
+            # leaving the editor empty. After iter 0, AUTO lets the model summarize.
+            force_tool = _iter == 0
             try:
                 if ai_api_type == "openai_compatible":
-                    raw = await _call_openai(
-                        client, chat_completions_url, api_key, model, conversation, tool_specs
+                    stream = _stream_openai(
+                        client,
+                        chat_completions_url,
+                        api_key,
+                        model,
+                        conversation,
+                        tool_specs,
+                        force_tool=force_tool,
                     )
-                    content, tool_calls = _extract_openai(raw)
                 elif ai_api_type == "anthropic":
-                    raw = await _call_anthropic(
-                        client, chat_completions_url, api_key, model, conversation, tool_specs
+                    stream = _stream_anthropic(
+                        client,
+                        chat_completions_url,
+                        api_key,
+                        model,
+                        conversation,
+                        tool_specs,
+                        force_tool=force_tool,
                     )
-                    content, tool_calls = _extract_anthropic(raw)
                 elif ai_api_type == "google":
-                    raw = await _call_google(
-                        client, chat_completions_url, api_key, model, conversation, tool_specs
+                    stream = _stream_google(
+                        client,
+                        chat_completions_url,
+                        api_key,
+                        model,
+                        conversation,
+                        tool_specs,
+                        force_tool=force_tool,
                     )
-                    content, tool_calls = _extract_google(raw)
                 else:
                     yield _sse("error", {"message": f"Unsupported AI provider type: {ai_api_type}"})
                     return
+                async for ev in stream:
+                    if ev["type"] == "delta":
+                        if ev.get("text"):
+                            yield _sse("text_delta", {"content": ev["text"]})
+                    elif ev["type"] == "final":
+                        content = ev["content"]
+                        tool_calls = ev["tool_calls"]
             except httpx.HTTPStatusError as e:
-                yield _sse("error", {"message": f"LLM API error: HTTP {e.response.status_code}"})
+                code = e.response.status_code if e.response is not None else "?"
+                yield _sse("error", {"message": f"LLM API error: HTTP {code}"})
                 return
             except Exception as e:
                 logger.error(f"Copilot LLM call failed (iter {_iter}): {e}", exc_info=True)
                 yield _sse("error", {"message": str(e)})
                 return
-
-            # Emit text content to client
-            if content:
-                yield _sse("text_delta", {"content": content})
 
             # No tool calls → conversation complete
             if not tool_calls:
@@ -195,48 +283,126 @@ async def run_copilot(
                 # ── edit_workflow ─────────────────────────────────────────
                 if tool_name == "edit_workflow":
                     operations: list[dict[str, Any]] = args.get("operations", [])
-                    updated_graph, errors = apply_operations(current_graph, operations, known_types)
+                    res = apply_operations(current_graph, operations, meta_by_type)
+                    current_graph = res["graph"]
+                    graph_dirty = True  # propose at the end; never persists here
+                    name_arg = args.get("workflow_name")
+                    if isinstance(name_arg, str) and name_arg.strip():
+                        proposed_name = name_arg.strip()
 
-                    if errors:
-                        result: dict[str, Any] = {"success": False, "errors": errors}
-                        all_tool_calls.append(
-                            {"name": tool_name, "success": False, "result": {"error": str(errors)}}
+                    # Structured feedback so the model self-corrects (save valid parts)
+                    result: dict[str, Any] = {
+                        "success": True,
+                        "applied": len(res["applied"]),
+                        "nodes": len(current_graph.get("nodes", [])),
+                        "edges": len(current_graph.get("edges", [])),
+                    }
+                    if res["input_errors"]:
+                        msgs = [
+                            f"{e.get('node_id', '?')}.{e['field']}: {e['error']}"
+                            for e in res["input_errors"]
+                        ]
+                        result["input_validation_errors"] = msgs
+                        result["input_validation_message"] = (
+                            f"{len(msgs)} input(s) rejected (valid inputs were kept): "
+                            + "; ".join(msgs)
                         )
-                        yield _sse(
-                            "tool_result", {"tool": tool_name, "success": False, "errors": errors}
+                    if res["skipped"]:
+                        msgs = [f"{s.get('op')}: {s['reason']}" for s in res["skipped"]]
+                        result["skipped_items"] = msgs
+                        result["skipped_message"] = (
+                            f"{len(msgs)} operation(s) skipped: " + "; ".join(msgs)
                         )
-                    else:
-                        current_graph = updated_graph
+                    if res["lint"]:
+                        result["lint"] = res["lint"]
 
-                        # Persist updated graph to DB
-                        try:
-                            repo = WorkflowRepository(db)
-                            wf = await repo.get_by_id(uuid.UUID(workflow_id))
-                            if wf:
-                                await repo.update(wf, {"graph": current_graph})
-                        except Exception as e:
-                            logger.error(f"Failed to persist graph: {e}", exc_info=True)
-
-                        result = {
+                    all_tool_calls.append({"name": tool_name, "success": True, "result": result})
+                    yield _sse(
+                        "tool_result",
+                        {
+                            "tool": tool_name,
                             "success": True,
-                            "nodes": len(current_graph.get("nodes", [])),
-                            "edges": len(current_graph.get("edges", [])),
-                        }
-                        all_tool_calls.append(
-                            {"name": tool_name, "success": True, "result": result}
-                        )
-                        yield _sse("tool_result", {"tool": tool_name, "success": True})
-                        yield _sse("workflow_updated", {"graph": current_graph})
-
-                # ── get_node_metadata ─────────────────────────────────────
-                elif tool_name == "get_node_metadata":
-                    node_type = args.get("node_type", "")
-                    meta = next((m for m in node_metadata if m["type"] == node_type), None)
-                    result = meta if meta else {"error": f"Node type '{node_type}' not found"}
-                    all_tool_calls.append(
-                        {"name": tool_name, "success": meta is not None, "result": result}
+                            "applied": len(res["applied"]),
+                            **(
+                                {"input_validation_message": result["input_validation_message"]}
+                                if res["input_errors"]
+                                else {}
+                            ),
+                            **(
+                                {"skipped_message": result["skipped_message"]}
+                                if res["skipped"]
+                                else {}
+                            ),
+                        },
                     )
-                    yield _sse("tool_result", {"tool": tool_name, "success": meta is not None})
+
+                # ── get_node_metadata (batched, compressed projection) ─────
+                elif tool_name == "get_node_metadata":
+                    requested = args.get("node_types") or (
+                        [args["node_type"]] if args.get("node_type") else []
+                    )
+                    metadata: dict[str, Any] = {}
+                    missing: list[str] = []
+                    for nt in requested:
+                        meta = meta_by_type.get(nt)
+                        if meta:
+                            metadata[nt] = project_node(meta)
+                        else:
+                            missing.append(nt)
+                    result = {"metadata": metadata}
+                    if missing:
+                        result["unknown_types"] = missing
+                    all_tool_calls.append(
+                        {"name": tool_name, "success": bool(metadata), "result": result}
+                    )
+                    yield _sse("tool_result", {"tool": tool_name, "success": bool(metadata)})
+
+                # ── search_node_types ──────────────────────────────────────
+                elif tool_name == "search_node_types":
+                    matches = search_node_types(node_metadata, args.get("query", ""))
+                    result = {"results": matches}
+                    all_tool_calls.append({"name": tool_name, "success": True, "result": result})
+                    yield _sse(
+                        "tool_result",
+                        {"tool": tool_name, "success": True, "count": len(matches)},
+                    )
+
+                # ── get_trigger_nodes ──────────────────────────────────────
+                elif tool_name == "get_trigger_nodes":
+                    result = {"triggers": list_trigger_node_types(node_metadata)}
+                    all_tool_calls.append({"name": tool_name, "success": True, "result": result})
+                    yield _sse("tool_result", {"tool": tool_name, "success": True})
+
+                # ── get_recent_run (diagnostics for the fix flow) ──────────
+                elif tool_name == "get_recent_run":
+                    from apps.api.app.features.executions.repository import ExecutionRepository
+
+                    try:
+                        exec_repo = ExecutionRepository(db)
+                        runs = await exec_repo.list_by_workflow(_uuid.UUID(workflow_id))
+                        if not runs:
+                            result = {
+                                "status": "no_runs",
+                                "message": "This workflow has no runs yet.",
+                            }
+                        else:
+                            latest = runs[0]
+                            error_logs = await exec_repo.error_logs(latest.id)
+                            result = {
+                                "status": latest.status,
+                                "finished_at": latest.finished_at.isoformat()
+                                if latest.finished_at
+                                else None,
+                                "errors": [
+                                    {"node_id": log.node_id, "message": log.message}
+                                    for log in error_logs
+                                ],
+                            }
+                    except Exception as e:
+                        logger.error(f"get_recent_run failed: {e}", exc_info=True)
+                        result = {"error": "Could not load run history."}
+                    all_tool_calls.append({"name": tool_name, "success": True, "result": result})
+                    yield _sse("tool_result", {"tool": tool_name, "success": True})
 
                 else:
                     result = {"error": f"Unknown tool: '{tool_name}'"}
@@ -244,6 +410,13 @@ async def run_copilot(
                     yield _sse("tool_result", {"tool": tool_name, "success": False})
 
                 conversation.append(_build_tool_result_msg(tc, result, ai_api_type))
+
+    # ── Propose changes (no DB write — client diffs + Accept persists) ──────────
+    if graph_dirty:
+        payload: dict[str, Any] = {"graph": current_graph}
+        if proposed_name:
+            payload["name"] = proposed_name
+        yield _sse("workflow_proposed", payload)
 
     # ── Save session ──────────────────────────────────────────────────────────
     if user_id and workflow_id:
@@ -323,35 +496,81 @@ async def run_copilot(
 # ── LLM callers ───────────────────────────────────────────────────────────────
 
 
-async def _call_openai(
+async def _stream_openai(
     client: httpx.AsyncClient,
     url: str,
     api_key: str,
     model: str,
     messages: list[dict[str, Any]],
     tool_specs: list[dict[str, Any]],
-) -> dict[str, Any]:
-    payload: dict[str, Any] = {"model": model, "messages": messages}
+    force_tool: bool = False,
+) -> AsyncGenerator[dict[str, Any]]:
+    payload: dict[str, Any] = {"model": model, "messages": messages, "stream": True}
     if tool_specs:
         payload["tools"] = tool_specs
-        payload["tool_choice"] = "auto"
-    resp = await client.post(
+        payload["tool_choice"] = "required" if force_tool else "auto"
+    content = ""
+    acc: dict[int, dict[str, str]] = {}  # index -> {id, name, args(str)}
+    async with client.stream(
+        "POST",
         url,
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         json=payload,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    ) as resp:
+        if resp.status_code >= 400:
+            await resp.aread()
+            resp.raise_for_status()
+        async for line in resp.aiter_lines():
+            if not line.startswith("data:"):
+                continue
+            data = line[5:].strip()
+            if not data or data == "[DONE]":
+                continue
+            try:
+                chunk = json.loads(data)
+            except json.JSONDecodeError:
+                continue
+            choices = chunk.get("choices") or []
+            if not choices:
+                continue
+            delta = choices[0].get("delta") or {}
+            text = delta.get("content")
+            if text:
+                content += text
+                yield {"type": "delta", "text": text}
+            for tcd in delta.get("tool_calls") or []:
+                slot = acc.setdefault(tcd.get("index", 0), {"id": "", "name": "", "args": ""})
+                if tcd.get("id"):
+                    slot["id"] = tcd["id"]
+                fn = tcd.get("function") or {}
+                if fn.get("name"):
+                    slot["name"] += fn["name"]
+                if fn.get("arguments"):
+                    slot["args"] += fn["arguments"]
+    yield {"type": "final", "content": content, "tool_calls": _finalize_openai_calls(acc)}
 
 
-async def _call_anthropic(
+def _finalize_openai_calls(acc: dict[int, dict[str, str]]) -> list[dict[str, Any]]:
+    calls: list[dict[str, Any]] = []
+    for idx in sorted(acc):
+        slot = acc[idx]
+        try:
+            args = json.loads(slot["args"]) if slot["args"].strip() else {}
+        except json.JSONDecodeError:
+            args = {}
+        calls.append({"id": slot["id"] or f"call_{idx}", "name": slot["name"], "arguments": args})
+    return calls
+
+
+async def _stream_anthropic(
     client: httpx.AsyncClient,
     url: str,
     api_key: str,
     model: str,
     messages: list[dict[str, Any]],
     tool_specs: list[dict[str, Any]],
-) -> dict[str, Any]:
+    force_tool: bool = False,
+) -> AsyncGenerator[dict[str, Any]]:
     system_msgs = [m["content"] for m in messages if m.get("role") == "system"]
     chat_msgs = [
         {
@@ -363,15 +582,21 @@ async def _call_anthropic(
     ]
     payload: dict[str, Any] = {
         "model": model,
-        "max_tokens": 4096,
+        # Match the Gemini path: multi-node edit_workflow calls can blow past
+        # a 4k cap and truncate mid-tool-use (leaving the user with no graph).
+        "max_tokens": 16384,
         "messages": chat_msgs,
+        "stream": True,
     }
     if system_msgs:
         payload["system"] = "\n\n".join(system_msgs)
     if tool_specs:
         payload["tools"] = [_to_anthropic_tool(t) for t in tool_specs]
-        payload["tool_choice"] = {"type": "auto"}
-    resp = await client.post(
+        payload["tool_choice"] = {"type": "any"} if force_tool else {"type": "auto"}
+    content = ""
+    blocks: dict[int, dict[str, Any]] = {}  # index -> {type, id, name, text, json}
+    async with client.stream(
+        "POST",
         url,
         headers={
             "x-api-key": api_key,
@@ -379,108 +604,145 @@ async def _call_anthropic(
             "Content-Type": "application/json",
         },
         json=payload,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    ) as resp:
+        if resp.status_code >= 400:
+            await resp.aread()
+            resp.raise_for_status()
+        async for line in resp.aiter_lines():
+            if not line.startswith("data:"):
+                continue
+            data = line[5:].strip()
+            if not data:
+                continue
+            try:
+                ev = json.loads(data)
+            except json.JSONDecodeError:
+                continue
+            etype = ev.get("type")
+            if etype == "content_block_start":
+                cb = ev.get("content_block") or {}
+                blocks[ev.get("index", 0)] = {
+                    "type": cb.get("type"),
+                    "id": cb.get("id", ""),
+                    "name": cb.get("name", ""),
+                    "text": "",
+                    "json": "",
+                }
+            elif etype == "content_block_delta":
+                slot = blocks.setdefault(
+                    ev.get("index", 0), {"type": "text", "text": "", "json": ""}
+                )
+                delta = ev.get("delta") or {}
+                if delta.get("type") == "text_delta":
+                    text = delta.get("text", "")
+                    if text:
+                        slot["text"] += text
+                        content += text
+                        yield {"type": "delta", "text": text}
+                elif delta.get("type") == "input_json_delta":
+                    slot["json"] += delta.get("partial_json", "")
+    tool_calls: list[dict[str, Any]] = []
+    for idx in sorted(blocks):
+        b = blocks[idx]
+        if b.get("type") == "tool_use":
+            try:
+                args = json.loads(b["json"]) if b["json"].strip() else {}
+            except json.JSONDecodeError:
+                args = {}
+            tool_calls.append(
+                {"id": b.get("id") or f"toolu_{idx}", "name": b.get("name", ""), "arguments": args}
+            )
+    yield {"type": "final", "content": content, "tool_calls": tool_calls}
 
 
-async def _call_google(
+async def _stream_google(
     client: httpx.AsyncClient,
     url_template: str,
     api_key: str,
     model: str,
     messages: list[dict[str, Any]],
     tool_specs: list[dict[str, Any]],
-) -> dict[str, Any]:
+    force_tool: bool = False,
+) -> AsyncGenerator[dict[str, Any]]:
     system_msgs = [m["content"] for m in messages if m.get("role") == "system"]
     contents: list[dict[str, Any]] = []
     for m in messages:
-        if m.get("role") == "system":
+        role_in = m.get("role")
+        if role_in == "system":
             continue
-        role = "model" if m.get("role") == "assistant" else "user"
-        # Handle content that's already in Google parts format
-        content = m.get("content", "")
-        if isinstance(content, list):
-            contents.append({"role": role, "parts": content})
+        # Messages built by _build_assistant_msg / _build_tool_result_msg for Google
+        # already carry the Gemini shape: role ∈ {"model","user"} + "parts".
+        if "parts" in m:
+            contents.append({"role": role_in or "user", "parts": m["parts"]})
+            continue
+        role = "model" if role_in == "assistant" else "user"
+        content_val = m.get("content", "")
+        if isinstance(content_val, list):
+            contents.append({"role": role, "parts": content_val})
         else:
-            contents.append({"role": role, "parts": [{"text": str(content)}]})
+            contents.append({"role": role, "parts": [{"text": str(content_val)}]})
 
-    payload: dict[str, Any] = {"contents": contents}
+    payload: dict[str, Any] = {
+        "contents": contents,
+        # A single edit_workflow call easily exceeds the default ~2k output
+        # token cap for a multi-node workflow (each node's properties + edges
+        # are emitted inline). Raising this prevents the model from truncating
+        # mid-tool-call, which manifests as "text-only" iterations that leave
+        # the user with no workflow.
+        "generationConfig": {"maxOutputTokens": 16384},
+    }
     if system_msgs:
         payload["systemInstruction"] = {"parts": [{"text": "\n\n".join(system_msgs)}]}
     if tool_specs:
         payload["tools"] = [{"functionDeclarations": [_to_google_tool(t) for t in tool_specs]}]
+        if force_tool:
+            payload["toolConfig"] = {"functionCallingConfig": {"mode": "ANY"}}
 
     model_path = model.removeprefix("models/")
     url = url_template.format(model=model_path)
-    resp = await client.post(
+    if ":generateContent" in url:
+        url = url.replace(":generateContent", ":streamGenerateContent")
+
+    content = ""
+    tool_calls: list[dict[str, Any]] = []
+    async with client.stream(
+        "POST",
         url,
-        params={"key": api_key},
+        params={"key": api_key, "alt": "sse"},
         headers={"Content-Type": "application/json"},
         json=payload,
-    )
-    resp.raise_for_status()
-    return resp.json()
-
-
-# ── Response extractors ───────────────────────────────────────────────────────
-
-
-def _extract_openai(raw: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
-    choices = raw.get("choices") or []
-    message = (choices[0] if choices else {}).get("message") or {}
-    content = str(message.get("content") or "")
-    tool_calls: list[dict[str, Any]] = []
-    for tc in message.get("tool_calls") or []:
-        fn = tc.get("function") or {}
-        try:
-            args = json.loads(fn.get("arguments", "{}"))
-        except json.JSONDecodeError:
-            args = {}
-        tool_calls.append({"id": tc.get("id", ""), "name": fn.get("name", ""), "arguments": args})
-    return content, tool_calls
-
-
-def _extract_anthropic(raw: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
-    blocks = raw.get("content") or []
-    text_parts: list[str] = []
-    tool_calls: list[dict[str, Any]] = []
-    for block in blocks:
-        if not isinstance(block, dict):
-            continue
-        if block.get("type") == "text":
-            text_parts.append(block.get("text", ""))
-        elif block.get("type") == "tool_use":
-            tool_calls.append(
-                {
-                    "id": block.get("id", ""),
-                    "name": block.get("name", ""),
-                    "arguments": block.get("input") or {},
-                }
-            )
-    return "".join(text_parts), tool_calls
-
-
-def _extract_google(raw: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
-    candidates = raw.get("candidates") or []
-    parts = (candidates[0] if candidates else {}).get("content", {}).get("parts", [])
-    text_parts: list[str] = []
-    tool_calls: list[dict[str, Any]] = []
-    for part in parts:
-        if not isinstance(part, dict):
-            continue
-        if "text" in part:
-            text_parts.append(part["text"])
-        if "functionCall" in part:
-            call = part["functionCall"]
-            tool_calls.append(
-                {
-                    "id": call.get("name", ""),
-                    "name": call.get("name", ""),
-                    "arguments": call.get("args") or {},
-                }
-            )
-    return "".join(text_parts), tool_calls
+    ) as resp:
+        if resp.status_code >= 400:
+            await resp.aread()
+            resp.raise_for_status()
+        async for line in resp.aiter_lines():
+            if not line.startswith("data:"):
+                continue
+            data = line[5:].strip()
+            if not data:
+                continue
+            try:
+                chunk = json.loads(data)
+            except json.JSONDecodeError:
+                continue
+            candidates = chunk.get("candidates") or []
+            parts = (candidates[0].get("content") or {}).get("parts", []) if candidates else []
+            for part in parts:
+                if not isinstance(part, dict):
+                    continue
+                if part.get("text"):
+                    content += part["text"]
+                    yield {"type": "delta", "text": part["text"]}
+                if "functionCall" in part:
+                    call = part["functionCall"]
+                    tool_calls.append(
+                        {
+                            "id": call.get("name", ""),
+                            "name": call.get("name", ""),
+                            "arguments": call.get("args") or {},
+                        }
+                    )
+    yield {"type": "final", "content": content, "tool_calls": tool_calls}
 
 
 # ── Message builders ──────────────────────────────────────────────────────────

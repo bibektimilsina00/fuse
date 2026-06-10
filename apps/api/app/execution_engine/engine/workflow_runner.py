@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -233,6 +234,7 @@ class WorkflowRunner:
         retry_delay_ms = int(resolved_properties.get("retry_delay_ms") or 1000)
         attempt = 0
         result = None
+        node_start = time.time()
 
         while True:
             result = await node_executor.execute_node(
@@ -251,6 +253,8 @@ class WorkflowRunner:
                 node_id=node_id,
             )
             await asyncio.sleep(retry_delay_ms / 1000)
+
+        duration_ms = int((time.time() - node_start) * 1000)
 
         async with self._lock:
             self._executed[node_id] = result
@@ -272,6 +276,7 @@ class WorkflowRunner:
                     "input": resolved_properties,
                     "data_in": input_data,
                     "output": result.output_data,
+                    "duration_ms": duration_ms,
                 },
             )
 
@@ -302,6 +307,7 @@ class WorkflowRunner:
                     "input": resolved_properties,
                     "data_in": input_data,
                     "error": result.error,
+                    "duration_ms": duration_ms,
                 },
             )
 

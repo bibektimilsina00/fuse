@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom'
 import {
   MoreHorizontal, MessageCircle, Send, Play, Loader2,
-  LayoutDashboard, Lock, Download, Copy, Trash2,
+  LayoutDashboard, Lock, Download, Copy, Trash2, PanelRightClose,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/shared/components'
@@ -70,11 +70,12 @@ export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
   const {
     btnRef, anchorRect,
     openMenu, closeMenu, openCopilot,
-    exportWorkflow, autoLayout, deleteWorkflow,
+    exportWorkflow, autoLayout, deleteWorkflow, collapseRightPanel,
   } = useEditorActionBar()
 
   const menuItems: DropdownItem[] = [
     { label: 'Auto layout',        icon: <LayoutDashboard />, onClick: autoLayout },
+    { label: 'Collapse panel',     icon: <PanelRightClose />, onClick: collapseRightPanel },
     { label: 'Lock workflow',      icon: <Lock />,            onClick: () => {}, dividerBefore: true },
     { label: 'Export workflow',    icon: <Download />,        onClick: exportWorkflow },
     { label: 'Duplicate workflow', icon: <Copy />,            onClick: () => {} },

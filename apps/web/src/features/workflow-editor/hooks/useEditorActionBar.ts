@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useReactFlow } from 'reactflow'
 import { useWorkflowEditorStore } from '../stores/workflowEditorStore'
+import { useEditorLayoutStore } from '../stores/editorLayoutStore'
 
 export interface ActionMenuItem {
   label: string
@@ -19,13 +20,15 @@ export function useEditorActionBar() {
   const { id: workflowId } = useParams<{ id: string }>()
   const { fitView } = useReactFlow()
 
-  const setTab  = useWorkflowEditorStore(s => s.setInspectorTab)
-  const nodes   = useWorkflowEditorStore(s => s.nodes)
-  const edges   = useWorkflowEditorStore(s => s.edges)
+  const focusTab    = useEditorLayoutStore(s => s.focusTab)
+  const toggleZone  = useEditorLayoutStore(s => s.toggleZone)
+  const nodes       = useWorkflowEditorStore(s => s.nodes)
+  const edges       = useWorkflowEditorStore(s => s.edges)
 
   const openMenu = () => setAnchorRect(btnRef.current?.getBoundingClientRect() ?? null)
   const closeMenu = () => setAnchorRect(null)
-  const openCopilot = () => setTab('copilot')
+  const openCopilot = () => focusTab('copilot')
+  const collapseRightPanel = () => toggleZone('right')
 
   const exportWorkflow = () => {
     const data = JSON.stringify({ nodes, edges }, null, 2)
@@ -55,5 +58,6 @@ export function useEditorActionBar() {
     exportWorkflow,
     autoLayout,
     deleteWorkflow,
+    collapseRightPanel,
   }
 }

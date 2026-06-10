@@ -5,6 +5,8 @@ import type { ApiNodeDefinition, NodeDefinition } from '../types/editorTypes'
 
 import { editorAPI } from '../services/editorAPI'
 import { useWorkflowEditorStore } from '../stores/workflowEditorStore'
+import { useEditorLayoutStore } from '../stores/editorLayoutStore'
+import { useRunsStore } from '@/features/runs/store/runsStore'
 
 const AUTOSAVE_DELAY = 1500 // ms
 
@@ -56,8 +58,7 @@ export function useWorkflowEditor(workflowId: string) {
   const setSaveState = useWorkflowEditorStore(s => s.setSaveState)
   const setVersionVector = useWorkflowEditorStore(s => s.setVersionVector)
   const setSelectedNodeId = useWorkflowEditorStore(s => s.setSelectedNodeId)
-  const setInspectorOpen = useWorkflowEditorStore(s => s.setInspectorOpen)
-  const setInspectorTab = useWorkflowEditorStore(s => s.setInspectorTab)
+  const focusTab = useEditorLayoutStore(s => s.focusTab)
   const resetEditorStore = useWorkflowEditorStore(s => s.reset)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastSavedKey = useRef<string>('')   // serialized graph last persisted
@@ -171,13 +172,16 @@ export function useWorkflowEditor(workflowId: string) {
   const selectNode = useCallback((nodeId: string) => {
     const current = useWorkflowEditorStore.getState()
     if (current.selectedNodeId !== nodeId) setSelectedNodeId(nodeId)
-    if (!current.inspectorOpen) setInspectorOpen(true)
-    setInspectorTab('config')
-  }, [setInspectorOpen, setSelectedNodeId, setInspectorTab])
+    focusTab('config')
+  }, [setSelectedNodeId, focusTab])
 
   // ── Run ───────────────────────────────────────────────────────────────────
   const runMutation = useMutation({
     mutationFn: () => editorAPI.run(workflowId),
+    onSuccess: (res) => {
+      useRunsStore.getState().setActiveExecutionId(workflowId, res.execution_id)
+      focusTab('logs')
+    },
   })
 
   // ── Rename ────────────────────────────────────────────────────────────────

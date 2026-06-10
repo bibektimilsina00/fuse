@@ -16,6 +16,7 @@ import { buildNodeTypes } from '../../constants/nodeTypes'
 import { CustomEdge } from '../edges/CustomEdge'
 import { ContextMenu, type ContextMenuItem } from '../context-menu/ContextMenu'
 import { useWorkflowEditorStore } from '../../stores/workflowEditorStore'
+import { useEditorLayoutStore } from '../../stores/editorLayoutStore'
 
 const edgeTypes = { custom: CustomEdge }
 
@@ -26,6 +27,7 @@ interface Props {
   onEdgesChange: OnEdgesChange
   onConnect?: OnConnect
   onSelectNode?: (nodeId: string) => void
+  interactive?: boolean
 }
 
 interface MenuState {
@@ -35,9 +37,9 @@ interface MenuState {
   nodeId?: string
 }
 
-function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectNode }: Props) {
+function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectNode, interactive = true }: Props) {
   const nodeDefinitions = useWorkflowEditorStore(useShallow(s => s.nodeDefinitions))
-  const setInspectorTab = useWorkflowEditorStore(s => s.setInspectorTab)
+  const focusTab = useEditorLayoutStore(s => s.focusTab)
   const setNodes = useWorkflowEditorStore(s => s.setNodes)
   const pushHistory = useWorkflowEditorStore(s => s.pushHistory)
   const { screenToFlowPosition, fitView } = useReactFlow()
@@ -88,18 +90,35 @@ function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectN
     const s = useWorkflowEditorStore.getState()
     if (menu?.type === 'node' && menu.nodeId) {
       const id = menu.nodeId
-      const locked = (nodes.find(n => n.id === id)?.data?.locked as boolean | undefined) ?? false
+      const node = nodes.find(n => n.id === id)
+      const locked = (node?.data?.locked as boolean | undefined) ?? false
+      const label = (node?.data?.label as string) || node?.type || 'this node'
+      const fixWithCopilot = () => {
+        s.setSelectedNodeId(id)
+        useEditorLayoutStore.getState().focusTab('copilot')
+        // Defer so the Copilot panel mounts + registers its listener first.
+        setTimeout(
+          () =>
+            window.dispatchEvent(
+              new CustomEvent('copilot-send-message', {
+                detail: { message: `Fix the "${label}" node.` },
+              }),
+            ),
+          80,
+        )
+      }
       return [
         { label: 'Copy', shortcut: '⌘C', onClick: () => { s.setNodes(ns => ns.map(n => ({ ...n, selected: n.id === id }))); s.copySelection() } },
         { label: 'Duplicate', shortcut: '⌘D', onClick: () => s.duplicateNode(id) },
         { label: locked ? 'Unlock' : 'Lock', onClick: () => s.toggleNodeLock(id) },
+        { label: 'Fix with Copilot', dividerBefore: true, onClick: fixWithCopilot },
         { label: 'Delete', shortcut: '⌫', variant: 'danger', dividerBefore: true, onClick: () => s.removeNode(id) },
       ]
     }
     return [
       { label: 'Paste', shortcut: '⌘V', disabled: !s.clipboard, onClick: () => s.paste() },
       { label: 'Select all', shortcut: '⌘A', onClick: () => s.selectAll() },
-      { label: 'Add node', dividerBefore: true, onClick: () => s.setInspectorTab('library') },
+      { label: 'Add node', dividerBefore: true, onClick: () => useEditorLayoutStore.getState().focusTab('library') },
       { label: 'Fit view', onClick: () => fitView({ duration: 300, padding: 0.2 }) },
       { label: 'Undo', shortcut: '⌘Z', dividerBefore: true, disabled: !s.past.length, onClick: () => s.undo() },
       { label: 'Redo', shortcut: '⌘⇧Z', disabled: !s.future.length, onClick: () => s.redo() },
@@ -117,9 +136,12 @@ function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectN
         onDragOver={onDragOver}
         onDrop={onDrop}
         onNodeClick={(_, node) => onSelectNode?.(node.id)}
-        onNodeContextMenu={onNodeContextMenu}
-        onPaneContextMenu={onPaneContextMenu}
+        onNodeContextMenu={interactive ? onNodeContextMenu : undefined}
+        onPaneContextMenu={interactive ? onPaneContextMenu : undefined}
         onNodeDragStart={onNodeDragStart}
+        nodesDraggable={interactive}
+        nodesConnectable={interactive}
+        elementsSelectable={interactive}
         deleteKeyCode={null}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -149,7 +171,7 @@ function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectN
             style={{ zIndex: 4 }}
           >
             <button
-              onClick={() => setInspectorTab('library')}
+              onClick={() => focusTab('library')}
               className="flex w-[48px] h-[48px] rounded-[12px] bg-[var(--surface)] border border-[var(--border-faint)] items-center justify-center transition-colors hover:bg-[var(--surface-2)] hover:border-[var(--border-soft)]"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" strokeWidth="1.5">
