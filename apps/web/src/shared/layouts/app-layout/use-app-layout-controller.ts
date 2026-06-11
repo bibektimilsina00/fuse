@@ -65,10 +65,10 @@ export function useAppLayoutController() {
   const [feedbackSent, setFeedbackSent] = useState(false)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     Workspace: true,
-    Operate: true,
     Workflows: true,
-    Data: true,
-    Integrations: true,
+    Operate: false,
+    Data: false,
+    Integrations: false,
   })
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null)

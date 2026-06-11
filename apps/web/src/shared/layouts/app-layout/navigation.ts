@@ -24,6 +24,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { id: 'templates', label: 'Templates', icon: Icons.Layers, to: APP_ROUTES.TEMPLATES },
     ],
   },
+  { group: 'Workflows', isWorkflows: true },
   {
     group: 'Operate',
     items: [
@@ -47,7 +48,6 @@ export const NAV_GROUPS: NavGroup[] = [
       { id: 'connections', label: 'Connections', icon: Icons.Plug, to: APP_ROUTES.CONNECTIONS },
     ],
   },
-  { group: 'Workflows', isWorkflows: true },
 ]
 
 export const MENU_ITEM_CLASS =
