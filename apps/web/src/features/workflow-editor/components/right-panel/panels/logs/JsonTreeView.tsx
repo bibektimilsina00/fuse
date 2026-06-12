@@ -1,11 +1,32 @@
 import { useCallback, useMemo, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/cn'
+
+/**
+ * How a draggable row should refer to its source node when dropped into an
+ * expression-mode field.
+ *
+ * - `step` — direct unique parent of the currently-selected inspector node.
+ *   Emits `=$step.path`. Cheapest and most readable.
+ * - `label` — by display label, walked through the paired-item chain by the
+ *   resolver. Emits `=$node('Label').path`.
+ *
+ * No `id` (raw-uuid) fallback: every caller now supplies a label.
+ */
+export type Reference =
+  | { kind: 'step' }
+  | { kind: 'label'; label: string }
 
 interface Props {
   value: unknown
   /** Auto-expand all branches up to this depth on first render. */
   initialDepth?: number
+  /**
+   * When set, rows are draggable; dropping them on a text field in the
+   * inspector inserts the appropriate JSONata reference (`=$step.path`,
+   * `=$node('Label').path`) or the legacy `{{id.path}}` form at the cursor.
+   */
+  reference?: Reference | null
 }
 
 type ValueKind = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' | 'undefined' | 'other'
@@ -18,11 +39,52 @@ type ValueKind = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' |
  * entries indented behind a vertical guide line. Primitives render their
  * formatted value inside the same indented block, so the structure stays
  * consistent at every depth.
+ *
+ * When `nodeId` is set, each non-root row is draggable. The drag payload is
+ * the interpolation template `{{nodeId.path}}` placed on `text/plain`, so
+ * the browser auto-inserts it at the cursor when dropped on any `<input>`
+ * or `<textarea>` in the inspector.
  */
-export function JsonTreeView({ value, initialDepth = 2 }: Props) {
+export function JsonTreeView({ value, initialDepth = 2, reference = null }: Props) {
+  const kind = classify(value)
+
+  // Skip the synthetic "root" row — render the value's contents directly.
+  // For containers, that means iterating top-level entries inline; for
+  // primitives, that means rendering the formatted value alone.
+  if (kind === 'object' || kind === 'array') {
+    const entries: [string | number, unknown][] =
+      kind === 'object'
+        ? Object.entries(value as Record<string, unknown>)
+        : (value as unknown[]).map((v, i) => [i, v])
+
+    if (entries.length === 0) {
+      return (
+        <div className="text-[12.5px] leading-[20px] italic text-[var(--text-faint)]">
+          {kind === 'object' ? '{}' : '[]'}
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex flex-col text-[12.5px] leading-[20px]">
+        {entries.map(([k, v]) => (
+          <TreeNode
+            key={k}
+            keyName={k}
+            value={v}
+            depth={0}
+            initialDepth={initialDepth}
+            reference={reference}
+            parentPath=""
+          />
+        ))}
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col text-[12.5px] leading-[20px]">
-      <TreeNode keyName={null} value={value} depth={0} initialDepth={initialDepth} />
+    <div className="text-[12.5px] leading-[20px]">
+      <PrimitiveValue value={value} kind={kind} />
     </div>
   )
 }
@@ -32,12 +94,43 @@ interface NodeProps {
   value: unknown
   depth: number
   initialDepth: number
+  reference: Reference | null
+  parentPath: string
 }
 
-function TreeNode({ keyName, value, depth, initialDepth }: NodeProps) {
+/** Build the dot/bracket path for this row given its key and parent path.
+ *
+ * Output is valid JSONata (`foo.bar`, `items[0]`, `body."weird key"`) so it
+ * composes directly with `$step` / `$node('Label')` prefixes. JSONata's
+ * bracket form is a predicate, not key access, so non-identifier object keys
+ * use the dot-quote form rather than `["..."]`.
+ */
+function buildPath(parentPath: string, keyName: string | number | null): string {
+  if (keyName === null) return parentPath
+  if (typeof keyName === 'number') return `${parentPath}[${keyName}]`
+  const safeIdent = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(keyName)
+  if (!safeIdent) {
+    const quoted = `"${keyName.replace(/"/g, '\\"')}"`
+    return parentPath ? `${parentPath}.${quoted}` : quoted
+  }
+  return parentPath ? `${parentPath}.${keyName}` : keyName
+}
+
+/** Build the final expression string written to the drag payload. */
+function buildExpression(reference: Reference | null, path: string): string | null {
+  if (!reference || !path) return null
+  if (reference.kind === 'step') return `=$step.${path}`
+  const safeLabel = reference.label.replace(/'/g, "\\'")
+  return `=$node('${safeLabel}').${path}`
+}
+
+function TreeNode({ keyName, value, depth, initialDepth, reference, parentPath }: NodeProps) {
   const kind = classify(value)
   const [expanded, setExpanded] = useState(depth < initialDepth)
   const toggle = useCallback(() => setExpanded((v) => !v), [])
+
+  const path = buildPath(parentPath, keyName)
+  const expression = buildExpression(reference, path)
 
   const entries = useMemo<[string | number, unknown][]>(() => {
     if (kind === 'object') return Object.entries(value as Record<string, unknown>)
@@ -59,6 +152,7 @@ function TreeNode({ keyName, value, depth, initialDepth }: NodeProps) {
         meta={meta}
         expanded={expanded}
         onToggle={toggle}
+        expression={expression}
       />
       {expanded && (
         <div className="ml-[10px] border-l border-[var(--border-faint)] pl-3">
@@ -70,6 +164,8 @@ function TreeNode({ keyName, value, depth, initialDepth }: NodeProps) {
                 value={v}
                 depth={depth + 1}
                 initialDepth={initialDepth}
+                reference={reference}
+                parentPath={path}
               />
             ))
           ) : (
@@ -87,14 +183,33 @@ interface RowProps {
   meta: string | null
   expanded: boolean
   onToggle: () => void
+  expression: string | null
 }
 
-function Row({ keyName, kind, meta, expanded, onToggle }: RowProps) {
+function Row({ keyName, kind, meta, expanded, onToggle, expression }: RowProps) {
+  const draggable = !!expression
+
+  const handleDragStart = (e: React.DragEvent<HTMLButtonElement>) => {
+    if (!expression) return
+    // `text/plain` is what browser-native text inputs paste on drop, so we
+    // don't need bespoke drop handlers on every field renderer.
+    e.dataTransfer.setData('text/plain', expression)
+    // Custom MIME for inspector-side type checks (future use).
+    e.dataTransfer.setData('application/x-fuse-expression', expression)
+    e.dataTransfer.effectAllowed = 'copy'
+  }
+
   return (
     <button
       type="button"
       onClick={onToggle}
-      className="group flex w-full items-center gap-2 rounded-[5px] py-[3px] pr-1.5 text-left transition-colors hover:bg-[var(--surface)]"
+      draggable={draggable}
+      onDragStart={handleDragStart}
+      title={expression ?? undefined}
+      className={cn(
+        'group flex w-full items-center gap-2 rounded-[5px] py-[3px] pr-1.5 text-left transition-colors hover:bg-[var(--surface)]',
+        draggable && 'cursor-grab active:cursor-grabbing',
+      )}
     >
       <ChevronDown
         className={cn(
@@ -105,6 +220,12 @@ function Row({ keyName, kind, meta, expanded, onToggle }: RowProps) {
       <KeyLabel keyName={keyName} />
       <TypeBadge kind={kind} />
       {meta && <span className="text-[11px] text-[var(--text-faint)]">{meta}</span>}
+      {draggable && (
+        <GripVertical
+          className="ml-auto h-3 w-3 shrink-0 text-[var(--text-dim)] opacity-0 transition-opacity group-hover:opacity-100"
+          aria-hidden
+        />
+      )}
     </button>
   )
 }

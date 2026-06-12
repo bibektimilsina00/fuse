@@ -29,7 +29,6 @@ export function WorkflowNode({ id, type, data, selected }: NodeProps) {
 
   const properties: Record<string, unknown> = data.properties ?? {}
   const showAdvanced = nodeUI?.showAdvanced ?? false
-  const fieldModes = nodeUI?.fieldModes
   const diffMark = data?.__diff as 'new' | 'edited' | 'deleted' | undefined
 
   const visibleProps = getVisibleNodeProperties(definition.properties, properties, showAdvanced)
@@ -65,16 +64,13 @@ export function WorkflowNode({ id, type, data, selected }: NodeProps) {
         />
 
         <div className="flex flex-col gap-0.5 py-1.5">
-          {visibleProps.map(prop => {
-            const mode = fieldModes?.[prop.name] ?? 'manual'
-            return (
-              <NodeProperty
-                key={prop.name}
-                label={getDynamicLabel(prop, mode as 'manual' | 'dynamic')}
-                value={getPropValuePreview(properties[prop.name], prop.type)}
-              />
-            )
-          })}
+          {visibleProps.map(prop => (
+            <NodeProperty
+              key={prop.name}
+              label={getDynamicLabel(prop)}
+              value={getPropValuePreview(properties[prop.name], prop.type)}
+            />
+          ))}
 
           {hasErrorHandle && (
             <NodeProperty

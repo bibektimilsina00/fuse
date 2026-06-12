@@ -10,11 +10,7 @@ export const getPropValuePreview = (val: unknown, propType: string): string => {
   return String(val)
 }
 
-export const getDynamicLabel = (prop: NodeProperty, mode: 'manual' | 'dynamic' = 'manual'): string => {
-  if (!prop.loadOptions) return prop.label
-  if (mode === 'dynamic') return `Select ${prop.label.replace(/\s+ID$/i, '')}`
-  return prop.label
-}
+export const getDynamicLabel = (prop: NodeProperty): string => prop.label
 
 function matchesCondition(condition: PropertyCondition, values: Record<string, unknown>): boolean {
   if ('all' in condition) return condition.all.every(c => matchesCondition(c, values))

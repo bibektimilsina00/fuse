@@ -26,11 +26,9 @@ const DEFAULT_BOTTOM_HEIGHT = 260
  * and shared between users).
  *
  * - `showAdvanced` — whether the node body + inspector reveal "advanced" props.
- * - `fieldModes`   — per-field manual/expression toggle for the inspector.
  */
 export interface NodeUIState {
   showAdvanced?: boolean
-  fieldModes?: Record<string, 'manual' | 'dynamic'>
 }
 
 interface EditorLayoutState {
@@ -55,7 +53,6 @@ interface EditorLayoutState {
   tabsInZone: (zone: PanelZone) => EditorTab[]
 
   setNodeShowAdvanced: (nodeId: string, value: boolean) => void
-  setNodeFieldMode: (nodeId: string, field: string, mode: 'manual' | 'dynamic') => void
   clearNodeUI: (nodeId: string) => void
 }
 
@@ -123,17 +120,6 @@ export const useEditorLayoutStore = create<EditorLayoutState>()(
           nodeUI: {
             ...s.nodeUI,
             [nodeId]: { ...s.nodeUI[nodeId], showAdvanced: value },
-          },
-        })),
-
-      setNodeFieldMode: (nodeId, field, mode) =>
-        set((s) => ({
-          nodeUI: {
-            ...s.nodeUI,
-            [nodeId]: {
-              ...s.nodeUI[nodeId],
-              fieldModes: { ...s.nodeUI[nodeId]?.fieldModes, [field]: mode },
-            },
           },
         })),
 
