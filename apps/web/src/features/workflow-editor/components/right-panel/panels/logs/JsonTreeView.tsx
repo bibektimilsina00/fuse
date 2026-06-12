@@ -1,11 +1,14 @@
 import { useCallback, useMemo, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 interface Props {
   value: unknown
   /** Auto-expand all branches up to this depth on first render. */
   initialDepth?: number
+  /** When set, rows are draggable; dropping them on a text field in the
+   *  inspector inserts the `{{nodeId.path}}` expression at the cursor. */
+  nodeId?: string | null
 }
 
 type ValueKind = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' | 'undefined' | 'other'
@@ -18,11 +21,23 @@ type ValueKind = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' |
  * entries indented behind a vertical guide line. Primitives render their
  * formatted value inside the same indented block, so the structure stays
  * consistent at every depth.
+ *
+ * When `nodeId` is set, each non-root row is draggable. The drag payload is
+ * the interpolation template `{{nodeId.path}}` placed on `text/plain`, so
+ * the browser auto-inserts it at the cursor when dropped on any `<input>`
+ * or `<textarea>` in the inspector.
  */
-export function JsonTreeView({ value, initialDepth = 2 }: Props) {
+export function JsonTreeView({ value, initialDepth = 2, nodeId = null }: Props) {
   return (
     <div className="flex flex-col text-[12.5px] leading-[20px]">
-      <TreeNode keyName={null} value={value} depth={0} initialDepth={initialDepth} />
+      <TreeNode
+        keyName={null}
+        value={value}
+        depth={0}
+        initialDepth={initialDepth}
+        nodeId={nodeId}
+        parentPath=""
+      />
     </div>
   )
 }
@@ -32,12 +47,27 @@ interface NodeProps {
   value: unknown
   depth: number
   initialDepth: number
+  nodeId: string | null
+  parentPath: string
 }
 
-function TreeNode({ keyName, value, depth, initialDepth }: NodeProps) {
+/** Build the dot/bracket path for this row given its key and parent path. */
+function buildPath(parentPath: string, keyName: string | number | null): string {
+  if (keyName === null) return parentPath
+  if (typeof keyName === 'number') return `${parentPath}[${keyName}]`
+  // Bracket-quote keys that aren't safe dot identifiers.
+  const safeIdent = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(keyName)
+  if (!safeIdent) return `${parentPath}[${JSON.stringify(keyName)}]`
+  return parentPath ? `${parentPath}.${keyName}` : keyName
+}
+
+function TreeNode({ keyName, value, depth, initialDepth, nodeId, parentPath }: NodeProps) {
   const kind = classify(value)
   const [expanded, setExpanded] = useState(depth < initialDepth)
   const toggle = useCallback(() => setExpanded((v) => !v), [])
+
+  const path = buildPath(parentPath, keyName)
+  const expression = nodeId && path ? `{{${nodeId}.${path}}}` : null
 
   const entries = useMemo<[string | number, unknown][]>(() => {
     if (kind === 'object') return Object.entries(value as Record<string, unknown>)
@@ -59,6 +89,7 @@ function TreeNode({ keyName, value, depth, initialDepth }: NodeProps) {
         meta={meta}
         expanded={expanded}
         onToggle={toggle}
+        expression={expression}
       />
       {expanded && (
         <div className="ml-[10px] border-l border-[var(--border-faint)] pl-3">
@@ -70,6 +101,8 @@ function TreeNode({ keyName, value, depth, initialDepth }: NodeProps) {
                 value={v}
                 depth={depth + 1}
                 initialDepth={initialDepth}
+                nodeId={nodeId}
+                parentPath={path}
               />
             ))
           ) : (
@@ -87,14 +120,33 @@ interface RowProps {
   meta: string | null
   expanded: boolean
   onToggle: () => void
+  expression: string | null
 }
 
-function Row({ keyName, kind, meta, expanded, onToggle }: RowProps) {
+function Row({ keyName, kind, meta, expanded, onToggle, expression }: RowProps) {
+  const draggable = !!expression
+
+  const handleDragStart = (e: React.DragEvent<HTMLButtonElement>) => {
+    if (!expression) return
+    // `text/plain` is what browser-native text inputs paste on drop, so we
+    // don't need bespoke drop handlers on every field renderer.
+    e.dataTransfer.setData('text/plain', expression)
+    // Custom MIME for inspector-side type checks (future use).
+    e.dataTransfer.setData('application/x-fuse-expression', expression)
+    e.dataTransfer.effectAllowed = 'copy'
+  }
+
   return (
     <button
       type="button"
       onClick={onToggle}
-      className="group flex w-full items-center gap-2 rounded-[5px] py-[3px] pr-1.5 text-left transition-colors hover:bg-[var(--surface)]"
+      draggable={draggable}
+      onDragStart={handleDragStart}
+      title={expression ?? undefined}
+      className={cn(
+        'group flex w-full items-center gap-2 rounded-[5px] py-[3px] pr-1.5 text-left transition-colors hover:bg-[var(--surface)]',
+        draggable && 'cursor-grab active:cursor-grabbing',
+      )}
     >
       <ChevronDown
         className={cn(
@@ -105,6 +157,12 @@ function Row({ keyName, kind, meta, expanded, onToggle }: RowProps) {
       <KeyLabel keyName={keyName} />
       <TypeBadge kind={kind} />
       {meta && <span className="text-[11px] text-[var(--text-faint)]">{meta}</span>}
+      {draggable && (
+        <GripVertical
+          className="ml-auto h-3 w-3 shrink-0 text-[var(--text-dim)] opacity-0 transition-opacity group-hover:opacity-100"
+          aria-hidden
+        />
+      )}
     </button>
   )
 }

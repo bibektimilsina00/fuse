@@ -7,10 +7,6 @@ interface PropertyGroupListProps {
   definition: NodeDefinition
   properties: Record<string, unknown>
   onPropertyChange: (name: string, value: unknown) => void
-
-  /** Per-field manual/expression toggle state (managed by use-inspector-node). */
-  fieldModes?: Record<string, 'manual' | 'dynamic'>
-  onFieldModeChange?: (name: string, mode: 'manual' | 'dynamic') => void
 }
 
 export function PropertyGroupList({
@@ -18,8 +14,6 @@ export function PropertyGroupList({
   definition,
   properties,
   onPropertyChange,
-  fieldModes,
-  onFieldModeChange,
 }: PropertyGroupListProps) {
   // Single group ('Settings' default bucket) → no header. Multiple groups →
   // render each with a small label so the user can see structure (e.g.
@@ -45,8 +39,6 @@ export function PropertyGroupList({
               definition={definition}
               properties={properties}
               onPropertyChange={onPropertyChange}
-              fieldModes={fieldModes}
-              onFieldModeChange={onFieldModeChange}
             />
           ))}
         </section>
@@ -60,8 +52,6 @@ interface SlotProps {
   definition: NodeDefinition
   properties: Record<string, unknown>
   onPropertyChange: (name: string, value: unknown) => void
-  fieldModes?: Record<string, 'manual' | 'dynamic'>
-  onFieldModeChange?: (name: string, mode: 'manual' | 'dynamic') => void
 }
 
 function PropertyFieldSlot({
@@ -69,12 +59,7 @@ function PropertyFieldSlot({
   definition,
   properties,
   onPropertyChange,
-  fieldModes,
-  onFieldModeChange,
 }: SlotProps) {
-  // Default to "list" (manual) so the user sees the picker first, even on
-  // fields that also support expressions. Switching to fx is one click.
-  const mode = fieldModes?.[prop.name] ?? 'manual'
   const value = properties[prop.name] ?? prop.default
   return (
     <PropertyField
@@ -83,8 +68,6 @@ function PropertyFieldSlot({
       properties={properties}
       value={value}
       onChange={v => onPropertyChange(prop.name, v)}
-      mode={mode}
-      onModeChange={onFieldModeChange ? (m) => onFieldModeChange(prop.name, m) : undefined}
       defaultValue={prop.default}
       onReset={prop.default !== undefined ? () => onPropertyChange(prop.name, prop.default) : undefined}
     />
