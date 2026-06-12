@@ -13,18 +13,17 @@ interface UseInspectorNodeParams {
 /**
  * Glue between the workflow store and the inspector UI.
  *
- * UI-only state (advanced-fields toggle, per-field manual/expression mode) is
- * read/written via `editorLayoutStore` so it never lands in the saved graph.
- * Property values live on the node itself as before.
+ * Per-node UI prefs (advanced-fields toggle) are read/written via
+ * `editorLayoutStore` so they never land in the saved graph. Property values
+ * live on the node itself as before.
  */
 export function useInspectorNode({ nodes, updateNodeData }: UseInspectorNodeParams) {
-  const selectedNodeId  = useWorkflowEditorStore(s => s.selectedNodeId)
-  const nodeDefinitions = useWorkflowEditorStore(s => s.nodeDefinitions)
+  const selectedNodeId    = useWorkflowEditorStore(s => s.selectedNodeId)
+  const nodeDefinitions   = useWorkflowEditorStore(s => s.nodeDefinitions)
   const setSelectedNodeId = useWorkflowEditorStore(s => s.setSelectedNodeId)
 
   const nodeUI = useEditorLayoutStore(s => (selectedNodeId ? s.nodeUI[selectedNodeId] : undefined))
   const setNodeShowAdvanced = useEditorLayoutStore(s => s.setNodeShowAdvanced)
-  const setNodeFieldMode    = useEditorLayoutStore(s => s.setNodeFieldMode)
 
   const selectedNode = useMemo(
     () => nodes.find(node => node.id === selectedNodeId) ?? null,
@@ -61,12 +60,6 @@ export function useInspectorNode({ nodes, updateNodeData }: UseInspectorNodePara
     updateNodeData(selectedNode.id, { label })
   }, [selectedNode, updateNodeData])
 
-  const fieldModes = nodeUI?.fieldModes
-  const setFieldMode = useCallback((field: string, mode: 'manual' | 'dynamic') => {
-    if (!selectedNode) return
-    setNodeFieldMode(selectedNode.id, field, mode)
-  }, [selectedNode, setNodeFieldMode])
-
   const showAdvanced = nodeUI?.showAdvanced ?? false
   const toggleAdvanced = useCallback(() => {
     if (!selectedNode) return
@@ -85,8 +78,6 @@ export function useInspectorNode({ nodes, updateNodeData }: UseInspectorNodePara
     advancedGroups: groups.advancedGroups,
     showAdvanced,
     toggleAdvanced,
-    fieldModes,
-    setFieldMode,
     updateProperty,
     updateLabel,
     closeInspector,

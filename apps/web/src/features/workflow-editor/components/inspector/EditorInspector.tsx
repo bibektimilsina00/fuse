@@ -22,8 +22,6 @@ export function EditorInspector({ nodes, updateNodeData, className }: EditorInsp
     advancedGroups,
     showAdvanced,
     toggleAdvanced,
-    fieldModes,
-    setFieldMode,
     updateProperty,
     updateLabel,
   } = useInspectorNode({ nodes, updateNodeData })
@@ -65,8 +63,6 @@ export function EditorInspector({ nodes, updateNodeData, className }: EditorInsp
                   definition={definition}
                   properties={properties}
                   onPropertyChange={updateProperty}
-                  fieldModes={fieldModes}
-                  onFieldModeChange={(name, mode) => setFieldMode(name, mode)}
                 />
 
                 {advancedGroups.length > 0 && (
@@ -92,8 +88,6 @@ export function EditorInspector({ nodes, updateNodeData, className }: EditorInsp
                         definition={definition}
                         properties={properties}
                         onPropertyChange={updateProperty}
-                        fieldModes={fieldModes}
-                        onFieldModeChange={(name, mode) => setFieldMode(name, mode)}
                       />
                     )}
                   </div>

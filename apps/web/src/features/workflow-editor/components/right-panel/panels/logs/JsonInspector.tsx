@@ -217,7 +217,7 @@ export function JsonInspector({
             No data available.
           </div>
         ) : view === 'tree' ? (
-          <JsonTreeView value={payload} />
+          <JsonTreeView value={payload} nodeId={nodeId} />
         ) : (
           <JsonCodeView source={visibleCode} wrap={wrap} />
         )}
