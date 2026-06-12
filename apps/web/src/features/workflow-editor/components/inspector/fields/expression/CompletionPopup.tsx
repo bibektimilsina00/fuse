@@ -38,8 +38,15 @@ export function CompletionPopup({
   return (
     <div
       ref={listRef}
-      className="fixed z-50 max-h-[260px] w-[280px] overflow-y-auto rounded-[8px] border border-border bg-bg-2 shadow-[0_8px_24px_-8px_oklch(0_0_0/0.4)]"
-      style={{ left: anchor.left, top: anchor.top }}
+      className="fixed z-50 max-h-[260px] w-[280px] overflow-y-auto rounded-[8px] border border-border shadow-[0_12px_32px_-8px_oklch(0_0_0/0.55)] backdrop-blur-md"
+      style={{
+        left: anchor.left,
+        top: anchor.top,
+        // Explicit opaque fill so the popup never bleeds into whatever is
+        // beneath the editor. `bg-bg-2` is too close to the inspector's own
+        // surface and looked translucent against the dark canvas.
+        backgroundColor: 'var(--surface-2)',
+      }}
       onMouseDown={e => e.preventDefault()}  // keep editor focused on click
     >
       {completions.map((c, i) => {
