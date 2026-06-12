@@ -54,46 +54,25 @@ export function CompletionPopup({
             key={`${c.kind}:${c.label}`}
             ref={active ? activeRef : undefined}
             type="button"
-            // Click accepts. We intentionally do NOT sync selection on hover
-            // — that fought the keyboard: arrow keys would change the index
-            // and ghost text, but the popup highlight would snap back to
-            // whatever item the cursor happened to be over. Keyboard owns
-            // selectedIndex; hover is CSS-only visual feedback.
             onClick={() => onAccept(c)}
-            // `bg-accent/12` Tailwind opacity modifier wasn't compiling in
-            // this project's Tailwind config, so the active row had no
-            // visible fill — keyboard selection looked broken even though
-            // the state was correct. Use `color-mix(...)` inline style for
-            // a fill that always renders.
-            style={
-              active
-                ? {
-                    backgroundColor:
-                      'color-mix(in oklch, var(--accent) 22%, transparent)',
-                  }
-                : undefined
-            }
+            // Active (keyboard) and hover share one look — `bg-surface`. The
+            // ghost preview in the editor is the additional cue for which
+            // row the keyboard is on, so the popup doesn't need a separate
+            // visual.
             className={cn(
-              'flex w-full items-start gap-2 border-l-2 px-2.5 py-1.5 text-left transition-colors',
-              active
-                ? 'border-accent text-text'
-                : 'border-transparent text-text hover:bg-surface',
+              'flex w-full items-center gap-2 px-2.5 py-1.5 text-left transition-colors',
+              active ? 'bg-surface text-text' : 'text-text hover:bg-surface',
             )}
           >
             <KindBadge kind={c.kind} />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-baseline gap-2">
-                <span className="truncate font-mono text-[12px] text-text">{c.label}</span>
-                {c.detail && (
-                  <span className="ml-auto shrink-0 font-mono text-[10px] text-text-faint">
-                    {c.detail}
-                  </span>
-                )}
-              </div>
-              {c.description && (
-                <div className="truncate text-[11px] text-text-faint">{c.description}</div>
-              )}
-            </div>
+            <span className="min-w-0 flex-1 truncate font-mono text-[12px] text-text">
+              {c.label}
+            </span>
+            {c.detail && (
+              <span className="shrink-0 font-mono text-[10px] text-text-faint">
+                {c.detail}
+              </span>
+            )}
           </button>
         )
       })}
