@@ -24,6 +24,16 @@ interface ExpressionEditorProps {
   multiline?: boolean
   rows?: number
   disabled?: boolean
+  /**
+   * Grab focus + place the caret at the end of the value on mount. Set by
+   * StringRenderer when the mode change came from a user action (typing
+   * `$`, clicking the fx button) so the user's typing stays uninterrupted
+   * across the renderer swap.
+   */
+  autoFocus?: boolean
+  /** Called once after the auto-focus effect runs, so the parent can clear
+   *  its `autoFocus` state without re-triggering on subsequent renders. */
+  onAutoFocusDone?: () => void
 }
 
 export function ExpressionEditor({
@@ -33,6 +43,8 @@ export function ExpressionEditor({
   multiline,
   rows = 3,
   disabled,
+  autoFocus,
+  onAutoFocusDone,
 }: ExpressionEditorProps) {
   const inputRef = useRef<HTMLTextAreaElement | HTMLInputElement | null>(null)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
@@ -57,6 +69,25 @@ export function ExpressionEditor({
     el.style.height = 'auto'
     el.style.height = `${Math.min(el.scrollHeight, 200)}px`
   }, [value, multiline])
+
+  // Grab focus + place caret at the end on first mount whenever the parent
+  // signalled this transition came from a user action. Without this the
+  // renderer swap unmounts the input the user was typing into and they'd
+  // have to click to resume — see StringRenderer.autoFocusOnEnter.
+  useEffect(() => {
+    if (!autoFocus) return
+    const el = inputRef.current
+    if (!el) return
+    el.focus()
+    const pos = value.length
+    el.setSelectionRange(pos, pos)
+    setCaret(pos)
+    onAutoFocusDone?.()
+    // Intentionally empty deps — fires exactly once per mount. The parent
+    // resets its flag in `onAutoFocusDone`, so subsequent renders don't
+    // re-focus and steal focus away from later edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const commit = useCallback(
     (next: string) => {

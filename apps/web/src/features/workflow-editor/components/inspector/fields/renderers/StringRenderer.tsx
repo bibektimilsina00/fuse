@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { Input, Textarea } from '@/shared/components'
 import { cn } from '@/lib/cn'
@@ -22,6 +23,13 @@ export function StringRenderer({ prop, value, onChange, disabled }: RendererProp
   const rows = typeof opts.rows === 'number' ? opts.rows : 3
   const isExpression = str.startsWith('=')
 
+  // Tracks whether the most recent mode change came from user action
+  // (typing `$`, clicking the fx button) so the ExpressionEditor that
+  // mounts next knows to grab focus + restore the caret. Without this the
+  // renderer swap would unmount the user's focused input and they'd have
+  // to click into the new editor to keep typing.
+  const [autoFocusOnEnter, setAutoFocusOnEnter] = useState(false)
+
   if (isExpression) {
     return (
       <ExpressionEditor
@@ -31,11 +39,16 @@ export function StringRenderer({ prop, value, onChange, disabled }: RendererProp
         multiline={multiline}
         rows={rows}
         disabled={disabled}
+        autoFocus={autoFocusOnEnter}
+        onAutoFocusDone={() => setAutoFocusOnEnter(false)}
       />
     )
   }
 
-  const enterExpressionMode = () => onChange(`=${str}`)
+  const enterExpressionMode = () => {
+    setAutoFocusOnEnter(true)
+    onChange(`=${str}`)
+  }
 
   // Auto-promote to expression mode when the user types `$` as the first
   // character. The saved value still carries the `=` prefix (backend
@@ -44,6 +57,7 @@ export function StringRenderer({ prop, value, onChange, disabled }: RendererProp
   // entirely — `$step.x` is what they reach for, the `=` is just a marker.
   const handleTyped = (next: string) => {
     if (next.startsWith('$') && !str.startsWith('=')) {
+      setAutoFocusOnEnter(true)
       onChange(`=${next}`)
       return
     }
