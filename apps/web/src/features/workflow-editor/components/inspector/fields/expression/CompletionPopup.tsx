@@ -5,7 +5,6 @@ import type { Completion } from './useExpressionCompletions'
 interface CompletionPopupProps {
   completions: Completion[]
   selectedIndex: number
-  onSelectIndex: (i: number) => void
   onAccept: (item: Completion) => void
   /** Anchor position in viewport pixels — top-left of the popup. */
   anchor: { left: number; top: number }
@@ -22,7 +21,6 @@ interface CompletionPopupProps {
 export function CompletionPopup({
   completions,
   selectedIndex,
-  onSelectIndex,
   onAccept,
   anchor,
 }: CompletionPopupProps) {
@@ -56,11 +54,20 @@ export function CompletionPopup({
             key={`${c.kind}:${c.label}`}
             ref={active ? activeRef : undefined}
             type="button"
-            onMouseEnter={() => onSelectIndex(i)}
+            // Click accepts. We intentionally do NOT sync selection on hover
+            // — that fought the keyboard: arrow keys would change the index
+            // and ghost text, but the popup highlight would snap back to
+            // whatever item the cursor happened to be over. Keyboard owns
+            // selectedIndex; hover is CSS-only visual feedback.
             onClick={() => onAccept(c)}
             className={cn(
-              'flex w-full items-start gap-2 px-2.5 py-1.5 text-left transition-colors',
-              active ? 'bg-surface-2' : 'hover:bg-surface',
+              'flex w-full items-start gap-2 border-l-2 px-2.5 py-1.5 text-left transition-colors',
+              active
+                // `bg-surface-2` matched the popup background and made the
+                // selection invisible. Use a stronger accent fill + left
+                // border so the active row reads clearly against the panel.
+                ? 'border-accent bg-accent/12 text-text'
+                : 'border-transparent text-text hover:bg-surface',
             )}
           >
             <KindBadge kind={c.kind} />

@@ -305,7 +305,6 @@ export function ExpressionEditor({
         <CompletionPopup
           completions={completionState.completions}
           selectedIndex={selectedIndex}
-          onSelectIndex={setSelectedIndex}
           onAccept={acceptCompletion}
           anchor={popupAnchor}
         />
