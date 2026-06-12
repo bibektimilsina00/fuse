@@ -10,14 +10,12 @@ import { cn } from '@/lib/cn'
  *   Emits `=$step.path`. Cheapest and most readable.
  * - `label` — by display label, walked through the paired-item chain by the
  *   resolver. Emits `=$node('Label').path`.
- * - `id` — legacy raw-id form `{{nodeId.path}}` kept only for the logs panel
- *   when no label is known. PR10 deletes this branch alongside the rest of
- *   the legacy interpolation engine.
+ *
+ * No `id` (raw-uuid) fallback: every caller now supplies a label.
  */
 export type Reference =
   | { kind: 'step' }
   | { kind: 'label'; label: string }
-  | { kind: 'id'; id: string }
 
 interface Props {
   value: unknown
@@ -122,12 +120,8 @@ function buildPath(parentPath: string, keyName: string | number | null): string 
 function buildExpression(reference: Reference | null, path: string): string | null {
   if (!reference || !path) return null
   if (reference.kind === 'step') return `=$step.${path}`
-  if (reference.kind === 'label') {
-    const safeLabel = reference.label.replace(/'/g, "\\'")
-    return `=$node('${safeLabel}').${path}`
-  }
-  // Legacy raw-id form — deleted in PR10.
-  return `{{${reference.id}.${path}}}`
+  const safeLabel = reference.label.replace(/'/g, "\\'")
+  return `=$node('${safeLabel}').${path}`
 }
 
 function TreeNode({ keyName, value, depth, initialDepth, reference, parentPath }: NodeProps) {

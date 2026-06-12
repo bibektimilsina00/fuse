@@ -54,11 +54,12 @@ export function JsonInspector({
   headerBanner,
   footer,
 }: Props) {
+  // Without a known label we don't have a stable reference style — leave the
+  // tree non-draggable rather than emit a raw-uuid form the rest of the
+  // system no longer accepts.
   const treeReference: Reference | null = nodeLabel
     ? { kind: 'label', label: nodeLabel }
-    : nodeId
-      ? { kind: 'id', id: nodeId }
-      : null
+    : null
   const [view, setView] = useState<ViewMode>('tree')
   const [wrap, setWrap] = useState(true)
   const [pretty, setPretty] = useState(true)

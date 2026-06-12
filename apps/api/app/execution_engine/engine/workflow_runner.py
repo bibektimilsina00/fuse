@@ -195,6 +195,11 @@ class WorkflowRunner:
             incoming=incoming,
             node_items=self._output_items,
             label_to_id=label_to_id,
+            trigger_data=self._trigger_data,
+            variables=self.variables,
+            env=self.env,
+            secrets=self.secrets,
+            loop_data=self.loop_data,
         )
         resolved_properties = resolve_properties(
             node_data.get("data", {}).get("properties", {}),
