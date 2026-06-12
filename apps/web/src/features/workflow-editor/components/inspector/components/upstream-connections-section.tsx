@@ -4,7 +4,7 @@ import type { Node, Edge } from 'reactflow'
 import { cn } from '@/lib/cn'
 import { useWorkflowEditorStore } from '../../../stores/workflowEditorStore'
 import { getIcon } from '../../../utils/icon-map'
-import { JsonTreeView } from '../../right-panel/panels/logs/JsonTreeView'
+import { JsonTreeView, type Reference } from '../../right-panel/panels/logs/JsonTreeView'
 import type { NodeDefinition } from '../../../types/editorTypes'
 
 interface UpstreamConnectionsSectionProps {
@@ -14,7 +14,12 @@ interface UpstreamConnectionsSectionProps {
 interface Ancestor {
   node: Node
   definition: NodeDefinition | null
+  label: string
   distance: number
+  /** Drag-payload reference style for rows in this ancestor's tree.
+   *  `$step` when this is the selected node's unique direct parent,
+   *  `$node('Label')` otherwise. */
+  reference: Reference
 }
 
 /**
@@ -75,15 +80,27 @@ export function UpstreamConnectionsSection({ nodeId }: UpstreamConnectionsSectio
 
   const ancestors = useMemo<Ancestor[]>(() => {
     const distance = collectAncestors(nodeId, edges)
-    const list: Ancestor[] = []
+    const draft: Array<{ node: Node; definition: NodeDefinition | null; label: string; distance: number }> = []
     for (const [id, d] of distance) {
       const node = nodes.find(n => n.id === id)
       if (!node) continue
       const definition = nodeDefinitions.find(def => def.type === node.type) ?? null
-      list.push({ node, definition, distance: d })
+      const label = (node.data?.label as string | undefined) || definition?.name || id
+      draft.push({ node, definition, label, distance: d })
     }
-    list.sort((a, b) => a.distance - b.distance)
-    return list
+    draft.sort((a, b) => a.distance - b.distance)
+
+    // `$step` is valid only when the selected node has exactly one direct
+    // parent — otherwise "the step" is ambiguous and we fall back to a label
+    // reference for every row.
+    const directParents = draft.filter(a => a.distance === 1).length
+    return draft.map<Ancestor>(a => ({
+      ...a,
+      reference:
+        a.distance === 1 && directParents === 1
+          ? { kind: 'step' }
+          : { kind: 'label', label: a.label },
+    }))
   }, [nodeId, nodes, edges, nodeDefinitions])
 
   return (
@@ -113,10 +130,9 @@ export function UpstreamConnectionsSection({ nodeId }: UpstreamConnectionsSectio
 
 function AncestorRow({ ancestor }: { ancestor: Ancestor }) {
   const [open, setOpen] = useState(false)
-  const { node, definition, distance } = ancestor
+  const { node, definition, distance, label, reference } = ancestor
   const run = useWorkflowEditorStore(s => s.nodeRuns[node.id])
 
-  const label = (node.data?.label as string | undefined) || definition?.name || node.id
   const hasOutput = run?.status === 'success' && run.output !== undefined
   const stub = useMemo(
     () => (hasOutput ? null : schemaToStub(definition?.outputsSchema ?? [])),
@@ -164,7 +180,7 @@ function AncestorRow({ ancestor }: { ancestor: Ancestor }) {
       {open && (
         <div className="ml-[26px] mt-1 mb-1.5">
           {hasAnyValue ? (
-            <JsonTreeView value={treeValue} nodeId={node.id} initialDepth={0} />
+            <JsonTreeView value={treeValue} reference={reference} initialDepth={0} />
           ) : (
             <p className="text-[11px] italic text-[var(--text-faint)]">
               No output schema declared and no run data yet.

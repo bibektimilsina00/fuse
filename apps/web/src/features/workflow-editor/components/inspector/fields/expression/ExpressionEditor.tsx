@@ -103,6 +103,28 @@ export function ExpressionEditor({
     [completionState.replaceRange, inner, commitText],
   )
 
+  const handleDrop = (e: React.DragEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    // Drops from the Inputs / Logs JSON tree carry an `=<expression>` payload
+    // because the user often drops them on a plain text field that needs the
+    // leading `=` to enter expression mode. We're already in expression mode,
+    // so strip the `=` before inserting so the inner JSONata stays valid.
+    const raw = e.dataTransfer.getData('text/plain')
+    if (!raw) return
+    e.preventDefault()
+    const cleaned = raw.startsWith('=') ? raw.slice(1) : raw
+    const el = e.currentTarget
+    const start = el.selectionStart ?? inner.length
+    const end = el.selectionEnd ?? start
+    const next = inner.slice(0, start) + cleaned + inner.slice(end)
+    commitText(next)
+    Promise.resolve().then(() => {
+      el.focus()
+      const pos = start + cleaned.length
+      el.setSelectionRange(pos, pos)
+      setCaret(pos)
+    })
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!popupOpen || !completionState.active || completionState.completions.length === 0) {
       if (e.key === 'Escape') (e.target as HTMLElement).blur()
@@ -175,6 +197,7 @@ export function ExpressionEditor({
             onClick={syncCaret}
             onKeyUp={syncCaret}
             onKeyDown={handleKeyDown}
+            onDrop={handleDrop}
             onFocus={syncCaret}
             onBlur={() => setPopupOpen(false)}
             placeholder={placeholder ?? 'JSONata expression'}
@@ -196,6 +219,7 @@ export function ExpressionEditor({
             onClick={syncCaret}
             onKeyUp={syncCaret}
             onKeyDown={handleKeyDown}
+            onDrop={handleDrop}
             onFocus={syncCaret}
             onBlur={() => setPopupOpen(false)}
             placeholder={placeholder ?? 'JSONata expression'}

@@ -230,6 +230,7 @@ function SelectedLogView({
       <JsonInspector
         payload={payload}
         nodeId={selectedLog.nodeId}
+        nodeLabel={info.label}
         tab={tab}
         onTabChange={setTab}
         downloadName={`${selectedLog.nodeId || 'log'}-${tab}`}

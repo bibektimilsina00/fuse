@@ -2,13 +2,33 @@ import { useCallback, useMemo, useState } from 'react'
 import { ChevronDown, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
+/**
+ * How a draggable row should refer to its source node when dropped into an
+ * expression-mode field.
+ *
+ * - `step` — direct unique parent of the currently-selected inspector node.
+ *   Emits `=$step.path`. Cheapest and most readable.
+ * - `label` — by display label, walked through the paired-item chain by the
+ *   resolver. Emits `=$node('Label').path`.
+ * - `id` — legacy raw-id form `{{nodeId.path}}` kept only for the logs panel
+ *   when no label is known. PR10 deletes this branch alongside the rest of
+ *   the legacy interpolation engine.
+ */
+export type Reference =
+  | { kind: 'step' }
+  | { kind: 'label'; label: string }
+  | { kind: 'id'; id: string }
+
 interface Props {
   value: unknown
   /** Auto-expand all branches up to this depth on first render. */
   initialDepth?: number
-  /** When set, rows are draggable; dropping them on a text field in the
-   *  inspector inserts the `{{nodeId.path}}` expression at the cursor. */
-  nodeId?: string | null
+  /**
+   * When set, rows are draggable; dropping them on a text field in the
+   * inspector inserts the appropriate JSONata reference (`=$step.path`,
+   * `=$node('Label').path`) or the legacy `{{id.path}}` form at the cursor.
+   */
+  reference?: Reference | null
 }
 
 type ValueKind = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' | 'undefined' | 'other'
@@ -27,7 +47,7 @@ type ValueKind = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' |
  * the browser auto-inserts it at the cursor when dropped on any `<input>`
  * or `<textarea>` in the inspector.
  */
-export function JsonTreeView({ value, initialDepth = 2, nodeId = null }: Props) {
+export function JsonTreeView({ value, initialDepth = 2, reference = null }: Props) {
   const kind = classify(value)
 
   // Skip the synthetic "root" row — render the value's contents directly.
@@ -56,7 +76,7 @@ export function JsonTreeView({ value, initialDepth = 2, nodeId = null }: Props) 
             value={v}
             depth={0}
             initialDepth={initialDepth}
-            nodeId={nodeId}
+            reference={reference}
             parentPath=""
           />
         ))}
@@ -76,27 +96,47 @@ interface NodeProps {
   value: unknown
   depth: number
   initialDepth: number
-  nodeId: string | null
+  reference: Reference | null
   parentPath: string
 }
 
-/** Build the dot/bracket path for this row given its key and parent path. */
+/** Build the dot/bracket path for this row given its key and parent path.
+ *
+ * Output is valid JSONata (`foo.bar`, `items[0]`, `body."weird key"`) so it
+ * composes directly with `$step` / `$node('Label')` prefixes. JSONata's
+ * bracket form is a predicate, not key access, so non-identifier object keys
+ * use the dot-quote form rather than `["..."]`.
+ */
 function buildPath(parentPath: string, keyName: string | number | null): string {
   if (keyName === null) return parentPath
   if (typeof keyName === 'number') return `${parentPath}[${keyName}]`
-  // Bracket-quote keys that aren't safe dot identifiers.
   const safeIdent = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(keyName)
-  if (!safeIdent) return `${parentPath}[${JSON.stringify(keyName)}]`
+  if (!safeIdent) {
+    const quoted = `"${keyName.replace(/"/g, '\\"')}"`
+    return parentPath ? `${parentPath}.${quoted}` : quoted
+  }
   return parentPath ? `${parentPath}.${keyName}` : keyName
 }
 
-function TreeNode({ keyName, value, depth, initialDepth, nodeId, parentPath }: NodeProps) {
+/** Build the final expression string written to the drag payload. */
+function buildExpression(reference: Reference | null, path: string): string | null {
+  if (!reference || !path) return null
+  if (reference.kind === 'step') return `=$step.${path}`
+  if (reference.kind === 'label') {
+    const safeLabel = reference.label.replace(/'/g, "\\'")
+    return `=$node('${safeLabel}').${path}`
+  }
+  // Legacy raw-id form — deleted in PR10.
+  return `{{${reference.id}.${path}}}`
+}
+
+function TreeNode({ keyName, value, depth, initialDepth, reference, parentPath }: NodeProps) {
   const kind = classify(value)
   const [expanded, setExpanded] = useState(depth < initialDepth)
   const toggle = useCallback(() => setExpanded((v) => !v), [])
 
   const path = buildPath(parentPath, keyName)
-  const expression = nodeId && path ? `{{${nodeId}.${path}}}` : null
+  const expression = buildExpression(reference, path)
 
   const entries = useMemo<[string | number, unknown][]>(() => {
     if (kind === 'object') return Object.entries(value as Record<string, unknown>)
@@ -130,7 +170,7 @@ function TreeNode({ keyName, value, depth, initialDepth, nodeId, parentPath }: N
                 value={v}
                 depth={depth + 1}
                 initialDepth={initialDepth}
-                nodeId={nodeId}
+                reference={reference}
                 parentPath={path}
               />
             ))

@@ -10,13 +10,19 @@ import { useEditorLayoutStore } from '../../../../stores/editorLayoutStore'
 import { IconBtn } from './IconBtn'
 import { OverflowMenu, type OverflowItem } from './OverflowMenu'
 import { JsonCodeView } from './JsonCodeView'
-import { JsonTreeView } from './JsonTreeView'
+import { JsonTreeView, type Reference } from './JsonTreeView'
 import { stringifyJson } from './json-utils'
 import type { Tab, ViewMode } from './types'
 
 interface Props {
   payload: unknown
   nodeId: string | null
+  /**
+   * Display label of the source node — when provided, drag-drop emits
+   * `=$node('Label').path` so dropped refs survive node renames better
+   * than raw ids. Falls back to the raw `nodeId` when omitted.
+   */
+  nodeLabel?: string | null
   /** When provided, renders a header row with Output/Input tabs. */
   tab?: Tab
   onTabChange?: (tab: Tab) => void
@@ -40,6 +46,7 @@ interface Props {
 export function JsonInspector({
   payload,
   nodeId,
+  nodeLabel,
   tab,
   onTabChange,
   downloadName,
@@ -47,6 +54,11 @@ export function JsonInspector({
   headerBanner,
   footer,
 }: Props) {
+  const treeReference: Reference | null = nodeLabel
+    ? { kind: 'label', label: nodeLabel }
+    : nodeId
+      ? { kind: 'id', id: nodeId }
+      : null
   const [view, setView] = useState<ViewMode>('tree')
   const [wrap, setWrap] = useState(true)
   const [pretty, setPretty] = useState(true)
@@ -217,7 +229,7 @@ export function JsonInspector({
             No data available.
           </div>
         ) : view === 'tree' ? (
-          <JsonTreeView value={payload} nodeId={nodeId} />
+          <JsonTreeView value={payload} reference={treeReference} />
         ) : (
           <JsonCodeView source={visibleCode} wrap={wrap} />
         )}
