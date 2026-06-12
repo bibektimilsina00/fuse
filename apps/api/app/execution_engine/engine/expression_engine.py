@@ -75,12 +75,25 @@ class JsonataResolver:
         incoming: PairedItem | None = None,
         node_items: dict[str, list[NodeItem]] | None = None,
         label_to_id: dict[str, str] | None = None,
+        trigger_data: dict[str, Any] | None = None,
+        variables: dict[str, Any] | None = None,
+        env: dict[str, str] | None = None,
+        secrets: dict[str, str] | None = None,
+        loop_data: dict[str, Any] | None = None,
     ) -> None:
         self._context: dict[str, Any] = context if context is not None else {}
         self._current_node_id = current_node_id
         self._incoming = incoming
         self._node_items: dict[str, list[NodeItem]] = node_items or {}
         self._label_to_id: dict[str, str] = label_to_id or {}
+        # Workflow-wide context bindings (mirror TemplateResolver's namespaces).
+        # Each is exposed as a JSONata variable so users can write
+        # `=$trigger.body`, `=$vars.count`, `=$env.API_URL`, etc., in any field.
+        self._trigger_data: dict[str, Any] = trigger_data or {}
+        self._variables: dict[str, Any] = variables or {}
+        self._env: dict[str, str] = env or {}
+        self._secrets: dict[str, str] = secrets or {}
+        self._loop_data: dict[str, Any] = loop_data or {}
 
     @property
     def context(self) -> dict[str, Any]:
@@ -114,6 +127,11 @@ class JsonataResolver:
 
         frame = compiled.create_frame()
         frame.bind("step", self._step_data())
+        frame.bind("trigger", self._trigger_data)
+        frame.bind("vars", self._variables)
+        frame.bind("env", self._env)
+        frame.bind("secrets", self._secrets)
+        frame.bind("loop", self._loop_data)
         if bindings:
             for name, value in bindings.items():
                 frame.bind(name, value)
