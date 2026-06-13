@@ -1,12 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Plus, X, Search, Lock, AlertCircle, ChevronDown, Eye, EyeOff } from 'lucide-react'
+import { Plus, X, Search, Lock, AlertCircle, ChevronDown, Eye, EyeOff, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Input, Textarea } from '@/shared/components'
+import { CredentialSelector } from '@/shared/components/CredentialSelector'
 import type { RendererProps } from '../types'
 import { useToolCatalog, type Tool } from '../../../../hooks/useToolCatalog'
 import { ExpressionEditor } from '../expression/ExpressionEditor'
 
 type UsageControl = 'auto' | 'force' | 'none'
+
+interface RetryOverride {
+  enabled: boolean
+  max_retries: number
+  initial_delay_ms: number
+  max_delay_ms: number
+}
 
 interface ToolEntry {
   toolId: string
@@ -18,6 +26,24 @@ interface ToolEntry {
    * so the LLM can still override if the param's visibility allows.
    */
   params?: Record<string, unknown>
+  /**
+   * Credential id pinning this tool to a specific workspace credential.
+   * When unset, the backend uses the first credential matching the tool's
+   * oauth.credential_type — i.e. the previous behaviour.
+   */
+  credentialId?: string
+  /**
+   * Retry-config override. When `enabled` is true, the backend uses these
+   * values instead of the tool's built-in `ToolRetryConfig`.
+   */
+  retry?: RetryOverride
+}
+
+const DEFAULT_RETRY: RetryOverride = {
+  enabled: true,
+  max_retries: 3,
+  initial_delay_ms: 1000,
+  max_delay_ms: 10000,
 }
 
 function toToolArray(value: unknown): ToolEntry[] {
@@ -70,6 +96,30 @@ export function ToolSelectorRenderer({ value, onChange }: RendererProps) {
     onChange(tools.map((t, j) => (j === i ? { ...t, params } : t)))
   }
 
+  const updateCredential = (i: number, credentialId: string) => {
+    onChange(
+      tools.map((t, j) => {
+        if (j !== i) return t
+        const next = { ...t }
+        if (credentialId) next.credentialId = credentialId
+        else delete next.credentialId
+        return next
+      }),
+    )
+  }
+
+  const updateRetry = (i: number, retry: RetryOverride | undefined) => {
+    onChange(
+      tools.map((t, j) => {
+        if (j !== i) return t
+        const next = { ...t }
+        if (retry) next.retry = retry
+        else delete next.retry
+        return next
+      }),
+    )
+  }
+
   const addTool = (toolId: string) => {
     if (tools.some(t => t.toolId === toolId)) {
       setPickerOpen(false)
@@ -92,6 +142,8 @@ export function ToolSelectorRenderer({ value, onChange }: RendererProps) {
           onCycleUsage={() => cycleUsage(i)}
           onRemove={() => remove(i)}
           onChangeParams={params => updateParams(i, params)}
+          onChangeCredential={credId => updateCredential(i, credId)}
+          onChangeRetry={retry => updateRetry(i, retry)}
         />
       ))}
 
@@ -130,6 +182,8 @@ interface SelectedToolRowProps {
   onCycleUsage: () => void
   onRemove: () => void
   onChangeParams: (params: Record<string, unknown>) => void
+  onChangeCredential: (credentialId: string) => void
+  onChangeRetry: (retry: RetryOverride | undefined) => void
 }
 
 function SelectedToolRow({
@@ -140,12 +194,15 @@ function SelectedToolRow({
   onCycleUsage,
   onRemove,
   onChangeParams,
+  onChangeCredential,
+  onChangeRetry,
 }: SelectedToolRowProps) {
   const isOrphan = definition === undefined
 
-  // Only render the chevron + expand affordance when there's something to
-  // configure (params the user can edit). Tools with zero user-visible
-  // params (e.g. `slack_list_channels`) collapse to the single row.
+  // Tools become expandable when there's something to configure: at least
+  // one user-visible param, OR they need a credential, OR they expose a
+  // retry config (every registered tool does, but we still need the gate
+  // for orphaned saved entries with no definition).
   const userVisibleParams = useMemo(
     () =>
       definition
@@ -155,7 +212,8 @@ function SelectedToolRow({
         : [],
     [definition],
   )
-  const hasConfigurable = userVisibleParams.length > 0
+  const hasConfigurable =
+    userVisibleParams.length > 0 || Boolean(definition?.requires_auth) || Boolean(definition)
 
   return (
     <div
@@ -223,7 +281,11 @@ function SelectedToolRow({
         <ToolConfigPanel
           definition={definition}
           params={entry.params ?? {}}
-          onChange={onChangeParams}
+          onChangeParams={onChangeParams}
+          credentialId={entry.credentialId ?? ''}
+          onChangeCredential={onChangeCredential}
+          retry={entry.retry}
+          onChangeRetry={onChangeRetry}
         />
       )}
     </div>
@@ -237,10 +299,22 @@ function SelectedToolRow({
 interface ToolConfigPanelProps {
   definition: Tool
   params: Record<string, unknown>
-  onChange: (params: Record<string, unknown>) => void
+  onChangeParams: (params: Record<string, unknown>) => void
+  credentialId: string
+  onChangeCredential: (credentialId: string) => void
+  retry: RetryOverride | undefined
+  onChangeRetry: (retry: RetryOverride | undefined) => void
 }
 
-function ToolConfigPanel({ definition, params, onChange }: ToolConfigPanelProps) {
+function ToolConfigPanel({
+  definition,
+  params,
+  onChangeParams,
+  credentialId,
+  onChangeCredential,
+  retry,
+  onChangeRetry,
+}: ToolConfigPanelProps) {
   const entries = useMemo(
     () =>
       Object.entries(definition.params).filter(
@@ -255,26 +329,68 @@ function ToolConfigPanel({ definition, params, onChange }: ToolConfigPanelProps)
       // gives the model a chance to fill in.
       const next = { ...params }
       delete next[name]
-      onChange(next)
+      onChangeParams(next)
     } else {
-      onChange({ ...params, [name]: value })
+      onChangeParams({ ...params, [name]: value })
     }
   }
 
   return (
-    <div className="flex flex-col gap-2 border-t border-border-faint px-2.5 py-2">
-      {entries.map(([name, def]) => (
-        <ParamField
-          key={name}
-          name={name}
-          paramType={def.type}
-          required={def.required}
-          visibility={def.visibility}
-          description={def.description}
-          value={params[name]}
-          onChange={v => setParam(name, v)}
-        />
-      ))}
+    <div className="flex flex-col gap-3 border-t border-border-faint px-2.5 py-2">
+      {definition.requires_auth && definition.oauth && (
+        <ConfigSection title="Credential" hint="Pinning a credential overrides the workspace default.">
+          <CredentialSelector
+            credType={definition.oauth.credential_type}
+            value={credentialId}
+            onChange={onChangeCredential}
+          />
+        </ConfigSection>
+      )}
+
+      {entries.length > 0 && (
+        <ConfigSection title="Parameters">
+          <div className="flex flex-col gap-2">
+            {entries.map(([name, def]) => (
+              <ParamField
+                key={name}
+                name={name}
+                paramType={def.type}
+                required={def.required}
+                visibility={def.visibility}
+                description={def.description}
+                value={params[name]}
+                onChange={v => setParam(name, v)}
+              />
+            ))}
+          </div>
+        </ConfigSection>
+      )}
+
+      <ConfigSection title="Retry">
+        <RetryConfig value={retry} onChange={onChangeRetry} />
+      </ConfigSection>
+    </div>
+  )
+}
+
+function ConfigSection({
+  title,
+  hint,
+  children,
+}: {
+  title: string
+  hint?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-[9.5px] uppercase tracking-wider text-text-faint">
+          {title}
+        </span>
+        {hint && <span className="text-[9.5px] text-text-faint">{hint}</span>}
+      </div>
+      {children}
     </div>
   )
 }
@@ -560,6 +676,92 @@ function JsonParam({
         )}
       />
       {invalid && <p className="text-[10px] text-err">Invalid JSON</p>}
+    </div>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+//  Retry config override
+// ──────────────────────────────────────────────────────────────────────────
+
+interface RetryConfigProps {
+  value: RetryOverride | undefined
+  onChange: (next: RetryOverride | undefined) => void
+}
+
+function RetryConfig({ value, onChange }: RetryConfigProps) {
+  const enabled = Boolean(value?.enabled)
+  const cfg = value ?? DEFAULT_RETRY
+
+  const set = (patch: Partial<RetryOverride>) => onChange({ ...cfg, ...patch })
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <button
+        type="button"
+        onClick={() => onChange(enabled ? undefined : { ...DEFAULT_RETRY, enabled: true })}
+        role="switch"
+        aria-checked={enabled}
+        className={cn(
+          'flex h-7 w-fit items-center gap-2 rounded-[4px] border px-2 text-[11px] transition-colors',
+          enabled
+            ? 'border-accent/40 bg-accent/10 text-accent'
+            : 'border-border-faint bg-bg text-text-mute hover:border-border-soft',
+        )}
+      >
+        <RefreshCw size={11} />
+        {enabled ? 'Custom retry on' : 'Use tool defaults'}
+      </button>
+      {enabled && (
+        <div className="grid grid-cols-3 gap-1.5">
+          <RetryNumberField
+            label="Max retries"
+            value={cfg.max_retries}
+            min={0}
+            onChange={v => set({ max_retries: v })}
+          />
+          <RetryNumberField
+            label="Initial (ms)"
+            value={cfg.initial_delay_ms}
+            min={0}
+            onChange={v => set({ initial_delay_ms: v })}
+          />
+          <RetryNumberField
+            label="Max (ms)"
+            value={cfg.max_delay_ms}
+            min={0}
+            onChange={v => set({ max_delay_ms: v })}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RetryNumberField({
+  label,
+  value,
+  min,
+  onChange,
+}: {
+  label: string
+  value: number
+  min?: number
+  onChange: (v: number) => void
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="font-mono text-[9.5px] uppercase tracking-wide text-text-faint">{label}</span>
+      <Input
+        type="number"
+        min={min !== undefined ? String(min) : undefined}
+        value={String(value)}
+        onChange={e => {
+          const n = Number(e.target.value)
+          if (Number.isFinite(n)) onChange(n)
+        }}
+        className="h-7 rounded-[4px] text-[11px]"
+      />
     </div>
   )
 }

@@ -18,6 +18,26 @@ logger = get_logger(__name__)
 MemoryType = Literal["none", "workflow"]
 
 
+def _retry_from_dict(d: Any) -> Any:
+    """Materialise a `ToolRetryConfig` from a saved user-override dict.
+
+    Returns ``None`` when no override is provided (the tool's built-in
+    config wins). Unknown / missing fields fall back to the
+    `ToolRetryConfig` defaults so a partial override (just ``max_retries``,
+    for example) does the sensible thing.
+    """
+    if not isinstance(d, dict) or not d.get("enabled"):
+        return None
+    from apps.api.app.node_system.tools.base import ToolRetryConfig
+
+    return ToolRetryConfig(
+        enabled=True,
+        max_retries=int(d.get("max_retries", 3)),
+        initial_delay_ms=int(d.get("initial_delay_ms", 1000)),
+        max_delay_ms=int(d.get("max_delay_ms", 10000)),
+    )
+
+
 class AgentMessage(BaseModel):
     role: str
     content: Any
@@ -357,6 +377,7 @@ class AgentNode(BaseNode[AgentProperties]):
                 tool_user_params,
                 forced_tool_ids,
                 mcp_clients,
+                tool_user_overrides,
             ) = await self._resolve_tools_async()
 
             # Inject load_skill tool if skills are available
@@ -572,7 +593,14 @@ class AgentNode(BaseNode[AgentProperties]):
                                 )
                         else:
                             seen_tool_calls.add(call_sig)
-                            result = await tool_registry.execute(tool_id, merged_params, context)
+                            overrides = tool_user_overrides.get(tool_id, {})
+                            result = await tool_registry.execute(
+                                tool_id,
+                                merged_params,
+                                context,
+                                credential_id=overrides.get("credential_id"),
+                                retry_override=_retry_from_dict(overrides.get("retry")),
+                            )
 
                         tool_call_entry = {
                             "name": tool_id,
@@ -691,7 +719,14 @@ class AgentNode(BaseNode[AgentProperties]):
                                 llm_args = tc.get("arguments") or {}
                                 user_params = tool_user_params.get(tool_id, {})
                                 merged = {**llm_args, **user_params}
-                                result = await tool_registry.execute(tool_id, merged, context)
+                                overrides = tool_user_overrides.get(tool_id, {})
+                                result = await tool_registry.execute(
+                                    tool_id,
+                                    merged,
+                                    context,
+                                    credential_id=overrides.get("credential_id"),
+                                    retry_override=_retry_from_dict(overrides.get("retry")),
+                                )
                                 all_tool_calls.append(
                                     {
                                         "name": tool_id,
@@ -925,12 +960,20 @@ class AgentNode(BaseNode[AgentProperties]):
 
     def _resolve_tools(
         self,
-    ) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]], list[str]]:
+    ) -> tuple[
+        list[dict[str, Any]],
+        dict[str, dict[str, Any]],
+        list[str],
+        dict[str, dict[str, Any]],
+    ]:
         """Parse tools props and return:
         - tool_specs: list of OpenAI function-call schema objects for the LLM
           (tools with usageControl='none' are excluded)
         - tool_user_params: mapping of tool_id → user-provided params dict
         - forced_tool_ids: tool IDs where usageControl='force'
+        - tool_user_overrides: mapping of tool_id → {credential_id?, retry?}
+          for per-tool credential and retry-config overrides set in the
+          inspector. Passed into ``tool_registry.execute`` at call time.
 
         Handles three formats:
         1. New format: [{"toolId": "slack_send_message", "params": {...}, "usageControl": "auto"}, ...]
@@ -941,7 +984,7 @@ class AgentNode(BaseNode[AgentProperties]):
 
         raw_tools = self.props.tools
         if raw_tools in (None, ""):
-            return [], {}, []
+            return [], {}, [], {}
 
         if isinstance(raw_tools, str):
             try:
@@ -950,16 +993,17 @@ class AgentNode(BaseNode[AgentProperties]):
                 raise ValueError(f"Tools must be valid JSON: {e.msg}") from e
 
         if not isinstance(raw_tools, list) or not raw_tools:
-            return [], {}, []
+            return [], {}, [], {}
 
         first = raw_tools[0]
         if not isinstance(first, dict):
-            return [], {}, []
+            return [], {}, [], {}
 
         # ----- New format: items have a "toolId" key OR kind='mcp' (skip mcp here) -----
         if "toolId" in first or first.get("kind") in ("tool", "mcp"):
             tool_specs: list[dict[str, Any]] = []
             tool_user_params: dict[str, dict[str, Any]] = {}
+            tool_user_overrides: dict[str, dict[str, Any]] = {}
             forced_tool_ids: list[str] = []
 
             for item in raw_tools:
@@ -989,10 +1033,23 @@ class AgentNode(BaseNode[AgentProperties]):
                 params = item.get("params")
                 tool_user_params[tool_id] = params if isinstance(params, dict) else {}
 
+                # Per-tool overrides from the inspector: credential pinning
+                # and retry-config override. Stored alongside `params` so the
+                # caller can hand them straight to `tool_registry.execute`.
+                overrides: dict[str, Any] = {}
+                credential_id = item.get("credentialId")
+                if isinstance(credential_id, str) and credential_id:
+                    overrides["credential_id"] = credential_id
+                retry_cfg = item.get("retry")
+                if isinstance(retry_cfg, dict) and retry_cfg.get("enabled"):
+                    overrides["retry"] = retry_cfg
+                if overrides:
+                    tool_user_overrides[tool_id] = overrides
+
                 if usage_control == "force":
                     forced_tool_ids.append(tool_id)
 
-            return tool_specs, tool_user_params, forced_tool_ids
+            return tool_specs, tool_user_params, forced_tool_ids, tool_user_overrides
 
         # ----- Old schema format: items have a "schema" key -----
         if "schema" in first:
@@ -1003,7 +1060,7 @@ class AgentNode(BaseNode[AgentProperties]):
                 schema = item.get("schema")
                 if isinstance(schema, dict):
                     tool_specs.append({"type": "function", "function": schema})
-            return tool_specs, {}, []
+            return tool_specs, {}, [], {}
 
         # ----- Legacy format: raw function spec objects -----
         tool_specs = []
@@ -1014,19 +1071,26 @@ class AgentNode(BaseNode[AgentProperties]):
             if not isinstance(name, str) or not name:
                 continue
             tool_specs.append(self._to_openai_tool(tool))
-        return tool_specs, {}, []
+        return tool_specs, {}, [], {}
 
     async def _resolve_tools_async(
         self,
-    ) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]], list[str], dict[str, Any]]:
+    ) -> tuple[
+        list[dict[str, Any]],
+        dict[str, dict[str, Any]],
+        list[str],
+        dict[str, Any],
+        dict[str, dict[str, Any]],
+    ]:
         """Extend _resolve_tools() with async MCP tool fetching.
 
-        Returns: (tool_specs, tool_user_params, forced_tool_ids, mcp_clients)
-        mcp_clients is a dict of server_name → MCPClient for routing tool calls.
+        Returns:
+            (tool_specs, tool_user_params, forced_tool_ids, mcp_clients,
+             tool_user_overrides)
         """
         from apps.api.app.node_system.tools.mcp.client import MCPClient
 
-        tool_specs, tool_user_params, forced_tool_ids = self._resolve_tools()
+        tool_specs, tool_user_params, forced_tool_ids, tool_user_overrides = self._resolve_tools()
         mcp_clients: dict[str, Any] = {}
 
         mcp_server_configs = self._parse_mcp_servers()
@@ -1067,7 +1131,7 @@ class AgentNode(BaseNode[AgentProperties]):
             except Exception as e:
                 logger.warning(f"Failed to fetch tools from MCP server '{name}' ({url}): {e}")
 
-        return tool_specs, tool_user_params, forced_tool_ids, mcp_clients
+        return tool_specs, tool_user_params, forced_tool_ids, mcp_clients, tool_user_overrides
 
     # ------------------------------------------------------------------
     # LLM call helpers (return raw response data)

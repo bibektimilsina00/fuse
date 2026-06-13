@@ -6,7 +6,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from apps.api.app.node_system.base.node_context import NodeContext
-from apps.api.app.node_system.tools.base import ToolDefinition, ToolResult
+from apps.api.app.node_system.tools.base import ToolDefinition, ToolResult, ToolRetryConfig
 
 
 class ToolRegistry:
@@ -53,9 +53,23 @@ class ToolRegistry:
     # OAuth token resolution
     # ------------------------------------------------------------------
 
-    def _resolve_oauth_token(self, credential_type: str, context: NodeContext) -> str | None:
+    def _resolve_oauth_token(
+        self,
+        credential_type: str,
+        context: NodeContext,
+        credential_id: str | None = None,
+    ) -> str | None:
+        """Pull an OAuth/API-key token from the workspace credential list.
+
+        When ``credential_id`` is supplied, only the credential with that
+        exact id is considered — the user pinned this tool to a specific
+        connection in the inspector and we honour that even if other
+        connections of the same type exist.
+        """
         for cred in context.credentials or []:
             if not isinstance(cred, dict):
+                continue
+            if credential_id and str(cred.get("id")) != str(credential_id):
                 continue
             if cred.get("type") == credential_type:
                 data = cred.get("data", {})
@@ -70,8 +84,23 @@ class ToolRegistry:
     # ------------------------------------------------------------------
 
     async def execute(
-        self, tool_id: str, params: dict[str, Any], context: NodeContext
+        self,
+        tool_id: str,
+        params: dict[str, Any],
+        context: NodeContext,
+        *,
+        credential_id: str | None = None,
+        retry_override: ToolRetryConfig | None = None,
     ) -> ToolResult:
+        """Execute a registered tool.
+
+        ``credential_id`` pins the OAuth resolution to a specific credential
+        in the workspace — set by the agent when the user picked a
+        connection in the per-tool inspector panel.
+
+        ``retry_override`` replaces the tool's built-in retry config for this
+        call — agent-side overrides set by the user.
+        """
         # Resolve versioned tool IDs first
         tool_id = self.resolve_tool_id(tool_id)
 
@@ -81,7 +110,9 @@ class ToolRegistry:
 
         # OAuth injection
         if defn.oauth and defn.oauth.required:
-            token = self._resolve_oauth_token(defn.oauth.credential_type, context)
+            token = self._resolve_oauth_token(
+                defn.oauth.credential_type, context, credential_id=credential_id
+            )
             if not token:
                 return ToolResult(
                     success=False,
@@ -89,8 +120,8 @@ class ToolRegistry:
                 )
             params = {**params, "_oauth_token": token}
 
-        # Retry logic
-        retry_cfg = defn.retry
+        # Retry logic — user override wins over the tool's default.
+        retry_cfg = retry_override if retry_override is not None else defn.retry
         max_attempts = (retry_cfg.max_retries + 1) if (retry_cfg and retry_cfg.enabled) else 1
 
         last_result: ToolResult = ToolResult(success=False, error="No attempts made")
