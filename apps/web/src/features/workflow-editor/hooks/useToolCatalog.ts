@@ -87,3 +87,26 @@ export function useWorkflowTools() {
     staleTime: 1000 * 30,
   })
 }
+
+export const McpProbeToolSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+})
+
+export const McpProbeResponseSchema = z.object({
+  success: z.boolean(),
+  tools: z.array(McpProbeToolSchema),
+  error: z.string().nullish(),
+})
+
+export type McpProbeResponse = z.infer<typeof McpProbeResponseSchema>
+
+/** One-shot probe — POST to /tools/mcp/probe. Manual trigger, not auto. */
+export async function probeMcpServer(url: string, apiKey?: string): Promise<McpProbeResponse> {
+  return requestJson(McpProbeResponseSchema, {
+    url: API_ROUTES.TOOLS_MCP_PROBE,
+    method: 'POST',
+    data: { url, api_key: apiKey || null },
+  })
+}

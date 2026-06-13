@@ -67,5 +67,35 @@ class ToolCategoryListResponse(SQLModel):
     categories: list[ToolCategorySchema]
 
 
+# ──────────────────────────────────────────────────────────────────────────
+#  MCP probe
+# ──────────────────────────────────────────────────────────────────────────
+
+
+class McpProbeRequest(SQLModel):
+    """Payload for `POST /tools/mcp/probe` — validates an MCP server and
+    returns its discovered tool list without saving anything."""
+
+    url: str
+    api_key: str | None = None
+
+
+class McpProbeTool(SQLModel):
+    """One discovered MCP tool — id is namespaced by server, so the agent
+    runtime can route calls when this server gets saved."""
+
+    id: str
+    name: str
+    description: str
+
+
+class McpProbeResponse(SQLModel):
+    success: bool
+    tools: list[McpProbeTool]
+    # Server-reported error string when reachable but failing; transport
+    # errors come through as HTTP-level errors and never reach this body.
+    error: str | None = None
+
+
 # Used by the service as a generic "anything" type alias for clarity.
 ToolParamsDict = dict[str, Any]

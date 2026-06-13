@@ -49,6 +49,7 @@ export const API_ROUTES = {
   // Tools (agent catalog)
   TOOLS_LIST: '/tools/',
   TOOLS_WORKFLOWS: '/tools/workflows',
+  TOOLS_MCP_PROBE: '/tools/mcp/probe',
 
   // Workflows / Automations
   WORKFLOWS_WITH_STATS: '/workflows/with-stats',

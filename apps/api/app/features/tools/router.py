@@ -10,13 +10,17 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from apps.api.app.features.tools.schemas import (
+    McpProbeRequest,
+    McpProbeResponse,
     ToolCategoryListResponse,
     ToolListResponse,
     ToolSchema,
 )
 from apps.api.app.features.tools.service import (
+    McpProbeService,
     ToolCatalogService,
     WorkflowToolsService,
+    get_mcp_probe_service,
     get_tool_catalog_service,
     get_workflow_tools_service,
 )
@@ -69,6 +73,22 @@ async def list_workflow_tools(
     pre-bound from the saved entry.
     """
     return await service.list_for_user(current_user, workspace)
+
+
+@router.post("/mcp/probe", response_model=McpProbeResponse)
+async def probe_mcp_server(
+    body: McpProbeRequest,
+    _: User = Depends(get_current_user),
+    service: McpProbeService = Depends(get_mcp_probe_service),
+) -> McpProbeResponse:
+    """Validate an MCP server URL and preview its discovered tool list.
+
+    No persistence — this only round-trips to the server. The inspector
+    calls it before / after saving the server entry so the user can
+    confirm the connection works and see which tools the agent will pick
+    up at run time.
+    """
+    return await service.probe(body.url, body.api_key)
 
 
 @router.get("/{tool_id}", response_model=ToolSchema)
