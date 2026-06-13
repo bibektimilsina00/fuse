@@ -206,6 +206,210 @@ class MetaService:
         return body
 
     # ------------------------------------------------------------------
+    # Comment replies (IG + FB) and Page post publish — small Graph API
+    # wrappers used by the corresponding action nodes.
+    # ------------------------------------------------------------------
+
+    async def ig_reply_comment(
+        self,
+        page_access_token: str,
+        comment_id: str,
+        message: str,
+    ) -> dict[str, Any]:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.post(
+                _graph_url(f"/{comment_id}/replies"),
+                params={"access_token": page_access_token, "message": message},
+            )
+        body = resp.json()
+        if resp.status_code >= 400:
+            err = body.get("error", {})
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"IG comment reply failed: {err.get('message') or body}",
+            )
+        return body
+
+    async def fb_reply_comment(
+        self,
+        page_access_token: str,
+        comment_id: str,
+        message: str,
+    ) -> dict[str, Any]:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.post(
+                _graph_url(f"/{comment_id}/comments"),
+                params={"access_token": page_access_token},
+                json={"message": message},
+            )
+        body = resp.json()
+        if resp.status_code >= 400:
+            err = body.get("error", {})
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"FB comment reply failed: {err.get('message') or body}",
+            )
+        return body
+
+    async def fb_publish_post(
+        self,
+        page_access_token: str,
+        page_id: str,
+        message: str,
+        link: str | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {"message": message}
+        if link:
+            payload["link"] = link
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                _graph_url(f"/{page_id}/feed"),
+                params={"access_token": page_access_token},
+                json=payload,
+            )
+        body = resp.json()
+        if resp.status_code >= 400:
+            err = body.get("error", {})
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"FB post publish failed: {err.get('message') or body}",
+            )
+        return body
+
+    # ------------------------------------------------------------------
+    # IG publish (feed + story) — two-step container API:
+    #   1. POST /{ig_user_id}/media   → returns creation_id
+    #   2. poll  /{creation_id}        until status_code=FINISHED
+    #   3. POST /{ig_user_id}/media_publish with creation_id
+    # ------------------------------------------------------------------
+
+    async def ig_publish_media(
+        self,
+        page_access_token: str,
+        ig_user_id: str,
+        media_url: str,
+        kind: str,  # 'IMAGE' | 'VIDEO' | 'REELS' | 'STORIES'
+        caption: str | None = None,
+        max_poll_seconds: int = 60,
+    ) -> dict[str, Any]:
+        """Synchronous IG publish — creates the media container, polls until
+        Meta finishes processing it, then publishes. Caller's workflow run
+        blocks for `max_poll_seconds` worst case. Suitable for image posts
+        and short videos; for large videos / Reels, switch to an async
+        worker pattern (PR C scope).
+        """
+        import asyncio
+
+        kind_upper = kind.upper()
+        params: dict[str, Any] = {"access_token": page_access_token}
+        # `image_url` for IMAGE; `video_url` + `media_type` for VIDEO / REELS / STORIES.
+        if kind_upper == "IMAGE":
+            params["image_url"] = media_url
+        else:
+            params["video_url"] = media_url
+            params["media_type"] = kind_upper
+        if caption is not None:
+            params["caption"] = caption
+        if kind_upper == "STORIES":
+            # Stories accept either image_url or video_url; remove `caption`
+            # since story containers don't take captions.
+            params.pop("caption", None)
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            container_resp = await client.post(
+                _graph_url(f"/{ig_user_id}/media"),
+                params=params,
+            )
+            container = container_resp.json()
+            if container_resp.status_code >= 400 or "id" not in container:
+                err = container.get("error", {})
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"IG media container failed: {err.get('message') or container}",
+                )
+            creation_id = container["id"]
+
+            # Poll until FINISHED. Image posts usually return FINISHED on
+            # the first call; videos take 5-30s. Bail with a clear error
+            # if Meta returns ERROR.
+            elapsed = 0
+            poll_interval = 2
+            while elapsed < max_poll_seconds:
+                status_resp = await client.get(
+                    _graph_url(f"/{creation_id}"),
+                    params={
+                        "access_token": page_access_token,
+                        "fields": "status_code",
+                    },
+                )
+                status_body = status_resp.json()
+                code = str(status_body.get("status_code") or "")
+                if code == "FINISHED":
+                    break
+                if code == "ERROR":
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"IG media processing failed: {status_body}",
+                    )
+                await asyncio.sleep(poll_interval)
+                elapsed += poll_interval
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                    detail=(
+                        f"IG media processing did not finish within "
+                        f"{max_poll_seconds}s. Container id: {creation_id}"
+                    ),
+                )
+
+            publish_resp = await client.post(
+                _graph_url(f"/{ig_user_id}/media_publish"),
+                params={
+                    "access_token": page_access_token,
+                    "creation_id": creation_id,
+                },
+            )
+            publish = publish_resp.json()
+            if publish_resp.status_code >= 400:
+                err = publish.get("error", {})
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"IG media publish failed: {err.get('message') or publish}",
+                )
+            return publish
+
+    # ------------------------------------------------------------------
+    # Lead Ads — fetch the lead details by leadgen_id. The webhook only
+    # delivers the id; this hop pulls the full form submission.
+    # ------------------------------------------------------------------
+
+    async def lead_fetch(
+        self,
+        page_access_token: str,
+        leadgen_id: str,
+    ) -> dict[str, Any]:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.get(
+                _graph_url(f"/{leadgen_id}"),
+                params={
+                    "access_token": page_access_token,
+                    "fields": "id,created_time,ad_id,form_id,field_data,partner_name",
+                },
+            )
+        body = resp.json()
+        if resp.status_code >= 400:
+            err = body.get("error", {})
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Lead fetch failed: {err.get('message') or body}. "
+                    "Confirm the Page admin granted Lead Access to your app "
+                    "in Page Settings."
+                ),
+            )
+        return body
+
+    # ------------------------------------------------------------------
     # Webhook receive — verifies signature, parses Meta's envelope, and
     # dispatches matching trigger nodes onto the execution engine.
     # ------------------------------------------------------------------

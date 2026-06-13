@@ -46,10 +46,31 @@ from apps.api.app.node_system.nodes.logic.human_input.human_input import HumanIn
 from apps.api.app.node_system.nodes.logic.loop.loop_node import LoopNode
 from apps.api.app.node_system.nodes.logic.sub_workflow.sub_workflow_node import SubWorkflowNode
 from apps.api.app.node_system.nodes.logic.while_loop.while_loop import WhileLoopNode
+from apps.api.app.node_system.nodes.meta.fb_comment_trigger import FBCommentTriggerNode
+from apps.api.app.node_system.nodes.meta.fb_mention_trigger import FBMentionTriggerNode
 from apps.api.app.node_system.nodes.meta.fb_message_trigger import FBMessageTriggerNode
+from apps.api.app.node_system.nodes.meta.fb_postback_trigger import FBPostbackTriggerNode
+from apps.api.app.node_system.nodes.meta.fb_publish_post import FBPublishPostNode
+from apps.api.app.node_system.nodes.meta.fb_reaction_trigger import FBReactionTriggerNode
+from apps.api.app.node_system.nodes.meta.fb_reply_comment import FBReplyCommentNode
 from apps.api.app.node_system.nodes.meta.fb_send_message import FBSendMessageNode
 from apps.api.app.node_system.nodes.meta.ig_comment_trigger import IGCommentTriggerNode
+from apps.api.app.node_system.nodes.meta.ig_mention_trigger import IGMentionTriggerNode
+from apps.api.app.node_system.nodes.meta.ig_message_trigger import IGMessageTriggerNode
+from apps.api.app.node_system.nodes.meta.ig_publish_post import IGPublishPostNode
+from apps.api.app.node_system.nodes.meta.ig_publish_story import IGPublishStoryNode
+from apps.api.app.node_system.nodes.meta.ig_reply_comment import IGReplyCommentNode
 from apps.api.app.node_system.nodes.meta.ig_send_dm import IGSendDMNode
+from apps.api.app.node_system.nodes.meta.ig_story_mention_trigger import (
+    IGStoryMentionTriggerNode,
+)
+from apps.api.app.node_system.nodes.meta.ig_story_reply_trigger import (
+    IGStoryReplyTriggerNode,
+)
+from apps.api.app.node_system.nodes.meta.lead_fetch import LeadFetchNode
+from apps.api.app.node_system.nodes.meta.lead_submission_trigger import (
+    LeadSubmissionTriggerNode,
+)
 from apps.api.app.node_system.nodes.notion.notion_node import NotionNode
 from apps.api.app.node_system.nodes.salesforce.salesforce_node import SalesforceNode
 from apps.api.app.node_system.nodes.slack.slack_node import SlackNode
@@ -110,6 +131,25 @@ node_registry.register(IGCommentTriggerNode)
 node_registry.register(IGSendDMNode)
 node_registry.register(FBMessageTriggerNode)
 node_registry.register(FBSendMessageNode)
+# Phase 2 — IG triggers
+node_registry.register(IGMessageTriggerNode)
+node_registry.register(IGStoryReplyTriggerNode)
+node_registry.register(IGStoryMentionTriggerNode)
+node_registry.register(IGMentionTriggerNode)
+# Phase 2 — FB triggers
+node_registry.register(FBPostbackTriggerNode)
+node_registry.register(FBCommentTriggerNode)
+node_registry.register(FBMentionTriggerNode)
+node_registry.register(FBReactionTriggerNode)
+# Phase 2 — Lead Ads trigger
+node_registry.register(LeadSubmissionTriggerNode)
+# Phase 2 — actions
+node_registry.register(IGReplyCommentNode)
+node_registry.register(FBReplyCommentNode)
+node_registry.register(FBPublishPostNode)
+node_registry.register(IGPublishPostNode)
+node_registry.register(IGPublishStoryNode)
+node_registry.register(LeadFetchNode)
 node_registry.register(SetVariableNode)
 node_registry.register(JsonTransformNode)
 node_registry.register(MergeNode)
