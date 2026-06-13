@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Plus, Search, Sparkles } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/components'
+import { APP_ROUTES } from '@/shared/constants/routes'
 import { useSkills } from '../hooks/useSkills'
 import { SkillCard } from '../components/SkillCard'
 import { SkillCreateModal } from '../components/SkillCreateModal'
@@ -8,6 +10,7 @@ import { SkillDeleteConfirmModal } from '../components/SkillDeleteConfirmModal'
 import type { SkillMeta } from '../types/skillTypes'
 
 export function Skills() {
+  const navigate = useNavigate()
   const { data: skills = [], isLoading } = useSkills()
   const [query, setQuery] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
@@ -84,7 +87,11 @@ export function Skills() {
         </div>
       </div>
 
-      <SkillCreateModal open={createOpen} onClose={() => setCreateOpen(false)} />
+      <SkillCreateModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(id) => navigate(APP_ROUTES.SKILL_EDIT(id))}
+      />
       <SkillDeleteConfirmModal
         skill={pendingDelete}
         onClose={() => setPendingDelete(null)}
