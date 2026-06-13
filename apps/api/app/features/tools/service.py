@@ -19,6 +19,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import apps.api.app.node_system.tools.loader  # noqa: F401  (re-export side effect)
 from apps.api.app.core.database import get_db
 from apps.api.app.features.tools.schemas import (
+    McpProbeResponse,
+    McpProbeTool,
     ToolCategorySchema,
     ToolListResponse,
     ToolOAuthSchema,
@@ -249,3 +251,39 @@ def get_workflow_tools_service(
     db: AsyncSession = Depends(get_db),
 ) -> WorkflowToolsService:
     return WorkflowToolsService(db)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  MCP server probe
+# ──────────────────────────────────────────────────────────────────────────
+
+
+class McpProbeService:
+    """Validates an MCP server URL by calling its `tools/list` method.
+
+    Returns the discovered tool list so the inspector can preview what
+    the agent will see at run time. Transport errors raise as
+    HTTPException; server-reported errors land in the response's
+    ``error`` field with ``success=False``.
+    """
+
+    async def probe(self, url: str, api_key: str | None) -> McpProbeResponse:
+        # Local import — keeps the MCP module out of the cold-path import
+        # graph for callers that never use this endpoint.
+        from apps.api.app.node_system.tools.mcp.client import MCPClient
+
+        # `server_name` only affects the tool id namespacing in the
+        # response — the probe never stores anything, so a stable preview
+        # value is enough.
+        client = MCPClient(server_name="probe", url=url, api_key=api_key)
+        try:
+            definitions = await client.list_tools()
+        except Exception as exc:
+            return McpProbeResponse(success=False, tools=[], error=str(exc))
+
+        tools = [McpProbeTool(id=d.id, name=d.name, description=d.description) for d in definitions]
+        return McpProbeResponse(success=True, tools=tools, error=None)
+
+
+def get_mcp_probe_service() -> McpProbeService:
+    return McpProbeService()

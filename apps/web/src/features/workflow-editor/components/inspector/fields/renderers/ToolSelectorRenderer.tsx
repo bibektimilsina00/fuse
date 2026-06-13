@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Plus, X, Search, Lock, AlertCircle, ChevronDown, Eye, EyeOff, RefreshCw, Server } from 'lucide-react'
+import { Plus, X, Search, Lock, AlertCircle, ChevronDown, Eye, EyeOff, RefreshCw, Server, Plug, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Input, Textarea } from '@/shared/components'
 import { CredentialSelector } from '@/shared/components/CredentialSelector'
 import type { RendererProps } from '../types'
-import { useToolCatalog, useWorkflowTools, type Tool } from '../../../../hooks/useToolCatalog'
+import { useToolCatalog, useWorkflowTools, probeMcpServer, type Tool, type McpProbeResponse } from '../../../../hooks/useToolCatalog'
 import { ExpressionEditor } from '../expression/ExpressionEditor'
 
 type UsageControl = 'auto' | 'force' | 'none'
@@ -370,6 +370,94 @@ function McpServerRow({ server, editing, onToggleEdit, onChange, onRemove }: Mcp
             onChange={v => onChange({ mcpApiKey: v || undefined })}
             password
           />
+          <McpProbe url={server.mcpUrl} apiKey={server.mcpApiKey} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+//  MCP probe — Test connection + preview discovered tools
+// ──────────────────────────────────────────────────────────────────────────
+
+interface McpProbeProps {
+  url: string
+  apiKey?: string
+}
+
+function McpProbe({ url, apiKey }: McpProbeProps) {
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<McpProbeResponse | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const canProbe = url.trim().length > 0
+
+  const runProbe = async () => {
+    if (!canProbe) return
+    setLoading(true)
+    setError(null)
+    try {
+      const r = await probeMcpServer(url.trim(), apiKey?.trim() || undefined)
+      setResult(r)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+      setResult(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <button
+        type="button"
+        onClick={runProbe}
+        disabled={!canProbe || loading}
+        className={cn(
+          'flex h-7 w-fit items-center gap-1.5 rounded-[4px] border px-2 text-[11px] transition-colors',
+          canProbe && !loading
+            ? 'border-border-faint text-text-mute hover:border-border-soft hover:text-text'
+            : 'cursor-not-allowed border-border-faint text-text-faint',
+        )}
+      >
+        <Plug size={11} className={cn(loading && 'animate-pulse')} />
+        {loading ? 'Probing…' : 'Test connection'}
+      </button>
+
+      {error && (
+        <p className="rounded-[4px] bg-err/10 px-2 py-1 text-[10.5px] text-err">{error}</p>
+      )}
+
+      {result && !error && (
+        <div
+          className={cn(
+            'flex flex-col gap-1 rounded-[4px] px-2 py-1.5 text-[10.5px]',
+            result.success ? 'bg-ok/10 text-ok' : 'bg-err/10 text-err',
+          )}
+        >
+          <div className="flex items-center gap-1.5">
+            {result.success ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
+            <span className="font-mono text-[10px]">
+              {result.success
+                ? `Connected · ${result.tools.length} tool${result.tools.length === 1 ? '' : 's'}`
+                : `Failed: ${result.error ?? 'unknown error'}`}
+            </span>
+          </div>
+          {result.success && result.tools.length > 0 && (
+            <ul className="ml-3.5 flex flex-col gap-0.5 text-text-mute">
+              {result.tools.slice(0, 8).map(t => (
+                <li key={t.id} className="truncate font-mono text-[10px]" title={t.description}>
+                  · {t.name}
+                </li>
+              ))}
+              {result.tools.length > 8 && (
+                <li className="font-mono text-[10px] text-text-faint">
+                  …and {result.tools.length - 8} more
+                </li>
+              )}
+            </ul>
+          )}
         </div>
       )}
     </div>
@@ -398,6 +486,7 @@ function McpServerForm({ onSubmit, onCancel }: McpServerFormProps) {
         onChange={setApiKey}
         password
       />
+      <McpProbe url={url} apiKey={apiKey} />
       <div className="flex justify-end gap-1.5">
         <button
           type="button"
