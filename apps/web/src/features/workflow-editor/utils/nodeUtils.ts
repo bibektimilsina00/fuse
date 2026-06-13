@@ -1,54 +1,44 @@
+import jsonata from 'jsonata'
 import type { NodeProperty, PropertyCondition } from '../types/editorTypes'
 
 /**
+ * Runtime-only variable heads. Expressions that reference any of these
+ * resolve to `null` at design time (no run data on the canvas), so we
+ * skip evaluation entirely and the raw `=…` text shows instead.
+ */
+const RUNTIME_VAR_REGEX = /\$(step|node|trigger|vars|env|secrets|loop)\b/
+
+/**
  * Best-effort, synchronous design-time evaluation of a `=`-prefixed
- * expression. Returns a display string when the expression is fully
- * resolvable without any runtime data; returns `null` otherwise so the
- * caller falls back to showing the raw `=…` text.
+ * expression via JSONata. Returns the evaluated value as a display
+ * string when fully resolvable without runtime data; returns `null`
+ * otherwise so the caller shows the raw `=…` text.
  *
- * The canvas preview renders synchronously per re-render, so we can't
- * await `jsonata` (its v2 `evaluate` always returns a Promise). Instead
- * we cover the cases the inspector actually surfaces:
- * - pure arithmetic: `=1+1` → `2`, `=2*3-1` → `5`
- * - `&`-string concat between double-quoted literals: `="a" & "b"` → `ab`
- * - the JSONata standalone-string literal: `="hello"` → `hello`
+ * Uses `jsonata@^1.8` for its synchronous `evaluate` — v2 made evaluate
+ * async-only, which doesn't fit the canvas's sync render path.
  *
- * Anything outside this subset (runtime variables, function calls,
- * arrays, predicates) returns `null` and the raw text shows on the card.
+ * Bails (returns `null`) when:
+ * - the value isn't `=`-prefixed.
+ * - the expression mentions a runtime variable (`$step`, `$node`,
+ *   `$trigger`, `$vars`, `$env`, `$secrets`, `$loop`).
+ * - the expression fails to compile / evaluate.
+ * - the result is `null` / `undefined` / a non-primitive (no useful
+ *   single-cell display).
  */
 function tryResolveDesignTime(value: string): string | null {
   if (!value.startsWith('=')) return null
   const expr = value.slice(1).trim()
   if (!expr) return null
-
-  // String literal: `="hello"` or `="abc"`.
-  const literal = expr.match(/^"((?:[^"\\]|\\.)*)"$/)
-  if (literal) return literal[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\')
-
-  // String concat between quoted parts: `"a" & "b" & "c"`.
-  if (/^\s*"(?:[^"\\]|\\.)*"\s*(?:&\s*"(?:[^"\\]|\\.)*"\s*)+$/.test(expr)) {
-    const parts = expr.match(/"((?:[^"\\]|\\.)*)"/g)
-    if (parts) {
-      const result = parts
-        .map(p => p.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, '\\'))
-        .join('')
-      return result
-    }
+  if (RUNTIME_VAR_REGEX.test(expr)) return null
+  try {
+    const result = jsonata(expr).evaluate(null) as unknown
+    if (result === undefined || result === null) return null
+    if (typeof result === 'object') return null
+    if (typeof result === 'number' && !Number.isFinite(result)) return null
+    return String(result)
+  } catch {
+    return null
   }
-
-  // Pure arithmetic: digits, operators, decimal point, parens, whitespace.
-  // Function constructor with strict-mode guards is safe given the input
-  // character whitelist excludes identifiers and dangerous syntax.
-  if (/^[\d+\-*/().\s]+$/.test(expr)) {
-    try {
-      const result = Function(`"use strict"; return (${expr})`)() as unknown
-      if (typeof result === 'number' && Number.isFinite(result)) return String(result)
-    } catch {
-      // fall through
-    }
-  }
-
-  return null
 }
 
 export const getPropValuePreview = (val: unknown, propType: string): string => {

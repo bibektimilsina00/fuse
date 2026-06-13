@@ -21,12 +21,18 @@ class NodeExecutor:
             node_class = node_registry.get_node(node_type)
             metadata = node_class.get_metadata()
 
+            # Drop properties that resolved to None. Common when an expression
+            # references runtime data that isn't there yet (`=$step.x` on a
+            # trigger node, say). Removing the key lets the Pydantic default
+            # kick in instead of failing validation.
+            cleaned_properties = {k: v for k, v in properties.items() if v is not None}
+
             # 1. Instantiate (Pydantic validation happens in __init__)
-            node_instance = node_class(node_id=node_id, properties=properties)
+            node_instance = node_class(node_id=node_id, properties=cleaned_properties)
 
             # 2. Advanced Credential Injection
             if metadata.credential_type:
-                selected_cred_id = properties.get("credential")
+                selected_cred_id = cleaned_properties.get("credential")
                 credentials = context.credentials or []
 
                 logger.info(

@@ -29,10 +29,10 @@ describe('getPropValuePreview — design-time expression resolution', () => {
     expect(getPropValuePreview('=$node("X").y', 'string')).toBe('=$node("X"…')
   })
 
-  it('falls back to raw text for JSONata function calls', () => {
-    // Function calls aren't in the safe subset — we don't try to evaluate
-    // `$sum(...)` synchronously.
-    expect(getPropValuePreview('=$sum([1,2,3])', 'string')).toBe('=$sum([1,2…')
+  it('resolves JSONata function calls', () => {
+    expect(getPropValuePreview('=$sum([1,2,3])', 'string')).toBe('6')
+    expect(getPropValuePreview('=$sum(2+2)', 'string')).toBe('4')
+    expect(getPropValuePreview('=$uppercase("hi")', 'string')).toBe('HI')
   })
 
   it('falls back for arithmetic-shaped expressions that produce non-finite results', () => {
