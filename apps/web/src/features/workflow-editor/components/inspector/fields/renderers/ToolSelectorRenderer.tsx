@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Plus, X, Search, Lock, AlertCircle, ChevronDown, Eye, EyeOff, RefreshCw } from 'lucide-react'
+import { Plus, X, Search, Lock, AlertCircle, ChevronDown, Eye, EyeOff, RefreshCw, Server } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Input, Textarea } from '@/shared/components'
 import { CredentialSelector } from '@/shared/components/CredentialSelector'
@@ -54,7 +54,16 @@ const DEFAULT_RETRY: RetryOverride = {
   max_delay_ms: 10000,
 }
 
-function toToolArray(value: unknown): ToolEntry[] {
+interface McpEntry {
+  kind: 'mcp'
+  mcpName: string
+  mcpUrl: string
+  mcpApiKey?: string
+}
+
+type SavedEntry = ToolEntry | McpEntry
+
+function toEntryArray(value: unknown): SavedEntry[] {
   if (!value) return []
   const arr =
     typeof value === 'string'
@@ -64,8 +73,19 @@ function toToolArray(value: unknown): ToolEntry[] {
       : value
   if (!Array.isArray(arr)) return []
   return arr.filter(
-    (i): i is ToolEntry =>
-      typeof i === 'object' && i !== null && (i as ToolEntry).kind !== 'mcp',
+    (i): i is SavedEntry => typeof i === 'object' && i !== null,
+  )
+}
+
+function toToolArray(value: unknown): ToolEntry[] {
+  return toEntryArray(value).filter(
+    (i): i is ToolEntry => i.kind !== 'mcp',
+  )
+}
+
+function toMcpArray(value: unknown): McpEntry[] {
+  return toEntryArray(value).filter(
+    (i): i is McpEntry => i.kind === 'mcp',
   )
 }
 
@@ -78,8 +98,15 @@ const USAGE_STYLES: Record<UsageControl, string> = {
 
 export function ToolSelectorRenderer({ value, onChange }: RendererProps) {
   const tools = toToolArray(value)
+  const mcpServers = toMcpArray(value)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
+
+  // Rebuild the saved value by concatenating the new tools list with the
+  // (preserved) MCP entries (or vice versa). Keeps both groups round-trip
+  // safe even though they share one underlying array.
+  const writeTools = (next: ToolEntry[]) => onChange([...next, ...mcpServers])
+  const writeMcp = (next: McpEntry[]) => onChange([...tools, ...next])
   const catalogQuery = useToolCatalog()
   const workflowToolsQuery = useWorkflowTools()
   // Merge built-in tools with the workspace's workflows-as-tools. The
@@ -95,7 +122,7 @@ export function ToolSelectorRenderer({ value, onChange }: RendererProps) {
   )
 
   const remove = (i: number) => {
-    onChange(tools.filter((_, j) => j !== i))
+    writeTools(tools.filter((_, j) => j !== i))
     if (expandedIndex === i) setExpandedIndex(null)
   }
 
@@ -103,15 +130,15 @@ export function ToolSelectorRenderer({ value, onChange }: RendererProps) {
     const cycle: UsageControl[] = ['auto', 'force', 'none']
     const current = tools[i].usageControl
     const nextUsage = cycle[(cycle.indexOf(current) + 1) % cycle.length]
-    onChange(tools.map((t, j) => (j === i ? { ...t, usageControl: nextUsage } : t)))
+    writeTools(tools.map((t, j) => (j === i ? { ...t, usageControl: nextUsage } : t)))
   }
 
   const updateParams = (i: number, params: Record<string, unknown>) => {
-    onChange(tools.map((t, j) => (j === i ? { ...t, params } : t)))
+    writeTools(tools.map((t, j) => (j === i ? { ...t, params } : t)))
   }
 
   const updateCredential = (i: number, credentialId: string) => {
-    onChange(
+    writeTools(
       tools.map((t, j) => {
         if (j !== i) return t
         const next = { ...t }
@@ -123,7 +150,7 @@ export function ToolSelectorRenderer({ value, onChange }: RendererProps) {
   }
 
   const updateRetry = (i: number, retry: RetryOverride | undefined) => {
-    onChange(
+    writeTools(
       tools.map((t, j) => {
         if (j !== i) return t
         const next = { ...t }
@@ -154,7 +181,7 @@ export function ToolSelectorRenderer({ value, onChange }: RendererProps) {
         ]),
       )
     }
-    onChange([...tools, entry])
+    writeTools([...tools, entry])
     setExpandedIndex(tools.length)
     setPickerOpen(false)
   }
@@ -201,6 +228,230 @@ export function ToolSelectorRenderer({ value, onChange }: RendererProps) {
           Add tool
         </button>
       )}
+
+      <McpServerSection servers={mcpServers} onChange={writeMcp} />
+    </div>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+//  MCP server section — add / edit / remove remote MCP servers
+// ──────────────────────────────────────────────────────────────────────────
+
+interface McpServerSectionProps {
+  servers: McpEntry[]
+  onChange: (next: McpEntry[]) => void
+}
+
+function McpServerSection({ servers, onChange }: McpServerSectionProps) {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [adding, setAdding] = useState(false)
+
+  const updateAt = (i: number, patch: Partial<McpEntry>) => {
+    onChange(servers.map((s, j) => (j === i ? { ...s, ...patch } : s)))
+  }
+
+  const removeAt = (i: number) => {
+    onChange(servers.filter((_, j) => j !== i))
+    if (editingIndex === i) setEditingIndex(null)
+  }
+
+  const addServer = (draft: McpEntry) => {
+    onChange([...servers, draft])
+    setAdding(false)
+  }
+
+  return (
+    <div className="mt-2 flex flex-col gap-1.5 border-t border-border-faint pt-2">
+      <div className="flex items-center gap-1.5 px-1">
+        <Server size={11} className="text-text-faint" />
+        <span className="font-mono text-[9.5px] uppercase tracking-wider text-text-faint">
+          MCP servers
+        </span>
+        <span className="ml-auto font-mono text-[9.5px] text-text-faint">
+          {servers.length}
+        </span>
+      </div>
+
+      {servers.map((server, i) => (
+        <McpServerRow
+          key={i}
+          server={server}
+          editing={editingIndex === i}
+          onToggleEdit={() => setEditingIndex(editingIndex === i ? null : i)}
+          onChange={patch => updateAt(i, patch)}
+          onRemove={() => removeAt(i)}
+        />
+      ))}
+
+      {adding ? (
+        <McpServerForm
+          onCancel={() => setAdding(false)}
+          onSubmit={addServer}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="flex h-7 w-full items-center justify-center gap-1.5 rounded-[5px] border border-dashed border-border-faint text-[11px] text-text-faint hover:border-border-soft hover:text-text-mute transition-colors"
+        >
+          <Plus size={11} />
+          Add MCP server
+        </button>
+      )}
+    </div>
+  )
+}
+
+interface McpServerRowProps {
+  server: McpEntry
+  editing: boolean
+  onToggleEdit: () => void
+  onChange: (patch: Partial<McpEntry>) => void
+  onRemove: () => void
+}
+
+function McpServerRow({ server, editing, onToggleEdit, onChange, onRemove }: McpServerRowProps) {
+  return (
+    <div className="flex flex-col rounded-[5px] border border-border-faint bg-bg">
+      <div className="flex items-center gap-1.5 px-2.5 py-1.5">
+        <button
+          type="button"
+          onClick={onToggleEdit}
+          className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-text-faint hover:text-text-mute"
+          title={editing ? 'Collapse' : 'Edit'}
+        >
+          <ChevronDown
+            size={11}
+            className={cn('transition-transform', editing && 'rotate-180')}
+          />
+        </button>
+        <Server size={10} className="shrink-0 text-text-faint" />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-[11.5px] text-text">
+            {server.mcpName || 'Unnamed server'}
+          </span>
+          <span className="truncate font-mono text-[10px] text-text-faint">
+            {server.mcpUrl || '—'}
+          </span>
+        </div>
+        {server.mcpApiKey && (
+          <span title="API key set" className="flex shrink-0 items-center">
+            <Lock size={10} className="text-text-faint" />
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={onRemove}
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-text-faint hover:text-err transition-colors"
+        >
+          <X size={11} />
+        </button>
+      </div>
+
+      {editing && (
+        <div className="flex flex-col gap-2 border-t border-border-faint px-2.5 py-2">
+          <McpField
+            label="Name"
+            placeholder="my-server"
+            value={server.mcpName}
+            onChange={v => onChange({ mcpName: v })}
+          />
+          <McpField
+            label="URL"
+            placeholder="https://mcp.example.com"
+            value={server.mcpUrl}
+            onChange={v => onChange({ mcpUrl: v })}
+          />
+          <McpField
+            label="API key (optional)"
+            placeholder="••••••••"
+            value={server.mcpApiKey ?? ''}
+            onChange={v => onChange({ mcpApiKey: v || undefined })}
+            password
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface McpServerFormProps {
+  onSubmit: (draft: McpEntry) => void
+  onCancel: () => void
+}
+
+function McpServerForm({ onSubmit, onCancel }: McpServerFormProps) {
+  const [name, setName] = useState('')
+  const [url, setUrl] = useState('')
+  const [apiKey, setApiKey] = useState('')
+  const canSubmit = name.trim() && url.trim()
+
+  return (
+    <div className="flex flex-col gap-2 rounded-[5px] border border-border-faint bg-bg p-2">
+      <McpField label="Name" placeholder="my-server" value={name} onChange={setName} />
+      <McpField label="URL" placeholder="https://mcp.example.com" value={url} onChange={setUrl} />
+      <McpField
+        label="API key (optional)"
+        placeholder="••••••••"
+        value={apiKey}
+        onChange={setApiKey}
+        password
+      />
+      <div className="flex justify-end gap-1.5">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="h-7 rounded-[4px] px-2 text-[11px] text-text-faint hover:text-text-mute"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          disabled={!canSubmit}
+          onClick={() =>
+            onSubmit({
+              kind: 'mcp',
+              mcpName: name.trim(),
+              mcpUrl: url.trim(),
+              mcpApiKey: apiKey.trim() || undefined,
+            })
+          }
+          className={cn(
+            'h-7 rounded-[4px] px-2 text-[11px] transition-colors',
+            canSubmit
+              ? 'bg-accent/15 text-accent hover:bg-accent/25'
+              : 'cursor-not-allowed bg-surface text-text-faint',
+          )}
+        >
+          Add server
+        </button>
+      </div>
+    </div>
+  )
+}
+
+interface McpFieldProps {
+  label: string
+  value: string
+  placeholder?: string
+  password?: boolean
+  onChange: (next: string) => void
+}
+
+function McpField({ label, value, placeholder, password, onChange }: McpFieldProps) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="font-mono text-[9.5px] uppercase tracking-wide text-text-faint">
+        {label}
+      </span>
+      <Input
+        type={password ? 'password' : 'text'}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-7 rounded-[4px] text-[11px]"
+      />
     </div>
   )
 }
