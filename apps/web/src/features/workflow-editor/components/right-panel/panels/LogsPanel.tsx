@@ -104,6 +104,7 @@ export function LogsPanel() {
     return map
   }, [nodes, nodeDefinitions])
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const selectedLog = useMemo<RunLog | null>(() => {
     if (!selectedLogId) return null
     for (const r of runs) {
@@ -130,7 +131,7 @@ export function LogsPanel() {
               startedAt: r.listenStartedAt ?? null,
             },
           },
-          timestamp: r.listenStartedAt ?? new Date().toISOString(),
+          timestamp: r.listenStartedAt ?? '',
         }
       }
     }

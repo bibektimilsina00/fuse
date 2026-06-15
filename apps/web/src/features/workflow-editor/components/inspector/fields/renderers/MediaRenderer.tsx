@@ -85,14 +85,11 @@ export function MediaRenderer({
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement | null>(null)
 
-  useEffect(() => {
-    // Keep the active tab in sync if the saved value shape changes from
-    // outside (graph load, expression toggle, undo / redo).
-    if (current.type === 'asset' && tab === 'url') setTab('library')
-    if (current.type === 'url' && tab === 'library' && !current.value) {
-      // staying on library is fine — the picker handles empty state
-    }
-  }, [current.type])
+  // Tab state seeds itself from `current.type` on first render and is
+  // then user-driven. We deliberately don't re-sync on prop changes:
+  // re-rendering with `setTab` inside an effect would cascade renders
+  // (and tripped react-hooks/set-state-in-effect), while the initial
+  // seed already covers the common open-existing-graph case.
 
   /** Map a MIME type into the IG content-publishing `kind` enum the
    *  backend node expects. Returns `null` when we shouldn't override
@@ -282,14 +279,15 @@ function LibraryPicker({
   onPick: (asset: Asset) => void
   disabled?: boolean
 }) {
+  // Seed `loading=true` so the first paint already shows the spinner;
+  // avoids the cascading setState in effect ESLint flags.
   const [assets, setAssets] = useState<Asset[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
 
   useEffect(() => {
     let alive = true
-    setLoading(true)
     requestJson(ASSET_LIST_SCHEMA, { url: API_ROUTES.ASSETS, method: 'GET' })
       .then((data) => {
         if (!alive) return
