@@ -5,26 +5,22 @@ import { useEditorLayoutStore } from '../../stores/editorLayoutStore'
 interface CanvasFloatingButtonsProps {
   onToggleZenMode?: () => void
   zenMode?: boolean
+  onAddNodeClick: () => void
+  isAddNodeOpen?: boolean
 }
 
 /**
  * Floating action buttons that overlay the canvas, anchored to the top-right corner.
  * Matches n8n's style: individual rounded squares floating over the dot-grid canvas.
  */
-export function CanvasFloatingButtons({ onToggleZenMode, zenMode = false }: CanvasFloatingButtonsProps) {
+export function CanvasFloatingButtons({
+  onToggleZenMode,
+  zenMode = false,
+  onAddNodeClick,
+  isAddNodeOpen = false,
+}: CanvasFloatingButtonsProps) {
   const rightOpen      = useEditorLayoutStore((s) => s.rightOpen)
-  const rightActiveTab = useEditorLayoutStore((s) => s.rightActiveTab)
-  const setRightActive = useEditorLayoutStore((s) => s.setRightActiveTab)
   const setZoneOpen    = useEditorLayoutStore((s) => s.setZoneOpen)
-
-  const toggleLibrary = () => {
-    if (rightOpen && rightActiveTab === 'library') {
-      setZoneOpen('right', false)
-    } else {
-      setRightActive('library')
-      setZoneOpen('right', true)
-    }
-  }
 
   const btnBase = cn(
     'w-[38px] h-[38px] rounded-[10px]',
@@ -41,15 +37,20 @@ export function CanvasFloatingButtons({ onToggleZenMode, zenMode = false }: Canv
     >
       {/* + Add node */}
       <button
-        onClick={toggleLibrary}
+        onClick={onAddNodeClick}
         className={cn(
           btnBase,
           'pointer-events-auto',
-          rightOpen && rightActiveTab === 'library' && 'text-[var(--text)] border-[var(--border-soft)]'
+          isAddNodeOpen && 'bg-[var(--surface)] text-[var(--text)] border-[var(--border-soft)]'
         )}
         title="Add node"
       >
-        <Icons.Plus className="w-[16px] h-[16px]" />
+        <Icons.Plus
+          className={cn(
+            'w-[16px] h-[16px] transition-transform duration-200',
+            isAddNodeOpen && 'rotate-45 text-[var(--accent)]'
+          )}
+        />
       </button>
 
       {/* Fullscreen / Zen mode toggle */}
@@ -58,7 +59,7 @@ export function CanvasFloatingButtons({ onToggleZenMode, zenMode = false }: Canv
         className={cn(
           btnBase,
           'pointer-events-auto',
-          zenMode && 'text-[var(--text)] border-[var(--border-soft)]'
+          zenMode && 'bg-[var(--surface)] text-[var(--text)] border-[var(--border-soft)]'
         )}
         title={zenMode ? 'Exit fullscreen' : 'Enter fullscreen'}
       >
@@ -80,11 +81,15 @@ export function CanvasFloatingButtons({ onToggleZenMode, zenMode = false }: Canv
         className={cn(
           btnBase,
           'pointer-events-auto',
-          rightOpen && 'text-[var(--text)] border-[var(--border-soft)]'
+          rightOpen && 'bg-[var(--surface)] text-[var(--text)] border-[var(--border-soft)]'
         )}
         title={rightOpen ? 'Collapse panel' : 'Expand panel'}
       >
-        <Icons.PanelClose className="w-[16px] h-[16px]" />
+        {rightOpen ? (
+          <Icons.PanelClose className="w-[16px] h-[16px]" />
+        ) : (
+          <Icons.PanelOpen className="w-[16px] h-[16px]" />
+        )}
       </button>
     </div>
   )

@@ -9,7 +9,6 @@ import { useCopilotPendingStore } from '../stores/copilotPendingStore'
 import { useEditorLayoutStore } from '../stores/editorLayoutStore'
 import { EditorCanvas } from '../components/canvas/EditorCanvas'
 import { EditorRightPanel } from '../components/right-panel/EditorRightPanel'
-import { CanvasFloatingButtons } from '../components/right-panel/CanvasFloatingButtons'
 import { BottomPanel } from '../components/bottom-panel/BottomPanel'
 import { EditorLoading } from '../components/overlays/EditorLoading'
 import { EditorError } from '../components/overlays/EditorError'
@@ -104,10 +103,6 @@ export function WorkflowEditor() {
               interactive={!diffActive}
               onToggleFullscreen={toggleZenMode}
               isFullscreen={zenMode}
-            />
-            <CanvasFloatingButtons
-              onToggleZenMode={toggleZenMode}
-              zenMode={zenMode}
             />
           </div>
 
