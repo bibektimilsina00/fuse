@@ -109,12 +109,34 @@ export function ExpressionEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  /** Replace every ASCII space inside a `{{ … }}` region with NBSP so the
+   *  textarea (and the overlay) wrap the whole block as a single word
+   *  instead of breaking at each interior space. The user types regular
+   *  spaces; we silently swap them as they enter the braces so the
+   *  textarea's native wrap stays aligned with the highlight overlay.
+   *  Outside the braces, spaces remain regular ASCII. The backend
+   *  resolver / JSONata both treat NBSP as whitespace, so resolution is
+   *  unaffected. */
+  const nbsp = ' '
+  const normaliseInternalSpaces = useCallback((next: string): string => {
+    if (!next.includes('{{')) return next
+    return next.replace(/\{\{[^{}]*?\}\}|\{\{[^{}]*$/g, (region) => {
+      // Skip the literal braces, NBSP-ify anything between them.
+      if (region.endsWith('}}')) {
+        const body = region.slice(2, -2).replace(/ /g, nbsp)
+        return `{{${body}}}`
+      }
+      const body = region.slice(2).replace(/ /g, nbsp)
+      return `{{${body}`
+    })
+  }, [])
+
   const commit = useCallback(
     (next: string) => {
-      onChange(next)
+      onChange(normaliseInternalSpaces(next))
       setSelectedIndex(0)
     },
-    [onChange],
+    [onChange, normaliseInternalSpaces],
   )
 
   const syncCaret = useCallback(() => {
