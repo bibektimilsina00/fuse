@@ -15,7 +15,12 @@ interface BottomPanelProps {
 
 const COLLAPSED_HEIGHT = 36
 
-export function BottomPanel({ nodes, updateNodeData, onRun, isRunning }: BottomPanelProps) {
+export function BottomPanel({
+  nodes,
+  updateNodeData,
+  onRun,
+  isRunning,
+}: BottomPanelProps) {
   const panelZones      = useEditorLayoutStore((s) => s.panelZones)
   const bottomActiveTab = useEditorLayoutStore((s) => s.bottomActiveTab)
   const bottomOpen      = useEditorLayoutStore((s) => s.bottomOpen)
@@ -82,14 +87,17 @@ export function BottomPanel({ nodes, updateNodeData, onRun, isRunning }: BottomP
     e.dataTransfer.setData('text/plain', tab)
   }
 
+  // collapsed = 36px header, open = bottomHeight.
   const totalHeight = bottomOpen ? bottomHeight : COLLAPSED_HEIGHT
 
   return (
     <div
+      data-role="editor-bottom-panel"
       className={cn(
-        'pointer-events-auto relative w-full shrink-0 z-10 flex flex-col overflow-hidden border-t border-[var(--border-faint)] bg-[var(--bg-2)]',
+        'pointer-events-auto relative w-full shrink-0 z-10 flex flex-col overflow-hidden bg-[var(--bg-2)]',
         !isResizing && 'transition-[height] duration-300 ease-in-out',
         dragOver && 'ring-1 ring-inset ring-[var(--accent)]',
+        totalHeight > 0 ? 'border-t border-[var(--border-faint)]' : 'border-t-0'
       )}
       style={{ height: totalHeight }}
     >

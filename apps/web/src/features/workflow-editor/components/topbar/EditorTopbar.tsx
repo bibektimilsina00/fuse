@@ -53,6 +53,7 @@ export function EditorTopbar({
 
   return (
     <header
+      data-role="editor-topbar"
       className={cn(
         'relative z-20 flex shrink-0 items-center justify-between gap-3 border-b border-[var(--border-faint)] bg-[var(--bg-2)] py-[8px] px-[22px]',
         className,
