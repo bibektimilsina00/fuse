@@ -89,8 +89,17 @@ export const getVisibleNodeProperties = (
   properties: NodeProperty[],
   values: Record<string, unknown>,
   showAdvanced: boolean,
-): NodeProperty[] =>
-  properties
+): NodeProperty[] => {
+  // Match the inspector: condition evaluation must see each property's
+  // `default` when the saved props don't have it yet, otherwise a freshly
+  // dropped node hides every default-driven conditional field until the
+  // user re-clicks the dropdown.
+  const merged: Record<string, unknown> = { ...values }
+  for (const p of properties) {
+    if (merged[p.name] === undefined && p.default !== undefined) merged[p.name] = p.default
+  }
+  return properties
     .filter(p => p.visibility !== 'hidden')
     .filter(p => p.mode !== 'advanced' || showAdvanced)
-    .filter(p => shouldShowProperty(p, values))
+    .filter(p => shouldShowProperty(p, merged))
+}

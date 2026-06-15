@@ -197,6 +197,9 @@ class WorkflowRunner:
         from apps.api.app.execution_engine.engine.property_resolver import resolve_properties
         from apps.api.app.execution_engine.engine.template_resolver import TemplateResolver
 
+        # `jsonata_resolver` is created a few lines down — defer the binding
+        # by assigning after construction so the template resolver picks it
+        # up for inline `{{ $step.x }}` lookups inside mixed-text fields.
         template_resolver = TemplateResolver(
             node_outputs=self._outputs,
             trigger_data=self._trigger_data,
@@ -229,6 +232,9 @@ class WorkflowRunner:
             secrets=self.secrets,
             loop_data=self.loop_data,
         )
+        # Late-bind so inline `{{ $step.x }}` chunks inside literal-text
+        # fields route through the same JSONata engine as `=expression`.
+        template_resolver._jsonata = jsonata_resolver  # noqa: SLF001
         resolved_properties = resolve_properties(
             node_data.get("data", {}).get("properties", {}),
             jsonata_resolver,

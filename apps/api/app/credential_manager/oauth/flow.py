@@ -258,9 +258,40 @@ class GoogleOAuthProvider:
     id = "google_oauth"
     name = "Google"
     type = "oauth"
-    description = "Connect Google account for Gmail, Drive, and other Google services"
+    description = "Connect Google account for Gmail, Calendar, Drive, Sheets, Docs, and more"
     icon_url = "https://cdn.brandfetch.io/google.com/icon"
-    scopes = ["Read and send Gmail", "Access Google profile", "Read and write Google Sheets"]
+    scopes = [
+        "Read, send, modify, label, and delete Gmail messages",
+        "Read and write Google Calendar events",
+        "Create and manage Google Drive files (only files Fuse creates)",
+        "Read and write Google Sheets",
+        "Read and write Google Docs",
+        "Manage Google Tasks",
+        "Read your Google profile",
+    ]
+
+    # Phase 1 scope set. Trimmed deliberately:
+    # - `gmail.modify` is the *one* Gmail scope that covers send + read +
+    #   label + thread + trash without needing the broader `gmail` scope
+    #   (which triggers Google's Restricted Scope Verification / CASA).
+    # - `drive.file` only grants access to files Fuse itself creates;
+    #   safer default than the full `drive` scope which is restricted.
+    # - Future surfaces (YouTube / Ads / Cloud APIs / Admin) get their
+    #   own sibling provider — keeping this provider's consent screen
+    #   short keeps the OAuth UX honest about what the user is granting.
+    _SCOPE_STR = " ".join(
+        [
+            "https://www.googleapis.com/auth/gmail.modify",
+            "https://www.googleapis.com/auth/calendar",
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/documents",
+            "https://www.googleapis.com/auth/tasks",
+            "openid",
+            "email",
+            "profile",
+        ]
+    )
 
     def get_authorization_url(self, state, code_challenge=None):
         from urllib.parse import urlencode
@@ -269,15 +300,11 @@ class GoogleOAuthProvider:
             "client_id": settings.GOOGLE_CLIENT_ID if hasattr(settings, "GOOGLE_CLIENT_ID") else "",
             "redirect_uri": REDIRECT_URI.format(service="google"),
             "response_type": "code",
-            "scope": (
-                "https://www.googleapis.com/auth/gmail.send "
-                "https://www.googleapis.com/auth/gmail.readonly "
-                "https://www.googleapis.com/auth/spreadsheets "
-                "openid email profile"
-            ),
+            "scope": self._SCOPE_STR,
             "access_type": "offline",
             "state": state,
             "prompt": "consent",
+            "include_granted_scopes": "true",
         }
         return f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
 

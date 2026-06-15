@@ -33,6 +33,7 @@ from apps.api.app.node_system.nodes.db.postgres.postgres import PostgresNode
 from apps.api.app.node_system.nodes.discord.discord_node import DiscordNode
 from apps.api.app.node_system.nodes.github.github_node import GitHubNode
 from apps.api.app.node_system.nodes.gmail.gmail_node import GmailNode
+from apps.api.app.node_system.nodes.gmail.gmail_trigger import GmailTriggerNode
 from apps.api.app.node_system.nodes.google_sheets.google_sheets import GoogleSheetsNode
 from apps.api.app.node_system.nodes.google_sheets.google_sheets_trigger import (
     GoogleSheetsTriggerNode,
@@ -113,6 +114,7 @@ node_registry.register(StripeNode)
 node_registry.register(HubSpotNode)
 node_registry.register(TelegramNode)
 node_registry.register(GmailNode)
+node_registry.register(GmailTriggerNode)
 node_registry.register(GoogleSheetsNode)
 node_registry.register(GoogleSheetsTriggerNode)
 node_registry.register(LinearNode)
