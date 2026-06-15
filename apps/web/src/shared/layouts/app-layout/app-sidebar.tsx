@@ -258,9 +258,6 @@ function SidebarHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean; o
             <Icons.FuseMark style={{ width: 13, height: 13 }} />
           </span>
           <span className="group-data-[collapsed=true]/shell:hidden">fuse</span>
-          <span className="font-mono text-[9px] tracking-[0.16em] uppercase text-[var(--text-faint)] border border-[var(--border-soft)] py-[2px] px-[5px] rounded-[4px] group-data-[collapsed=true]/shell:hidden">
-            BETA
-          </span>
         </span>
         <button
           className="w-[24px] h-[24px] rounded-[6px] text-[var(--text-faint)] inline-flex items-center justify-center hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px] transition-colors duration-100"
@@ -271,8 +268,10 @@ function SidebarHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean; o
         </button>
       </div>
 
-      {/* Workspace selector */}
-      <WorkspaceSelector />
+      {/* Workspace selector with separating gap */}
+      <div className="mt-[4px] group-data-[collapsed=true]/shell:mt-0">
+        <WorkspaceSelector />
+      </div>
 
       {/* Search bar */}
       <div className="flex items-center gap-[8px] px-[10px] h-[32px] rounded-[8px] bg-[var(--bg)] border border-[var(--border-faint)] transition-colors duration-120 w-full min-w-0 hover:border-[var(--border-soft)] focus-within:border-[var(--border)] focus-within:bg-[var(--surface)] [&>svg]:w-[13px] [&>svg]:h-[13px] [&>svg]:text-[var(--text-faint)] [&>svg]:shrink-0 group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:px-0 group-data-[collapsed=true]/shell:gap-0">
