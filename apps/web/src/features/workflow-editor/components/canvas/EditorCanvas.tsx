@@ -17,6 +17,7 @@ import { CustomEdge } from '../edges/CustomEdge'
 import { ContextMenu, type ContextMenuItem } from '../context-menu/ContextMenu'
 import { useWorkflowEditorStore } from '../../stores/workflowEditorStore'
 import { useEditorLayoutStore } from '../../stores/editorLayoutStore'
+import { CanvasControls } from './CanvasControls'
 
 const edgeTypes = { custom: CustomEdge }
 
@@ -28,6 +29,8 @@ interface Props {
   onConnect?: OnConnect
   onSelectNode?: (nodeId: string) => void
   interactive?: boolean
+  onToggleFullscreen?: () => void
+  isFullscreen?: boolean
 }
 
 interface MenuState {
@@ -37,12 +40,22 @@ interface MenuState {
   nodeId?: string
 }
 
-function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectNode, interactive = true }: Props) {
+function Flow({
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
+  onSelectNode,
+  interactive = true,
+  onToggleFullscreen,
+  isFullscreen = false,
+}: Props) {
   const nodeDefinitions = useWorkflowEditorStore(useShallow(s => s.nodeDefinitions))
   const focusTab = useEditorLayoutStore(s => s.focusTab)
   const setNodes = useWorkflowEditorStore(s => s.setNodes)
   const pushHistory = useWorkflowEditorStore(s => s.pushHistory)
-  const { screenToFlowPosition, fitView } = useReactFlow()
+  const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow()
   const [menu, setMenu] = useState<MenuState | null>(null)
 
   // Computed once after definitions load — never changes reference after first mount.
@@ -187,6 +200,13 @@ function Flow({ nodes, edges, onNodesChange, onEdgesChange, onConnect, onSelectN
           </div>
         )}
       </ReactFlow>
+
+      <CanvasControls
+        onFitView={() => fitView({ duration: 300, padding: 0.2 })}
+        onZoomIn={() => zoomIn({ duration: 300 })}
+        onZoomOut={() => zoomOut({ duration: 300 })}
+        onCleanLayout={() => fitView({ duration: 400, padding: 0.2 })}
+      />
 
       {menu && (
         <ContextMenu x={menu.x} y={menu.y} items={buildMenuItems()} onClose={() => setMenu(null)} />

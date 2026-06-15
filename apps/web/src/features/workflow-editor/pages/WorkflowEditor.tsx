@@ -102,8 +102,9 @@ export function WorkflowEditor() {
               onConnect={onConnect}
               onSelectNode={selectNode}
               interactive={!diffActive}
+              onToggleFullscreen={toggleZenMode}
+              isFullscreen={zenMode}
             />
-            {/* Floating action buttons — overlay the canvas top-right, like n8n */}
             <CanvasFloatingButtons
               onToggleZenMode={toggleZenMode}
               zenMode={zenMode}
