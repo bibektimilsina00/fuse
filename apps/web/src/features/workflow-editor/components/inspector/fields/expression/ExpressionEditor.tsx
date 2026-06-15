@@ -51,7 +51,7 @@ export function ExpressionEditor({
   onChange,
   placeholder,
   multiline,
-  rows = 3,
+  rows = 6,
   disabled,
   autoFocus,
   onAutoFocusDone,
@@ -80,14 +80,20 @@ export function ExpressionEditor({
   const innerCaret = region?.innerCaret ?? 0
   const completionState = useExpressionCompletions(innerExpression, innerCaret)
 
-  // Auto-grow multiline textarea up to a cap so long values stay visible.
+  // Auto-grow multiline textarea — Django's TextField analog. Floor at
+  // the `rows` count so empty fields still feel like a real text box,
+  // cap at a generous height so the inspector doesn't blow out when the
+  // user pastes a giant template.
   useEffect(() => {
     if (!multiline) return
     const el = inputRef.current as HTMLTextAreaElement | null
     if (!el) return
     el.style.height = 'auto'
-    el.style.height = `${Math.min(el.scrollHeight, 200)}px`
-  }, [value, multiline])
+    const lineHeight = 20 // matches `text-sm leading-normal`
+    const minHeight = rows * lineHeight
+    const maxHeight = 400
+    el.style.height = `${Math.min(Math.max(el.scrollHeight, minHeight), maxHeight)}px`
+  }, [value, multiline, rows])
 
   // Honour `autoFocus` from legacy parents that still manage their own
   // mode swap. Fires once and clears the parent's flag.
@@ -343,6 +349,9 @@ function buildHighlights(source: string, ghost: string = ''): React.ReactNode[] 
       ? 'font-semibold text-[#c678dd]'
       : 'font-semibold text-[#c678dd] opacity-70'
     const tokens = tokenize(inner)
+    // No `white-space: nowrap` on the region: the underlying textarea
+    // wraps at every literal space, and the overlay has to match
+    // exactly or the caret falls out of sync with the highlighted glyphs.
     nodes.push(
       <span key={keySeq++}>
         <span className={braceClass}>{open}</span>
