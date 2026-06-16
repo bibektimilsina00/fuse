@@ -55,7 +55,7 @@ export function useAppLayoutController() {
   const updateWorkflow = useUpdateWorkflow()
   const deleteWorkflow = useDeleteWorkflow()
   const duplicateWorkflow = useDuplicateWorkflow()
-  const { theme, toggle: toggleTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   const [collapsed, setCollapsed] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -321,7 +321,7 @@ export function useAppLayoutController() {
     pageLabel: pageName.charAt(0).toUpperCase() + pageName.slice(1),
     selectedTableName: selectedTable?.name || null,
     theme,
-    toggleTheme,
+    setTheme,
     collapsed,
     setCollapsed,
     profileOpen,

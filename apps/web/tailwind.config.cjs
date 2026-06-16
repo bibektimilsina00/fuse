@@ -18,8 +18,9 @@ module.exports = {
       },
 
       fontFamily: {
-        ui:   ['Inter Tight', 'Geist', 'Helvetica Neue', 'system-ui', 'sans-serif'],
-        mono: ['Geist Mono', 'ui-monospace', 'SF Mono', 'Menlo', 'monospace'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', 'Geist', 'system-ui', 'sans-serif'],
+        ui:   ['"Plus Jakarta Sans"', 'Inter', 'Geist', 'system-ui', 'sans-serif'],
+        mono: ['"Geist Mono"', 'ui-monospace', 'SF Mono', 'Menlo', 'monospace'],
       },
 
       // ── Consolidated font scale — 5 sizes only ───────────────────────────

@@ -1,43 +1,67 @@
 import { useState, useEffect, useCallback } from 'react'
 
-type Theme = 'dark' | 'light'
+export type AppTheme = 'midnight-dark' | 'slate-blue' | 'cyber-orange' | 'light-mint' | 'light-slate'
 
-function getStored(): Theme {
+function getStoredTheme(): AppTheme {
   try {
-    const v = localStorage.getItem('fuse-theme')
-    if (v === 'light' || v === 'dark') return v
+    const v = localStorage.getItem('fuse-app-theme')
+    if (v === 'midnight-dark' || v === 'slate-blue' || v === 'cyber-orange' || v === 'light-mint' || v === 'light-slate') return v
   } catch {
-    // Ignore localStorage access errors (e.g. cookies disabled or sandboxed iframe)
+    // Ignore errors
   }
-  return 'dark'
+  return 'midnight-dark'
 }
 
-function applyTheme(theme: Theme) {
+function applyTheme(theme: AppTheme) {
   const root = document.documentElement
-  if (theme === 'light') {
+  
+  // Clear all theme classes
+  root.classList.remove(
+    'theme-midnight-dark',
+    'theme-slate-blue',
+    'theme-cyber-orange',
+    'theme-light-mint',
+    'theme-light-slate',
+    'light'
+  )
+  
+  // Add the new theme class
+  root.classList.add(`theme-${theme}`)
+  
+  // If it's a light theme, add the 'light' helper class for Tailwind/legacy compatibility
+  if (theme.startsWith('light-')) {
     root.classList.add('light')
-  } else {
-    root.classList.remove('light')
   }
 }
 
-// Apply immediately on module load (avoids flash)
-applyTheme(getStored())
+// Apply theme immediately on script load
+applyTheme(getStoredTheme())
 
 export function useTheme() {
-  const [theme, setThemeState] = useState<Theme>(getStored)
+  const [theme, setThemeState] = useState<AppTheme>(getStoredTheme)
 
   useEffect(() => {
     applyTheme(theme)
     try {
-      localStorage.setItem('fuse-theme', theme)
-    } catch {
-      // Ignore localStorage write errors
-    }
+      localStorage.setItem('fuse-app-theme', theme)
+    } catch {}
   }, [theme])
 
-  const setTheme = useCallback((t: Theme) => setThemeState(t), [])
-  const toggle   = useCallback(() => setThemeState(t => t === 'dark' ? 'light' : 'dark'), [])
+  const setTheme = useCallback((t: AppTheme) => setThemeState(t), [])
 
-  return { theme, setTheme, toggle, isDark: theme === 'dark' }
+  const toggle = useCallback(() => {
+    setThemeState(current => {
+      const themes: AppTheme[] = ['midnight-dark', 'slate-blue', 'cyber-orange', 'light-mint', 'light-slate']
+      const currentIndex = themes.indexOf(current)
+      const nextIndex = (currentIndex + 1) % themes.length
+      return themes[nextIndex]
+    })
+  }, [])
+
+  return {
+    theme,
+    setTheme,
+    toggle,
+    isDark: !theme.startsWith('light-'),
+  }
 }

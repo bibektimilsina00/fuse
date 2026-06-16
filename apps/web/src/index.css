@@ -6,34 +6,35 @@
    DESIGN TOKENS — dark (default)
 ══════════════════════════════════════════════════════════════════════════════ */
 :root {
-  --bg:         oklch(0.195 0.003 250);
-  --bg-2:       oklch(0.225 0.003 250);
+  /* Default variables (Midnight Dark) */
+  --bg:         oklch(0.125 0.015 240);
+  --bg-2:       oklch(0.155 0.015 240);
 
-  --surface:    oklch(0.255 0.004 250);
-  --surface-2:  oklch(0.295 0.004 250);
-  --surface-3:  oklch(0.330 0.005 250);
+  --surface:    oklch(0.185 0.018 240);
+  --surface-2:  oklch(0.22 0.02 240);
+  --surface-3:  oklch(0.26 0.022 240);
 
-  --border:       oklch(0.355 0.004 250);
-  --border-soft:  oklch(0.310 0.003 250);
-  --border-faint: oklch(0.275 0.003 250);
+  --border:       oklch(0.28 0.02 240);
+  --border-soft:  oklch(0.24 0.018 240);
+  --border-faint: oklch(0.19 0.015 240);
 
-  --text:       oklch(0.980 0.002 250);
-  --text-mute:  oklch(0.740 0.005 250);
-  --text-faint: oklch(0.560 0.005 250);
-  --text-dim:   oklch(0.460 0.005 250);
+  --text:       oklch(0.985 0.003 240);
+  --text-mute:  oklch(0.79 0.012 240);
+  --text-faint: oklch(0.62 0.015 240);
+  --text-dim:   oklch(0.48 0.015 240);
 
-  --accent:       oklch(0.780 0.130 245);
-  --accent-soft:  oklch(0.780 0.130 245 / 0.14);
-  --accent-line:  oklch(0.780 0.130 245 / 0.45);
+  --accent:       oklch(0.85 0.17 165);
+  --accent-soft:  oklch(0.85 0.17 165 / 0.12);
+  --accent-line:  oklch(0.85 0.17 165 / 0.38);
 
-  --ok:   oklch(0.78 0.14 145);
+  --ok:   oklch(0.80 0.14 145);
   --warn: oklch(0.82 0.14 80);
   --err:  oklch(0.70 0.18 22);
 
   --badge-ok-bg:   oklch(0.240 0.040 145);
   --badge-warn-bg: oklch(0.250 0.040 80);
   --badge-err-bg:  oklch(0.230 0.050 22);
-  --badge-acc-bg:  oklch(0.230 0.050 250);
+  --badge-acc-bg:  oklch(0.230 0.050 165);
 
   --danger-bg:       oklch(0.70 0.18 22);
   --danger-bg-hover: oklch(0.65 0.17 22);
@@ -41,9 +42,9 @@
 
   --btn-shadow: none;
   --card-shadow: none;
-  --dot-color: oklch(0.320 0.004 250);
+  --dot-color: oklch(0.22 0.015 240);
 
-  --font-ui:   "Inter Tight", "Geist", "Helvetica Neue", system-ui, sans-serif;
+  --font-ui:   "Plus Jakarta Sans", "Inter", "Geist", system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   --r-sm: 6px;
@@ -59,60 +60,161 @@
   --shadow-dropdown: 0 12px 40px -8px oklch(0 0 0 / 0.65);
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   DESIGN TOKENS — light
-══════════════════════════════════════════════════════════════════════════════ */
-.light {
-  --bg:        oklch(0.985 0.003 250);
-  --bg-2:      oklch(0.970 0.004 250);
+/* 1. Midnight Dark Theme (Vibrant Teal Accents) */
+.theme-midnight-dark {
+  --bg:         oklch(0.125 0.015 240);
+  --bg-2:       oklch(0.155 0.015 240);
+  --surface:    oklch(0.185 0.018 240);
+  --surface-2:  oklch(0.22 0.02 240);
+  --surface-3:  oklch(0.26 0.022 240);
+  --border:       oklch(0.28 0.02 240);
+  --border-soft:  oklch(0.24 0.018 240);
+  --border-faint: oklch(0.19 0.015 240);
+  --text:       oklch(0.985 0.003 240);
+  --text-mute:  oklch(0.79 0.012 240);
+  --text-faint: oklch(0.62 0.015 240);
+  --text-dim:   oklch(0.48 0.015 240);
+  --accent:       oklch(0.85 0.17 165);
+  --accent-soft:  oklch(0.85 0.17 165 / 0.12);
+  --accent-line:  oklch(0.85 0.17 165 / 0.38);
+  --badge-acc-bg:  oklch(0.230 0.050 165);
+  --dot-color: oklch(0.22 0.015 240);
+  --shadow-float:    0 4px 16px -4px oklch(0 0 0 / 0.55);
+  --shadow-panel:    0 8px 32px -8px oklch(0 0 0 / 0.65);
+  --shadow-modal:    0 24px 64px -16px oklch(0 0 0 / 0.80);
+  --shadow-dropdown: 0 12px 40px -8px oklch(0 0 0 / 0.65);
+}
 
-  --surface:   oklch(0.945 0.005 250);
-  --surface-2: oklch(0.920 0.006 250);
-  --surface-3: oklch(0.890 0.007 250);
+/* 2. Slate Blue Theme */
+.theme-slate-blue {
+  --bg:         oklch(0.14 0.02 260);
+  --bg-2:       oklch(0.17 0.02 260);
+  --surface:    oklch(0.20 0.025 260);
+  --surface-2:  oklch(0.24 0.028 260);
+  --surface-3:  oklch(0.28 0.03 260);
+  --border:       oklch(0.30 0.03 260);
+  --border-soft:  oklch(0.25 0.025 260);
+  --border-faint: oklch(0.21 0.02 260);
+  --text:       oklch(0.98 0.005 260);
+  --text-mute:  oklch(0.82 0.01 260);
+  --text-faint: oklch(0.66 0.015 260);
+  --text-dim:   oklch(0.52 0.015 260);
+  --accent:       oklch(0.78 0.16 230);
+  --accent-soft:  oklch(0.78 0.16 230 / 0.12);
+  --accent-line:  oklch(0.78 0.16 230 / 0.38);
+  --badge-acc-bg:  oklch(0.22 0.06 230);
+  --dot-color: oklch(0.24 0.02 260);
+  --shadow-float:    0 4px 16px -4px oklch(0 0 0 / 0.55);
+  --shadow-panel:    0 8px 32px -8px oklch(0 0 0 / 0.65);
+  --shadow-modal:    0 24px 64px -16px oklch(0 0 0 / 0.80);
+  --shadow-dropdown: 0 12px 40px -8px oklch(0 0 0 / 0.65);
+}
 
-  --border:       oklch(0.820 0.006 250);
-  --border-soft:  oklch(0.870 0.005 250);
-  --border-faint: oklch(0.915 0.004 250);
+/* 3. Cyber Orange Theme */
+.theme-cyber-orange {
+  --bg:         oklch(0.11 0.006 80);
+  --bg-2:       oklch(0.14 0.008 80);
+  --surface:    oklch(0.18 0.01 80);
+  --surface-2:  oklch(0.21 0.012 80);
+  --surface-3:  oklch(0.25 0.015 80);
+  --border:       oklch(0.27 0.015 80);
+  --border-soft:  oklch(0.22 0.012 80);
+  --border-faint: oklch(0.17 0.008 80);
+  --text:       oklch(0.99 0.002 80);
+  --text-mute:  oklch(0.82 0.005 80);
+  --text-faint: oklch(0.64 0.008 80);
+  --text-dim:   oklch(0.50 0.008 80);
+  --accent:       oklch(0.82 0.18 80);
+  --accent-soft:  oklch(0.82 0.18 80 / 0.12);
+  --accent-line:  oklch(0.82 0.18 80 / 0.38);
+  --badge-acc-bg:  oklch(0.22 0.06 80);
+  --dot-color: oklch(0.20 0.01 80);
+  --shadow-float:    0 4px 16px -4px oklch(0 0 0 / 0.55);
+  --shadow-panel:    0 8px 32px -8px oklch(0 0 0 / 0.65);
+  --shadow-modal:    0 24px 64px -16px oklch(0 0 0 / 0.80);
+  --shadow-dropdown: 0 12px 40px -8px oklch(0 0 0 / 0.65);
+}
 
-  --text:       oklch(0.180 0.006 250);
-  --text-mute:  oklch(0.380 0.008 250);
-  --text-faint: oklch(0.530 0.008 250);
-  --text-dim:   oklch(0.660 0.007 250);
-
-  --accent:       oklch(0.550 0.130 245);
-  --accent-soft:  oklch(0.550 0.130 245 / 0.12);
-  --accent-line:  oklch(0.550 0.130 245 / 0.35);
-
+/* 4. Light Mint Theme */
+.theme-light-mint {
+  --bg:        oklch(0.995 0.002 165);
+  --bg-2:      oklch(0.975 0.003 165);
+  --surface:   oklch(0.95 0.005 165);
+  --surface-2: oklch(0.92 0.006 165);
+  --surface-3: oklch(0.88 0.007 165);
+  --border:       oklch(0.84 0.008 165);
+  --border-soft:  oklch(0.88 0.006 165);
+  --border-faint: oklch(0.93 0.004 165);
+  --text:       oklch(0.16 0.01 165);
+  --text-mute:  oklch(0.34 0.015 165);
+  --text-faint: oklch(0.48 0.015 165);
+  --text-dim:   oklch(0.60 0.012 165);
+  --accent:       oklch(0.55 0.13 165);
+  --accent-soft:  oklch(0.55 0.13 165 / 0.12);
+  --accent-line:  oklch(0.55 0.13 165 / 0.35);
   --ok:   oklch(0.62 0.14 145);
   --warn: oklch(0.68 0.14 80);
   --err:  oklch(0.58 0.18 22);
-
   --badge-ok-bg:   oklch(0.94 0.04 145);
   --badge-warn-bg: oklch(0.95 0.04 80);
   --badge-err-bg:  oklch(0.93 0.05 22);
-  --badge-acc-bg:  oklch(0.93 0.05 250);
-
+  --badge-acc-bg:  oklch(0.93 0.05 165);
   --danger-bg:       oklch(0.58 0.18 22);
   --danger-bg-hover: oklch(0.53 0.17 22);
   --danger-border:   oklch(0.58 0.18 22);
+  --dot-color: oklch(0.88 0.005 165);
+  --btn-shadow: 0 1px 3px oklch(0.15 0.01 165 / 0.12),
+                0 1px 2px oklch(0.15 0.01 165 / 0.08);
+  --card-shadow: 0 1px 4px oklch(0.15 0.01 165 / 0.07);
+  --shadow-float:    0 2px 8px oklch(0.15 0.01 165 / 0.10),
+                     0 1px 3px oklch(0.15 0.01 165 / 0.07);
+  --shadow-panel:    0 4px 20px oklch(0.15 0.01 165 / 0.10),
+                     0 1px 4px oklch(0.15 0.01 165 / 0.06);
+  --shadow-modal:    0 20px 56px oklch(0.15 0.01 165 / 0.18),
+                     0 4px 16px oklch(0.15 0.01 165 / 0.10);
+  --shadow-dropdown: 0 8px 24px oklch(0.15 0.01 165 / 0.12),
+                     0 2px 6px oklch(0.15 0.01 165 / 0.08);
+}
 
-  --btn-shadow: 0 1px 3px oklch(0.15 0.01 250 / 0.12),
-                0 1px 2px oklch(0.15 0.01 250 / 0.08),
-                inset 0 1px 0 oklch(1 0 0 / 0.80);
-
-  --card-shadow: 0 1px 4px oklch(0.15 0.01 250 / 0.07),
-                 0 2px 8px oklch(0.15 0.01 250 / 0.05);
-
-  --dot-color: oklch(0.880 0.005 250);
-
-  --shadow-float:    0 2px 8px oklch(0.15 0.01 250 / 0.10),
-                     0 1px 3px oklch(0.15 0.01 250 / 0.07);
-  --shadow-panel:    0 4px 20px oklch(0.15 0.01 250 / 0.10),
-                     0 1px 4px oklch(0.15 0.01 250 / 0.06);
-  --shadow-modal:    0 20px 56px oklch(0.15 0.01 250 / 0.18),
-                     0 4px 16px oklch(0.15 0.01 250 / 0.10);
-  --shadow-dropdown: 0 8px 24px oklch(0.15 0.01 250 / 0.12),
-                     0 2px 6px oklch(0.15 0.01 250 / 0.08);
+/* 5. Light Slate Theme */
+.theme-light-slate {
+  --bg:        oklch(0.99 0.002 240);
+  --bg-2:      oklch(0.97 0.003 240);
+  --surface:   oklch(0.945 0.005 240);
+  --surface-2: oklch(0.915 0.006 240);
+  --surface-3: oklch(0.875 0.007 240);
+  --border:       oklch(0.83 0.008 240);
+  --border-soft:  oklch(0.875 0.006 240);
+  --border-faint: oklch(0.925 0.004 240);
+  --text:       oklch(0.15 0.01 240);
+  --text-mute:  oklch(0.33 0.015 240);
+  --text-faint: oklch(0.47 0.015 240);
+  --text-dim:   oklch(0.59 0.012 240);
+  --accent:       oklch(0.56 0.18 240);
+  --accent-soft:  oklch(0.56 0.18 240 / 0.12);
+  --accent-line:  oklch(0.56 0.18 240 / 0.35);
+  --ok:   oklch(0.62 0.14 145);
+  --warn: oklch(0.68 0.14 80);
+  --err:  oklch(0.58 0.18 22);
+  --badge-ok-bg:   oklch(0.94 0.04 145);
+  --badge-warn-bg: oklch(0.95 0.04 80);
+  --badge-err-bg:  oklch(0.93 0.05 22);
+  --badge-acc-bg:  oklch(0.92 0.05 240);
+  --danger-bg:       oklch(0.58 0.18 22);
+  --danger-bg-hover: oklch(0.53 0.17 22);
+  --danger-border:   oklch(0.58 0.18 22);
+  --dot-color: oklch(0.87 0.005 240);
+  --btn-shadow: 0 1px 3px oklch(0.15 0.01 240 / 0.12),
+                0 1px 2px oklch(0.15 0.01 240 / 0.08);
+  --card-shadow: 0 1px 4px oklch(0.15 0.01 240 / 0.07);
+  --shadow-float:    0 2px 8px oklch(0.15 0.01 240 / 0.10),
+                     0 1px 3px oklch(0.15 0.01 240 / 0.07);
+  --shadow-panel:    0 4px 20px oklch(0.15 0.01 240 / 0.10),
+                     0 1px 4px oklch(0.15 0.01 240 / 0.06);
+  --shadow-modal:    0 20px 56px oklch(0.15 0.01 240 / 0.18),
+                     0 4px 16px oklch(0.15 0.01 240 / 0.10);
+  --shadow-dropdown: 0 8px 24px oklch(0.15 0.01 240 / 0.12),
+                     0 2px 6px oklch(0.15 0.01 240 / 0.08);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -148,9 +250,9 @@ body {
   color: var(--text);
   font-family: var(--font-ui);
   font-size: 14px;
-  line-height: 1.5;
-  letter-spacing: -0.005em;
-  font-feature-settings: "ss01", "cv11";
+  line-height: 1.55;
+  letter-spacing: 0;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

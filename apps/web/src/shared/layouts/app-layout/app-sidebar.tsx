@@ -245,18 +245,17 @@ export function AppSidebar({ controller, variant = 'floating' }: AppSidebarProps
       </div>
 
       {/* ── Footer ──────────────────────────────────────────── */}
-      {/* ── Footer ──────────────────────────────────────────── */}
       <div className="shrink-0 h-[36px] px-[8px] border-t border-[var(--border-faint)] flex items-center gap-[2px] group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:h-[48px] group-data-[collapsed=true]/shell:px-0">
         <div className="flex w-full gap-[2px] group-data-[collapsed=true]/shell:hidden">
           <button
-            className="flex-1 h-[24px] inline-flex items-center justify-center gap-[6px] px-[8px] rounded-sm text-[12px] text-[var(--text-faint)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px]"
+            className="flex-1 h-[24px] inline-flex items-center justify-center gap-[4px] px-[4px] rounded-sm text-[11.5px] text-[var(--text-faint)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px] whitespace-nowrap"
             type="button"
           >
             <Icons.Help />
             <span>Help & docs</span>
           </button>
           <button
-            className="flex-1 h-[24px] inline-flex items-center justify-center gap-[6px] px-[8px] rounded-sm text-[12px] text-[var(--text-faint)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px]"
+            className="flex-1 h-[24px] inline-flex items-center justify-center gap-[4px] px-[4px] rounded-sm text-[11.5px] text-[var(--text-faint)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px] whitespace-nowrap"
             type="button"
           >
             <Icons.Feedback />
