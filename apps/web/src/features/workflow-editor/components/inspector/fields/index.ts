@@ -21,6 +21,7 @@ import { GmailQueryRenderer } from './renderers/GmailQueryRenderer'
 import { GDrivePickerRenderer } from './renderers/GDrivePickerRenderer'
 import { GoogleFilePickerRenderer } from './renderers/GoogleFilePickerRenderer'
 import { GSheetsTabPickerRenderer } from './renderers/GSheetsTabPickerRenderer'
+import { GTasksListPickerRenderer } from './renderers/GTasksListPickerRenderer'
 
 export type { RendererProps, FieldRenderer } from './types'
 
@@ -49,6 +50,7 @@ export const FIELD_RENDERERS: Partial<Record<NodePropertyType, FieldRenderer>> =
   'gdrive-folder':    GDrivePickerRenderer,
   'google-file':      GoogleFilePickerRenderer,
   'gsheet-tab':       GSheetsTabPickerRenderer,
+  'gtasks-tasklist':  GTasksListPickerRenderer,
 }
 
 export { JsonRenderer as FallbackRenderer }

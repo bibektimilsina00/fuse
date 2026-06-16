@@ -499,6 +499,96 @@ async def list_sheets_tabs(
     return {"tabs": tabs}
 
 
+# ── Google Tasks tasklist picker ────────────────────────────────────────
+
+
+@router.get("/{credential_id}/gtasks/tasklists")
+async def list_gtasks_tasklists(
+    credential_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """List the user's Google Tasks tasklists — backs the tasklist
+    picker on the Tasks action node + trigger."""
+    import httpx
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                "https://tasks.googleapis.com/tasks/v1/users/@me/lists",
+                headers={"Authorization": f"Bearer {token}"},
+                params={"maxResults": 100},
+            )
+            resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(f"Tasks list failed ({exc.response.status_code}): {exc.response.text[:200]}"),
+        ) from exc
+
+    items = resp.json().get("items") or []
+    tasklists = [
+        {
+            "id": str(item.get("id") or ""),
+            "title": str(item.get("title") or ""),
+            "updated": str(item.get("updated") or ""),
+        }
+        for item in items
+        if item.get("id")
+    ]
+    return {"tasklists": tasklists}
+
+
+@router.post("/{credential_id}/gtasks/tasklists", status_code=status.HTTP_201_CREATED)
+async def create_gtasks_tasklist(
+    credential_id: uuid.UUID,
+    payload: dict,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """Create a new Google Tasks tasklist — used by the picker's inline
+    "+ Create new tasklist" CTA. Returns the new tasklist so the picker
+    can auto-select it."""
+    import httpx
+
+    title = str((payload or {}).get("title") or "").strip()
+    if not title:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="`title` is required.",
+        )
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                "https://tasks.googleapis.com/tasks/v1/users/@me/lists",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                },
+                json={"title": title},
+            )
+            resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(f"Tasks create failed ({exc.response.status_code}): {exc.response.text[:200]}"),
+        ) from exc
+
+    data = resp.json()
+    return {
+        "id": str(data.get("id") or ""),
+        "title": str(data.get("title") or title),
+        "updated": str(data.get("updated") or ""),
+    }
+
+
 @router.post("/{credential_id}/picker-token")
 async def get_picker_token(
     credential_id: uuid.UUID,
