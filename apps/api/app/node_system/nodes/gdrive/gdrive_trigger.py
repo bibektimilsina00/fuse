@@ -515,7 +515,12 @@ def _classify_change(change: dict[str, Any], file: dict[str, Any]) -> str:
         try:
             c = datetime.fromisoformat(created.replace("Z", "+00:00"))
             m = datetime.fromisoformat(modified.replace("Z", "+00:00"))
-            if abs((m - c).total_seconds()) <= 1:
+            # 60 s tolerance — Drive routinely bumps modifiedTime by a
+            # few seconds after upload (background metadata writes,
+            # thumbnail generation, virus scan, OCR). A 1-second window
+            # mis-classified real uploads as "modified" and they got
+            # dropped by users with `event_filter='added'`.
+            if abs((m - c).total_seconds()) <= 60:
                 return "added"
         except ValueError:
             pass
