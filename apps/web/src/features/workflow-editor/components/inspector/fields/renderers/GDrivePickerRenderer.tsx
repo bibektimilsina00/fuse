@@ -199,6 +199,7 @@ export function GDrivePickerRenderer({ value, onChange, disabled, properties }: 
     typeof properties?.credential === 'string' ? properties.credential : ''
 
   const openPicker = async () => {
+    console.log('[gdrive-picker] click handler entered, credentialId=', credentialId)
     setError(null)
     if (!credentialId) {
       setError('Pick a Google account on this node first.')
@@ -206,10 +207,13 @@ export function GDrivePickerRenderer({ value, onChange, disabled, properties }: 
     }
     setOpening(true)
     try {
+      console.log('[gdrive-picker] requesting picker token…')
       const { data } = await apiClient.post<PickerTokenResponse>(
         `/credentials/${credentialId}/picker-token`,
       )
+      console.log('[gdrive-picker] got picker token, loading SDK…')
       await loadPicker()
+      console.log('[gdrive-picker] SDK loadPicker() resolved')
       if (cancelRef.current) return
       const picker = window.google?.picker
       if (!picker) throw new Error('Google Picker SDK not available')
