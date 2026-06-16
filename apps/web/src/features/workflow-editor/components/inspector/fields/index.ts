@@ -19,6 +19,8 @@ import { WATemplateRenderer } from './renderers/WATemplateRenderer'
 import { MediaRenderer } from './renderers/MediaRenderer'
 import { GmailQueryRenderer } from './renderers/GmailQueryRenderer'
 import { GDrivePickerRenderer } from './renderers/GDrivePickerRenderer'
+import { GSheetsPickerRenderer } from './renderers/GSheetsPickerRenderer'
+import { GSheetsTabPickerRenderer } from './renderers/GSheetsTabPickerRenderer'
 
 export type { RendererProps, FieldRenderer } from './types'
 
@@ -45,6 +47,8 @@ export const FIELD_RENDERERS: Partial<Record<NodePropertyType, FieldRenderer>> =
   media:              MediaRenderer,
   'gmail-query':      GmailQueryRenderer,
   'gdrive-folder':    GDrivePickerRenderer,
+  'gsheet-spreadsheet': GSheetsPickerRenderer,
+  'gsheet-tab':       GSheetsTabPickerRenderer,
 }
 
 export { JsonRenderer as FallbackRenderer }

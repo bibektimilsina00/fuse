@@ -90,6 +90,9 @@ def eager_register_polling_providers() -> None:
         gdrive_trigger as _gdrive_trigger,  # noqa: F401
     )
     from apps.api.app.node_system.nodes.gmail import gmail_trigger as _gmail_trigger  # noqa: F401
+    from apps.api.app.node_system.nodes.google_sheets import (
+        google_sheets_trigger as _google_sheets_trigger,  # noqa: F401
+    )
 
 
 @celery_app.task(name="poll_integration_triggers")
