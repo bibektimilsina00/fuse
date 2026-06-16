@@ -33,6 +33,8 @@ from apps.api.app.node_system.nodes.db.postgres.postgres import PostgresNode
 from apps.api.app.node_system.nodes.discord.discord_node import DiscordNode
 from apps.api.app.node_system.nodes.gcalendar.gcal_node import GCalNode
 from apps.api.app.node_system.nodes.gcalendar.gcal_trigger import GCalTriggerNode
+from apps.api.app.node_system.nodes.gdrive.gdrive_node import GDriveNode
+from apps.api.app.node_system.nodes.gdrive.gdrive_trigger import GDriveTriggerNode
 from apps.api.app.node_system.nodes.github.github_node import GitHubNode
 from apps.api.app.node_system.nodes.gmail.gmail_node import GmailNode
 from apps.api.app.node_system.nodes.gmail.gmail_trigger import GmailTriggerNode
@@ -119,6 +121,8 @@ node_registry.register(GmailNode)
 node_registry.register(GmailTriggerNode)
 node_registry.register(GCalTriggerNode)
 node_registry.register(GCalNode)
+node_registry.register(GDriveTriggerNode)
+node_registry.register(GDriveNode)
 node_registry.register(GoogleSheetsNode)
 node_registry.register(GoogleSheetsTriggerNode)
 node_registry.register(LinearNode)

@@ -207,7 +207,11 @@ export function useWorkflowEditor(workflowId: string) {
   // polling triggers (Gmail / Calendar / …) wait on a Celery-driven
   // snapshot-then-poll loop. Either way the editor should open the
   // listen slot when the user clicks Run on a graph containing one.
-  const POLLING_LISTEN_TYPES = new Set(['trigger.gmail', 'trigger.gcal_event'])
+  const POLLING_LISTEN_TYPES = new Set([
+    'trigger.gmail',
+    'trigger.gcal_event',
+    'trigger.gdrive_change',
+  ])
 
   const hasMetaTrigger = useCallback(() => {
     const { nodes } = useWorkflowEditorStore.getState()
