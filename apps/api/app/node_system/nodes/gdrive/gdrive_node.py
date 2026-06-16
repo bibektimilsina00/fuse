@@ -21,7 +21,6 @@ created outside Fuse.
 
 from __future__ import annotations
 
-import base64
 from typing import Any
 
 import httpx
@@ -93,13 +92,12 @@ class GDriveProperties(BaseModel):
             return None
         return str(value)
 
-    # upload
-    # Source mode for upload — "url" downloads from a public URL; "text"
-    # uploads the inline `content` field as plain text. Binary uploads
-    # via base64 are also supported on the `content` field when the
-    # source is set to "base64".
-    source: str = "url"
-    content: str | None = None
+    # upload — `content` holds the value the MediaRenderer emits:
+    # either a plain URL string (legacy / typed) OR a dict
+    # `{"type": "url"|"asset", ...}`. `resolve_media_field` collapses
+    # both into a fetchable public URL so the handler can stream bytes
+    # to Drive uniformly.
+    content: Any = None
     target_mime_type: str | None = None  # for Google-doc conversions
 
     # share
@@ -183,25 +181,15 @@ class GDriveNode(BaseNode[GDriveProperties]):
                     "condition": _cond_any("upload_file", "create_folder"),
                 },
                 {
-                    "name": "source",
-                    "label": "Source",
-                    "type": "options",
-                    "default": "url",
-                    "options": [
-                        {"label": "Download from URL", "value": "url"},
-                        {"label": "Inline text", "value": "text"},
-                        {"label": "Inline base64", "value": "base64"},
-                    ],
-                    "condition": _cond("upload_file"),
-                },
-                {
                     "name": "content",
-                    "label": "Content",
-                    "type": "string",
-                    "multiline": True,
+                    "label": "File",
+                    "type": "media",
                     "required": True,
-                    "placeholder": (
-                        "https://example.com/file.pdf  /  raw text  /  base64-encoded bytes"
+                    "typeOptions": {"accept": "*/*"},
+                    "description": (
+                        "Upload from URL, drop a file in, or pick from your "
+                        "Library. Fuse fetches the bytes server-side and "
+                        "streams them up to Drive."
                     ),
                     "condition": _cond("upload_file"),
                 },
@@ -371,32 +359,29 @@ async def _upload_file(
     if not node.props.content:
         return NodeResult(success=False, error="`content` is required.")
 
-    source = (node.props.source or "url").lower()
-    raw_bytes: bytes
-    inferred_mime = node.props.mime_type or "application/octet-stream"
+    # The `media` field renderer hands back either a plain URL string
+    # (legacy / typed-in) or `{"type": "url"|"asset", ...}`.
+    # `resolve_media_field` collapses both into a fetchable URL — for
+    # `asset` it mints a short-lived HMAC-signed link so we can pull
+    # the bytes from the Library through the same code path that
+    # handles URLs.
+    from apps.api.app.node_system.nodes.meta._helpers import resolve_media_field
 
-    if source == "url":
-        # Pull bytes from the URL ourselves so Drive's multipart upload
-        # can stamp the right name + parent without trusting the upstream
-        # content-disposition header.
-        async with httpx.AsyncClient(timeout=60) as fetch:
-            f_resp = await fetch.get(node.props.content)
-            f_resp.raise_for_status()
-            raw_bytes = f_resp.content
-            ct = f_resp.headers.get("content-type")
-            if ct and not node.props.mime_type:
-                inferred_mime = ct.split(";")[0].strip()
-    elif source == "text":
-        raw_bytes = node.props.content.encode("utf-8")
-        if not node.props.mime_type:
-            inferred_mime = "text/plain"
-    elif source == "base64":
-        try:
-            raw_bytes = base64.b64decode(node.props.content)
-        except Exception as exc:  # noqa: BLE001
-            return NodeResult(success=False, error=f"Invalid base64 payload: {exc}")
-    else:
-        return NodeResult(success=False, error=f"Unknown source: {source}")
+    source_url = resolve_media_field(node.props.content)
+    if not source_url:
+        return NodeResult(
+            success=False,
+            error="`content` could not be resolved to a fetchable URL.",
+        )
+
+    inferred_mime = node.props.mime_type or "application/octet-stream"
+    async with httpx.AsyncClient(timeout=60) as fetch:
+        f_resp = await fetch.get(source_url)
+        f_resp.raise_for_status()
+        raw_bytes = f_resp.content
+        ct = f_resp.headers.get("content-type")
+        if ct and not node.props.mime_type:
+            inferred_mime = ct.split(";")[0].strip()
 
     metadata: dict[str, Any] = {"name": node.props.name}
     if node.props.parent_folder_id:
