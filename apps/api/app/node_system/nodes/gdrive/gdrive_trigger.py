@@ -50,6 +50,41 @@ DEFAULT_POLL_INTERVAL_SECONDS = 60
 
 EVENT_FILTERS = ("any", "added", "modified", "trashed")
 
+# Common Drive MIME types — surfaced in the trigger + action UIs as a
+# searchable dropdown with allowCustom so power users can paste a
+# bespoke MIME string when the preset list doesn't cover it.
+_MIME_TYPE_OPTIONS: list[dict[str, str]] = [
+    {"label": "Any file type", "value": ""},
+    {"label": "Folder", "value": "application/vnd.google-apps.folder"},
+    {"label": "Google Doc", "value": "application/vnd.google-apps.document"},
+    {"label": "Google Sheet", "value": "application/vnd.google-apps.spreadsheet"},
+    {"label": "Google Slides", "value": "application/vnd.google-apps.presentation"},
+    {"label": "Google Form", "value": "application/vnd.google-apps.form"},
+    {"label": "Google Drawing", "value": "application/vnd.google-apps.drawing"},
+    {"label": "PDF", "value": "application/pdf"},
+    {"label": "Plain text", "value": "text/plain"},
+    {"label": "CSV", "value": "text/csv"},
+    {"label": "JSON", "value": "application/json"},
+    {"label": "ZIP", "value": "application/zip"},
+    {"label": "JPEG image", "value": "image/jpeg"},
+    {"label": "PNG image", "value": "image/png"},
+    {"label": "GIF image", "value": "image/gif"},
+    {"label": "MP4 video", "value": "video/mp4"},
+    {"label": "MP3 audio", "value": "audio/mpeg"},
+    {
+        "label": "Word (.docx)",
+        "value": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    },
+    {
+        "label": "Excel (.xlsx)",
+        "value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    },
+    {
+        "label": "PowerPoint (.pptx)",
+        "value": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    },
+]
+
 # Fields we request on every change. Slim list so we don't pay the
 # round-trip cost of fetching a full file resource per change just to
 # discard most of it.
@@ -119,15 +154,16 @@ class GDriveTriggerNode(BaseNode[GDriveTriggerProperties]):
                 },
                 {
                     "name": "mime_type",
-                    "label": "Mime type",
-                    "type": "string",
+                    "label": "File type",
+                    "type": "options",
                     "default": "",
-                    "placeholder": "application/pdf",
+                    "searchable": True,
+                    "allowCustom": True,
+                    "typeOptions": {"searchable": True, "allowCustom": True},
+                    "options": _MIME_TYPE_OPTIONS,
                     "description": (
-                        "Optional MIME-type filter. Use "
-                        "`application/vnd.google-apps.document` for Google "
-                        "Docs, `application/vnd.google-apps.spreadsheet` for "
-                        "Sheets, etc. Leave blank to match any file type."
+                        "Optional file-type filter. Pick a common type from "
+                        "the dropdown or type a custom MIME string."
                     ),
                 },
                 {

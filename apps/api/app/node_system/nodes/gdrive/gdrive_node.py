@@ -32,11 +32,38 @@ from apps.api.app.node_system.base.base_node import BaseNode
 from apps.api.app.node_system.base.node_context import NodeContext
 from apps.api.app.node_system.base.node_metadata import NodeMetadata
 from apps.api.app.node_system.base.node_result import NodeResult
+from apps.api.app.node_system.nodes.gdrive.gdrive_trigger import _MIME_TYPE_OPTIONS
 
 logger = get_logger(__name__)
 
 GDRIVE_API = "https://www.googleapis.com/drive/v3"
 GDRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3"
+
+
+# Google-native conversion targets for `upload_file → target_mime_type`.
+# Drive lets us hand it a PDF / Word doc and convert into a Google Doc,
+# etc — we surface the four supported conversions as a friendly dropdown
+# plus "Keep original" so the user doesn't have to memorise MIME strings.
+_CONVERSION_OPTIONS: list[dict[str, str]] = [
+    {"label": "Keep original format", "value": ""},
+    {"label": "Convert to Google Doc", "value": "application/vnd.google-apps.document"},
+    {"label": "Convert to Google Sheet", "value": "application/vnd.google-apps.spreadsheet"},
+    {"label": "Convert to Google Slides", "value": "application/vnd.google-apps.presentation"},
+    {"label": "Convert to Google Drawing", "value": "application/vnd.google-apps.drawing"},
+]
+
+
+_ORDER_BY_OPTIONS: list[dict[str, str]] = [
+    {"label": "Modified time (newest)", "value": "modifiedTime desc"},
+    {"label": "Modified time (oldest)", "value": "modifiedTime"},
+    {"label": "Created time (newest)", "value": "createdTime desc"},
+    {"label": "Created time (oldest)", "value": "createdTime"},
+    {"label": "Name (A → Z)", "value": "name"},
+    {"label": "Name (Z → A)", "value": "name desc"},
+    {"label": "File size (largest)", "value": "quotaBytesUsed desc"},
+    {"label": "File size (smallest)", "value": "quotaBytesUsed"},
+    {"label": "Recently viewed", "value": "viewedByMeTime desc"},
+]
 
 # File-resource fields we always pull back. Slim list so the action
 # response stays template-friendly without hauling the full Drive
@@ -167,22 +194,28 @@ class GDriveNode(BaseNode[GDriveProperties]):
                 },
                 {
                     "name": "mime_type",
-                    "label": "Mime type",
-                    "type": "string",
+                    "label": "File type",
+                    "type": "options",
                     "default": "application/octet-stream",
-                    "placeholder": "application/pdf",
+                    "searchable": True,
+                    "allowCustom": True,
+                    "typeOptions": {"searchable": True, "allowCustom": True},
+                    "options": _MIME_TYPE_OPTIONS,
+                    "description": (
+                        "MIME type of the upload. Auto-detected from the "
+                        "source when blank; override for explicit content."
+                    ),
                     "condition": _cond("upload_file"),
                     "mode": "advanced",
                 },
                 {
                     "name": "target_mime_type",
                     "label": "Convert to",
-                    "type": "string",
-                    "placeholder": "application/vnd.google-apps.document",
+                    "type": "options",
+                    "default": "",
+                    "options": _CONVERSION_OPTIONS,
                     "description": (
-                        "Optional — converts the upload to a Google-native "
-                        "format (Doc / Sheet / Slides). Leave blank to keep "
-                        "the original format."
+                        "Optional — converts the upload to a Google-native " "format on the way in."
                     ),
                     "condition": _cond("upload_file"),
                     "mode": "advanced",
@@ -272,8 +305,9 @@ class GDriveNode(BaseNode[GDriveProperties]):
                 {
                     "name": "order_by",
                     "label": "Order by",
-                    "type": "string",
+                    "type": "options",
                     "default": "modifiedTime desc",
+                    "options": _ORDER_BY_OPTIONS,
                     "condition": _cond("list_files"),
                     "mode": "advanced",
                 },

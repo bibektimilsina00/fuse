@@ -29,6 +29,48 @@ logger = get_logger(__name__)
 GCAL_API = "https://www.googleapis.com/calendar/v3"
 
 
+# Common IANA time-zones surfaced in the inspector as a searchable
+# dropdown with allowCustom so power users can paste any IANA name the
+# calendar accepts (`Antarctica/Troll`, etc).
+_TIMEZONE_OPTIONS: list[dict[str, str]] = [
+    {"label": "Calendar default (blank)", "value": ""},
+    {"label": "UTC", "value": "UTC"},
+    {"label": "US — Eastern (New York)", "value": "America/New_York"},
+    {"label": "US — Central (Chicago)", "value": "America/Chicago"},
+    {"label": "US — Mountain (Denver)", "value": "America/Denver"},
+    {"label": "US — Mountain (Phoenix, no DST)", "value": "America/Phoenix"},
+    {"label": "US — Pacific (Los Angeles)", "value": "America/Los_Angeles"},
+    {"label": "US — Alaska", "value": "America/Anchorage"},
+    {"label": "US — Hawaii", "value": "Pacific/Honolulu"},
+    {"label": "Canada — Toronto", "value": "America/Toronto"},
+    {"label": "Canada — Vancouver", "value": "America/Vancouver"},
+    {"label": "Brazil — São Paulo", "value": "America/Sao_Paulo"},
+    {"label": "Mexico City", "value": "America/Mexico_City"},
+    {"label": "UK — London", "value": "Europe/London"},
+    {"label": "Ireland — Dublin", "value": "Europe/Dublin"},
+    {"label": "France — Paris", "value": "Europe/Paris"},
+    {"label": "Germany — Berlin", "value": "Europe/Berlin"},
+    {"label": "Spain — Madrid", "value": "Europe/Madrid"},
+    {"label": "Italy — Rome", "value": "Europe/Rome"},
+    {"label": "Netherlands — Amsterdam", "value": "Europe/Amsterdam"},
+    {"label": "Russia — Moscow", "value": "Europe/Moscow"},
+    {"label": "UAE — Dubai", "value": "Asia/Dubai"},
+    {"label": "India — Kolkata", "value": "Asia/Kolkata"},
+    {"label": "Nepal — Kathmandu", "value": "Asia/Kathmandu"},
+    {"label": "Bangladesh — Dhaka", "value": "Asia/Dhaka"},
+    {"label": "Thailand — Bangkok", "value": "Asia/Bangkok"},
+    {"label": "Singapore", "value": "Asia/Singapore"},
+    {"label": "Hong Kong", "value": "Asia/Hong_Kong"},
+    {"label": "China — Shanghai", "value": "Asia/Shanghai"},
+    {"label": "Japan — Tokyo", "value": "Asia/Tokyo"},
+    {"label": "South Korea — Seoul", "value": "Asia/Seoul"},
+    {"label": "Australia — Sydney", "value": "Australia/Sydney"},
+    {"label": "Australia — Melbourne", "value": "Australia/Melbourne"},
+    {"label": "Australia — Perth", "value": "Australia/Perth"},
+    {"label": "New Zealand — Auckland", "value": "Pacific/Auckland"},
+]
+
+
 class GCalProperties(BaseModel):
     credential: str | None = None
     operation: str = "create_event"
@@ -195,8 +237,13 @@ class GCalNode(BaseNode[GCalProperties]):
                 {
                     "name": "time_zone",
                     "label": "Time zone",
-                    "type": "string",
-                    "placeholder": "America/New_York (defaults to calendar's TZ)",
+                    "type": "options",
+                    "default": "",
+                    "searchable": True,
+                    "allowCustom": True,
+                    "typeOptions": {"searchable": True, "allowCustom": True},
+                    "options": _TIMEZONE_OPTIONS,
+                    "description": "Leave blank to use the calendar's default time zone.",
                     "condition": _cond_any("create_event", "update_event"),
                     "mode": "advanced",
                 },

@@ -247,9 +247,11 @@ class GmailNode(BaseNode[GmailProperties]):
                 {
                     "name": "query",
                     "label": "Search Query",
-                    "type": "string",
-                    "placeholder": "is:unread from:boss@company.com",
-                    "description": ("Standard Gmail search syntax. Empty = recent messages."),
+                    "type": "gmail-query",
+                    "placeholder": "Search words…",
+                    "description": (
+                        "Build the search visually or toggle Raw Query for " "full Gmail syntax."
+                    ),
                     "condition": _cond("search"),
                 },
                 {
