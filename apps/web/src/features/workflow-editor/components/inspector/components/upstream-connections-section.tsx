@@ -106,7 +106,7 @@ export function UpstreamConnectionsSection({ nodeId }: UpstreamConnectionsSectio
   return (
     <div className="shrink-0 border-t border-[var(--border-faint)] px-3 py-3">
       <div className="mb-1.5 flex items-center justify-between px-1">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-mute)]">
+        <span className="text-[12px] font-semibold text-[var(--text-mute)]">
           Inputs
         </span>
         {ancestors.length > 0 && (

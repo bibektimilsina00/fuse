@@ -48,10 +48,10 @@ export function InspectorHeader({ label, definition, onLabelChange }: InspectorH
   }
 
   return (
-    <header className="shrink-0 border-b border-[var(--border-faint)] px-4 py-3">
-      <div className="flex items-center gap-2.5">
+    <header className="shrink-0 border-b border-[var(--border-faint)] bg-[var(--surface)]/20 px-4 py-3">
+      <div className="flex items-center gap-3">
         <div
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-white [&_svg]:h-3.5 [&_svg]:w-3.5"
+          className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-sm text-white [&_svg]:h-4 [&_svg]:w-4 shadow-sm"
           style={{ background: definition.color ?? 'var(--surface-3)' }}
         >
           {Icon}
@@ -74,20 +74,25 @@ export function InspectorHeader({ label, definition, onLabelChange }: InspectorH
                   setError(null)
                 }
               }}
-              className="w-full bg-transparent text-[13px] font-medium text-[var(--text)] outline-none"
+              className="w-full bg-transparent text-[13px] font-semibold text-[var(--text)] outline-none border-b border-[var(--accent)] pb-0.5"
               aria-label="Node name"
               aria-invalid={!!error}
             />
           ) : (
-            <span className="block truncate text-[13px] font-medium text-[var(--text)]">
-              {label}
-            </span>
+            <div className="flex flex-col leading-tight">
+              <span className="block truncate text-[13px] font-semibold text-[var(--text)]">
+                {label}
+              </span>
+              <span className="block truncate text-[10px] uppercase tracking-wider text-[var(--text-dim)] font-semibold mt-0.5">
+                {definition.name}
+              </span>
+            </div>
           )}
         </div>
 
         <button
           onClick={startEdit}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text-mute)]"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded px-1 text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text-mute)]"
           title="Rename node"
         >
           <Pencil className="h-3 w-3" />
@@ -97,7 +102,7 @@ export function InspectorHeader({ label, definition, onLabelChange }: InspectorH
       {error && (
         <p
           role="alert"
-          className="mt-1.5 text-[11px] text-[var(--err)]"
+          className="mt-1.5 text-[11px] text-[var(--err)] font-medium"
         >
           {error}
         </p>

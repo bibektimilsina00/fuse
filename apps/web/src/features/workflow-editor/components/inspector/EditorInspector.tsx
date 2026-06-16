@@ -73,30 +73,31 @@ export function EditorInspector({ nodes, updateNodeData, className }: EditorInsp
                 />
 
                 {advancedGroups.length > 0 && (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3">
                     <button
                       type="button"
                       onClick={toggleAdvanced}
-                      className="flex items-center gap-3 group"
+                      className={cn(
+                        'flex items-center justify-between w-full px-3 py-2 rounded-md border border-[var(--border-faint)] bg-[var(--surface)]',
+                        'text-[12px] font-semibold text-[var(--text-mute)] transition-all hover:bg-[var(--surface-2)] hover:text-[var(--text)]'
+                      )}
                     >
-                      <div className="h-px flex-1 border-b border-dashed border-[var(--border-faint)]" />
-                      <span className="flex items-center gap-1.5 text-[12px] font-semibold text-[var(--text-mute)] transition-colors group-hover:text-[var(--text)]">
-                        {showAdvanced ? 'Hide advanced' : 'Show advanced'}
-                        <ChevronDown
-                          className={cn('h-3.5 w-3.5 transition-transform duration-200', showAdvanced && 'rotate-180')}
-                        />
-                      </span>
-                      <div className="h-px flex-1 border-b border-dashed border-[var(--border-faint)]" />
+                      <span>{showAdvanced ? 'Hide advanced settings' : 'Show advanced settings'}</span>
+                      <ChevronDown
+                        className={cn('h-3.5 w-3.5 text-[var(--text-faint)] transition-transform duration-200', showAdvanced && 'rotate-180')}
+                      />
                     </button>
 
                     {showAdvanced && (
-                      <PropertyGroupList
-                        groups={advancedGroups}
-                        definition={definition}
-                        properties={properties}
-                        onPropertyChange={updateProperty}
-                  onPropertiesChange={updateProperties}
-                      />
+                      <div className="flex flex-col gap-4 mt-1">
+                        <PropertyGroupList
+                          groups={advancedGroups}
+                          definition={definition}
+                          properties={properties}
+                          onPropertyChange={updateProperty}
+                          onPropertiesChange={updateProperties}
+                        />
+                      </div>
                     )}
                   </div>
                 )}

@@ -19,20 +19,20 @@ export function FieldWrapper({
   const isRequired = prop.required === true
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between gap-2">
-        <label className="text-[11px] font-semibold uppercase tracking-wide text-text-mute leading-none">
+        <label className="text-[12px] font-medium text-text-mute leading-none">
           {prop.label}
-          {isRequired && <span className="ml-1 text-err">*</span>}
+          {isRequired && <span className="ml-1 text-err font-bold">*</span>}
         </label>
         {canReset && onReset && (
           <button
             type="button"
             onClick={onReset}
             title="Reset to default"
-            className="h-[18px] shrink-0 rounded px-1 text-text-faint transition-colors hover:bg-surface hover:text-text-mute"
+            className="h-[16px] shrink-0 rounded px-1 text-text-faint transition-colors hover:bg-surface hover:text-text-mute"
           >
-            <RotateCcw className="h-[11px] w-[11px]" />
+            <RotateCcw className="h-[10px] w-[10px]" />
           </button>
         )}
       </div>
@@ -40,7 +40,7 @@ export function FieldWrapper({
       {children}
 
       {prop.description && (
-        <p className="text-[11px] leading-relaxed text-text-faint">{prop.description}</p>
+        <p className="mt-0.5 text-[10px] leading-normal text-text-faint">{prop.description}</p>
       )}
     </div>
   )

@@ -28,7 +28,7 @@ export function PropertyGroupList({
         <section key={group.name} className="flex flex-col gap-3">
           {showHeaders && (
             <div className="flex items-center gap-2">
-              <span className="text-[10.5px] font-semibold uppercase tracking-[0.08em] text-text-faint">
+              <span className="text-[11.5px] font-semibold text-text-mute">
                 {group.name}
               </span>
               <div className="h-px flex-1 bg-border-faint" />
