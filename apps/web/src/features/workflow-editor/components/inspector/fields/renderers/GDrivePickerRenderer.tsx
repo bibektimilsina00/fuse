@@ -188,8 +188,14 @@ export function GDrivePickerRenderer({ value, onChange, disabled, properties }: 
   const [error, setError] = useState<string | null>(null)
   const cancelRef = useRef(false)
 
-  useEffect(() => () => {
-    cancelRef.current = true
+  useEffect(() => {
+    // Reset to false on every mount so StrictMode's cleanup-then-remount
+    // doesn't leave the ref stuck at true (which would silently skip
+    // every subsequent click).
+    cancelRef.current = false
+    return () => {
+      cancelRef.current = true
+    }
   }, [])
 
   // The credential the picker needs to authenticate against lives on a
