@@ -106,6 +106,15 @@ export function useRunStream(workflowId: string | null, executionId: string | nu
         setWaiting(workflowId, executionId, waitingFor)
       } else if (type === 'execution_cancelled') {
         setStatus(workflowId, executionId, 'cancelled')
+      } else if (type === 'execution_timeout') {
+        // Polling-trigger listen window expired with no event. Treat as
+        // a benign terminal state — the user is told to retry; we don't
+        // want it to surface as a red "failed" run.
+        setStatus(workflowId, executionId, 'cancelled')
+      } else if (type === 'execution_listen_matched') {
+        // Pure progress event from the polling listener — keep status
+        // as `waiting` until `execution_started` arrives so the canvas
+        // doesn't blink between the two transitions.
       } else if (type === 'execution_started') {
         // Listen slot fired — flip out of `waiting` so the canvas
         // unfreezes the "Waiting…" badge. node_started events follow.

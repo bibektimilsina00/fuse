@@ -84,10 +84,10 @@ export function WaitingView({ nodeInfo, payload, onCancel }: Props) {
         </div>
 
         <ol className="flex list-decimal flex-col gap-1 pl-5 text-[11.5px] text-[var(--text-mute)]">
-          <li>Open the source app (Instagram / Facebook / WhatsApp).</li>
-          <li>Perform the action that matches the event above.</li>
+          <li>Open the source ({waitingFor}).</li>
+          <li>Trigger the event above (send a message, create an event, etc.).</li>
           <li>
-            The first matching webhook fires this run; the slot then closes
+            The first matching event fires this run; the listener then closes
             automatically.
           </li>
         </ol>
