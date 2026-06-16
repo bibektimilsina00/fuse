@@ -21,14 +21,14 @@ export function ConnectionsPanel({ items, totalActive }: Props) {
   const providerMap = Object.fromEntries(providers.map(p => [p.id, p]))
 
   return (
-    <div className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px] overflow-hidden flex flex-col">
+    <div className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-lg overflow-hidden flex flex-col">
       <PanelHead
         icon={<Icons.Plug className="w-3.5 h-3.5" />}
         title="Connections"
         count={`${totalActive} active`}
         action={
           <button
-            className="text-[12px] text-[var(--text-mute)] py-[4px] px-[8px] rounded-[6px] transition-colors inline-flex items-center gap-[4px] hover:text-[var(--text)] hover:bg-[var(--surface)]"
+            className="text-[12px] text-[var(--text-mute)] py-[4px] px-[8px] rounded-sm transition-colors inline-flex items-center gap-[4px] hover:text-[var(--text)] hover:bg-[var(--surface)]"
             onClick={() => navigate(APP_ROUTES.CONNECTIONS)}
           >
             <span>Manage</span>
@@ -59,11 +59,11 @@ export function ConnectionsPanel({ items, totalActive }: Props) {
                   <img
                     src={iconUrl}
                     alt={provider?.name ?? c.type}
-                    className="w-[28px] h-[28px] rounded-[7px] object-contain bg-[var(--surface)] p-1 shrink-0"
+                    className="w-[28px] h-[28px] rounded-sm object-contain bg-[var(--surface)] p-1 shrink-0"
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
                   />
                 ) : (
-                  <span className="w-[28px] h-[28px] rounded-[7px] inline-flex items-center justify-center text-[11px] font-semibold shrink-0 bg-[var(--surface-3)] text-[var(--text)]">
+                  <span className="w-[28px] h-[28px] rounded-sm inline-flex items-center justify-center text-[11px] font-semibold shrink-0 bg-[var(--surface-3)] text-[var(--text)]">
                     {initial}
                   </span>
                 )}
@@ -72,7 +72,7 @@ export function ConnectionsPanel({ items, totalActive }: Props) {
                   <span className="text-[11px] text-[var(--text-faint)] font-mono">{provider?.name ?? c.type}</span>
                 </span>
                 <span className={cn(
-                  "font-mono text-[10px] tracking-widest uppercase py-[3px] px-[7px] pb-[2px] rounded-[4px] font-medium",
+                  "font-mono text-[10px] tracking-widest uppercase py-[3px] px-[7px] pb-[2px] rounded-sm font-medium",
                   c.state === 'ok'   && 'bg-emerald-500/15 text-emerald-500',
                   c.state === 'warn' && 'bg-amber-500/15 text-amber-500',
                   c.state === 'err'  && 'bg-red-500/15 text-red-500',

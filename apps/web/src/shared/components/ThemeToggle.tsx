@@ -15,7 +15,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       aria-label="Toggle theme"
       className={cn(
         'inline-flex items-center justify-center',
-        'w-8 h-8 rounded-[8px]',
+        'w-8 h-8 rounded-md',
         'bg-bg2 border border-border-faint',
         'text-text-mute hover:text-text hover:bg-surface',
         'transition-[background,border-color,color] duration-[120ms]',

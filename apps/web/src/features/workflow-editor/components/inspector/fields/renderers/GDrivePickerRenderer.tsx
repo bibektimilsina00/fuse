@@ -72,7 +72,7 @@ export function GDrivePickerRenderer({ value, onChange, disabled, properties }: 
           disabled={disabled || !credentialId}
           title={!credentialId ? 'Pick a Google account on this node first.' : undefined}
           className={cn(
-            'inline-flex items-center gap-1.5 h-8 px-3 rounded-[5px] text-xs font-medium',
+            'inline-flex items-center gap-1.5 h-8 px-3 rounded-sm text-xs font-medium',
             'border border-border bg-surface hover:bg-surface-2 text-text',
             'transition-colors',
             (disabled || !credentialId) && 'opacity-50 cursor-not-allowed',
@@ -239,7 +239,7 @@ function FolderBrowser({
           ))}
         </div>
 
-        <div className="min-h-[260px] max-h-[360px] overflow-y-auto rounded-[6px] border border-border-faint bg-bg">
+        <div className="min-h-[260px] max-h-[360px] overflow-y-auto rounded-sm border border-border-faint bg-bg">
           {loading && (
             <div className="flex h-full items-center justify-center gap-2 py-12 text-[12px] text-text-muted">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -277,7 +277,7 @@ function FolderBrowser({
                     type="button"
                     onClick={() => onSelect({ id: folder.id, name: folder.name })}
                     className={cn(
-                      'rounded-[4px] px-2 py-0.5 text-[10.5px] font-medium',
+                      'rounded-sm px-2 py-0.5 text-[10.5px] font-medium',
                       'border border-border-faint text-text-muted',
                       'opacity-0 group-hover:opacity-100',
                       'hover:bg-accent hover:border-accent hover:text-bg',
@@ -291,7 +291,7 @@ function FolderBrowser({
                       type="button"
                       onClick={() => open(folder)}
                       className={cn(
-                        'flex h-6 w-6 items-center justify-center rounded-[4px]',
+                        'flex h-6 w-6 items-center justify-center rounded-sm',
                         'text-text-faint hover:bg-surface hover:text-text',
                       )}
                       title="Open"

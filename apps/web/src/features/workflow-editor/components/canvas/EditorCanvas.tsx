@@ -236,7 +236,7 @@ function Flow({
           >
             <button
               onClick={() => focusTab('library')}
-              className="flex w-[48px] h-[48px] rounded-[12px] bg-[var(--surface)] border border-[var(--border-faint)] items-center justify-center transition-colors hover:bg-[var(--surface-2)] hover:border-[var(--border-soft)]"
+              className="flex w-[48px] h-[48px] rounded-lg bg-[var(--surface)] border border-[var(--border-faint)] items-center justify-center transition-colors hover:bg-[var(--surface-2)] hover:border-[var(--border-soft)]"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" strokeWidth="1.5">
                 <path d="M12 5v14M5 12h14" strokeLinecap="round" />
@@ -293,7 +293,7 @@ function Flow({
                 setSelectedIndex(0)
               }}
               onKeyDown={(e) => handleKeyDown(e, filteredDefs)}
-              className="w-full bg-[var(--bg)] text-[var(--text)] text-[13.5px] pl-10 pr-4 py-2.5 rounded-[8px] border border-[var(--border-faint)] focus:outline-none focus:border-[var(--accent)]"
+              className="w-full bg-[var(--bg)] text-[var(--text)] text-[13.5px] pl-10 pr-4 py-2.5 rounded-md border border-[var(--border-faint)] focus:outline-none focus:border-[var(--accent)]"
               autoFocus
             />
           </div>
@@ -307,7 +307,7 @@ function Flow({
                   onClick={() => handleAddNode(def.type)}
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={cn(
-                    "w-full text-left px-3.5 py-3 rounded-[8px] flex items-center justify-between transition-colors border cursor-pointer",
+                    "w-full text-left px-3.5 py-3 rounded-md flex items-center justify-between transition-colors border cursor-pointer",
                     isSelected
                       ? "bg-[var(--surface-hover)] border-[var(--border-soft)] text-[var(--text)]"
                       : "border-transparent text-[var(--text-mute)] hover:text-[var(--text)]"
@@ -322,7 +322,7 @@ function Flow({
                     )}
                   </div>
                   {def.category && (
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-[4px] bg-[var(--surface)] text-[var(--text-faint)] shrink-0">
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-sm bg-[var(--surface)] text-[var(--text-faint)] shrink-0">
                       {def.category}
                     </span>
                   )}

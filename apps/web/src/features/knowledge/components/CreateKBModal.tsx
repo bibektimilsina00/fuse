@@ -79,7 +79,7 @@ export function CreateKBModal({ onClose, onCreated }: Props) {
   return createPortal(
     <>
       <div className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[560px] max-h-[92vh] overflow-y-auto bg-[var(--bg-2)] border border-[var(--border)] rounded-[16px] flex flex-col shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]">
+      <div className="fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[560px] max-h-[92vh] overflow-y-auto bg-[var(--bg-2)] border border-[var(--border)] rounded-xl flex flex-col shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]">
 
         {/* Header */}
         <div className="flex items-start justify-between px-6 pt-6 pb-4 shrink-0">
@@ -87,7 +87,7 @@ export function CreateKBModal({ onClose, onCreated }: Props) {
             <h3 className="text-[16px] font-semibold text-[var(--text)] tracking-tight">Create Knowledge Base</h3>
             <p className="text-[12.5px] text-[var(--text-faint)] mt-1">Set up a new knowledge base with documents and chunking options</p>
           </div>
-          <button onClick={onClose} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px] shrink-0">✕</button>
+          <button onClick={onClose} className="w-[28px] h-[28px] rounded-sm flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px] shrink-0">✕</button>
         </div>
 
         <div className="px-6 pb-6 flex flex-col gap-5">
@@ -97,7 +97,7 @@ export function CreateKBModal({ onClose, onCreated }: Props) {
             <input autoFocus type="text" value={name} onChange={e => setName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleCreate()}
               placeholder="Enter knowledge base name"
-              className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors" />
+              className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors" />
           </div>
 
           {/* Description */}
@@ -105,7 +105,7 @@ export function CreateKBModal({ onClose, onCreated }: Props) {
             <label className="text-[12px] font-semibold text-[var(--text-mute)]">Description</label>
             <input type="text" value={description} onChange={e => setDescription(e.target.value)}
               placeholder="Describe this knowledge base (optional)"
-              className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors" />
+              className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors" />
           </div>
 
           {/* Chunk settings */}
@@ -120,7 +120,7 @@ export function CreateKBModal({ onClose, onCreated }: Props) {
                   <label className="text-[11.5px] font-medium text-[var(--text-mute)] leading-tight">{f.label}</label>
                   <input type="number" value={f.val} min={f.min}
                     onChange={e => f.set(Math.max(f.min, Number(e.target.value)))}
-                    className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] text-[var(--text)] outline-none focus:border-[var(--border)] transition-colors" />
+                    className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] text-[var(--text)] outline-none focus:border-[var(--border)] transition-colors" />
                 </div>
               ))}
             </div>
@@ -134,7 +134,7 @@ export function CreateKBModal({ onClose, onCreated }: Props) {
             <label className="text-[12px] font-semibold text-[var(--text-mute)]">Chunking Strategy</label>
             <Dropdown className="w-full">
               <DropdownTrigger className="w-full">
-                <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] text-[var(--text)] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
+                <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] text-[var(--text)] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
                   <span>{selectedStrategy?.label ?? 'Auto'}</span>
                   <Icons.Caret style={{ width: 11, height: 11, color: 'var(--text-faint)' }} />
                 </div>
@@ -164,7 +164,7 @@ export function CreateKBModal({ onClose, onCreated }: Props) {
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`flex flex-col items-center gap-2 py-8 border-2 border-dashed rounded-[10px] cursor-pointer transition-colors ${isDragging ? 'border-[var(--text)] bg-[var(--surface)]' : 'border-[var(--border-faint)] hover:border-[var(--border-soft)] hover:bg-[var(--surface)]'}`}
+              className={`flex flex-col items-center gap-2 py-8 border-2 border-dashed rounded-md cursor-pointer transition-colors ${isDragging ? 'border-[var(--text)] bg-[var(--surface)]' : 'border-[var(--border-faint)] hover:border-[var(--border-soft)] hover:bg-[var(--surface)]'}`}
             >
               <Icons.Folder style={{ width: 22, height: 22, color: 'var(--text-dim)' }} />
               <div className="text-center">
@@ -177,7 +177,7 @@ export function CreateKBModal({ onClose, onCreated }: Props) {
             {files.length > 0 && (
               <div className="flex flex-col gap-1.5 mt-1">
                 {files.map((f, i) => (
-                  <div key={i} className="flex items-center gap-3 px-3 py-2 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[8px]">
+                  <div key={i} className="flex items-center gap-3 px-3 py-2 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md">
                     <Icons.Doc style={{ width: 13, height: 13, color: 'var(--text-faint)', flexShrink: 0 }} />
                     <span className="flex-1 text-[12.5px] text-[var(--text-mute)] truncate">{f.name}</span>
                     <span className="text-[11px] font-mono text-[var(--text-dim)]">{formatFileSize(f.size)}</span>
@@ -193,11 +193,11 @@ export function CreateKBModal({ onClose, onCreated }: Props) {
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-1 border-t border-[var(--border-faint)]">
-            <button onClick={onClose} className="px-4 py-2 rounded-[9px] text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
+            <button onClick={onClose} className="px-4 py-2 rounded-md text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
               Cancel
             </button>
             <button onClick={handleCreate} disabled={createKB.isPending || !name.trim()}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-[9px] bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default">
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default">
               <Icons.Plus style={{ width: 13, height: 13 }} />
               {createKB.isPending ? 'Creating…' : files.length > 0 ? `Create & upload ${files.length} file${files.length > 1 ? 's' : ''}` : 'Create knowledge base'}
             </button>

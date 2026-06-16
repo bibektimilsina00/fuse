@@ -13,7 +13,7 @@ export function Skeleton({ className, rounded = 'sm', style }: SkeletonProps) {
       style={style}
       className={cn(
         'bg-surface-2 animate-pulse',
-        rounded === 'sm'   && 'rounded-[6px]',
+        rounded === 'sm'   && 'rounded-sm',
         rounded === 'md'   && 'rounded-md',
         rounded === 'full' && 'rounded-full',
         className,

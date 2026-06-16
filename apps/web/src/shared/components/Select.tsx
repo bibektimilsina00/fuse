@@ -63,7 +63,7 @@ export function Select({ options, value, onChange, placeholder = 'Select…', cl
         onClick={() => !disabled && setOpen(o => !o)}
         className={cn(
           'flex items-center gap-2 w-full h-9 pl-3 pr-2.5 text-sm text-left',
-          'bg-bg border border-border-faint rounded-[8px]',
+          'bg-bg border border-border-faint rounded-md',
           'transition-[background-color,border-color] duration-[120ms]',
           'disabled:opacity-40 disabled:cursor-not-allowed',
           error
@@ -90,7 +90,7 @@ export function Select({ options, value, onChange, placeholder = 'Select…', cl
         data-state={open ? 'open' : 'closed'}
         className={cn(
           'absolute top-[calc(100%+5px)] left-0 right-0 z-50',
-          'bg-bg border border-border-faint rounded-[10px] p-1.5',
+          'bg-bg border border-border-faint rounded-md p-1.5',
           'shadow-dropdown',
           'max-h-60 overflow-y-auto',
           'transition-[opacity,transform] duration-[150ms]',
@@ -105,7 +105,7 @@ export function Select({ options, value, onChange, placeholder = 'Select…', cl
             aria-selected={opt.value === value}
             onClick={() => { onChange?.(opt.value); setOpen(false) }}
             className={cn(
-              'flex items-center gap-2 w-full text-left px-2.5 py-1.5 rounded-[7px] text-sm',
+              'flex items-center gap-2 w-full text-left px-2.5 py-1.5 rounded-sm text-sm',
               'transition-colors duration-[100ms]',
               opt.value === value
                 ? 'bg-surface-2 text-text font-medium'

@@ -119,7 +119,7 @@ export function Automations() {
             {showSort && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowSort(false)} />
-                <div className="absolute right-0 top-[calc(100%+6px)] z-50 w-[180px] bg-[var(--bg-2)] border border-[var(--border)] rounded-[11px] p-[5px] shadow-[0_16px_40px_-12px_oklch(0_0_0/0.6)]">
+                <div className="absolute right-0 top-[calc(100%+6px)] z-50 w-[180px] bg-[var(--bg-2)] border border-[var(--border)] rounded-lg p-[5px] shadow-[0_16px_40px_-12px_oklch(0_0_0/0.6)]">
                   {SORT_OPTIONS.map(s => (
                     <button
                       key={s.id}
@@ -128,7 +128,7 @@ export function Automations() {
                         else { setSortKey(s.id); setSortAsc(false) }
                         setShowSort(false)
                       }}
-                      className={`flex items-center justify-between w-full px-3 py-2 rounded-[7px] text-[12.5px] font-medium transition-colors hover:bg-[var(--surface)] ${sortKey === s.id ? 'text-[var(--text)]' : 'text-[var(--text-mute)]'}`}
+                      className={`flex items-center justify-between w-full px-3 py-2 rounded-sm text-[12.5px] font-medium transition-colors hover:bg-[var(--surface)] ${sortKey === s.id ? 'text-[var(--text)]' : 'text-[var(--text-mute)]'}`}
                     >
                       {s.label}
                       {sortKey === s.id && (

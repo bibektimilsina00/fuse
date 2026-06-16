@@ -38,7 +38,7 @@ function OptionsDropdown({ anchorRect, items, onClose }: {
     <>
       <div className="fixed inset-0 z-[9998]" onClick={onClose} />
       <div
-        className="fixed z-[9999] overflow-hidden rounded-[12px] border border-[var(--border)] bg-[var(--bg-2)] p-1.5 shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]"
+        className="fixed z-[9999] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg-2)] p-1.5 shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]"
         style={{ left, top, width: menuW }}
       >
         {items.map((item, i) => (
@@ -47,7 +47,7 @@ function OptionsDropdown({ anchorRect, items, onClose }: {
             <button
               onClick={() => { item.onClick(); onClose() }}
               className={cn(
-                'flex w-full items-center gap-2.5 rounded-[7px] px-3 py-2 text-[12.5px] font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:shrink-0',
+                'flex w-full items-center gap-2.5 rounded-sm px-3 py-2 text-[12.5px] font-medium transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:shrink-0',
                 item.variant === 'danger'
                   ? 'text-[var(--err)] hover:bg-[var(--badge-err-bg)] [&_svg]:text-[var(--err)]'
                   : 'text-[var(--text)] hover:bg-[var(--surface)] [&_svg]:text-[var(--text-mute)]',
@@ -89,7 +89,7 @@ export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
           ref={btnRef}
           onClick={openMenu}
           className={cn(
-            'flex h-7 w-7 items-center justify-center rounded-[7px] text-[var(--text-mute)] transition-colors',
+            'flex h-7 w-7 items-center justify-center rounded-sm text-[var(--text-mute)] transition-colors',
             'hover:bg-[var(--surface)] hover:text-[var(--text)]',
             anchorRect && 'bg-[var(--surface)] text-[var(--text)]',
           )}
@@ -100,7 +100,7 @@ export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
 
         <button
           onClick={openCopilot}
-          className="flex h-7 w-7 items-center justify-center rounded-[7px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
+          className="flex h-7 w-7 items-center justify-center rounded-sm text-[var(--text-mute)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
           title="Open Copilot"
         >
           <MessageCircle className="h-4 w-4" />

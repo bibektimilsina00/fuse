@@ -13,7 +13,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       aria-invalid={error ? 'true' : undefined}
       className={cn(
         'w-full resize-none outline-none',
-        'bg-bg border border-border-faint rounded-[8px]',
+        'bg-bg border border-border-faint rounded-md',
         'px-3 py-2.5',
         'text-sm text-text placeholder:text-text-faint',
         'transition-[background-color,border-color] duration-[120ms]',

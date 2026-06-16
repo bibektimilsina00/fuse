@@ -83,7 +83,7 @@ export function KnowledgeDocumentView() {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <button onClick={() => navigate(APP_ROUTES.KNOWLEDGE_DETAIL(kbId!))}
-              className="w-[22px] h-[22px] rounded-[6px] flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors shrink-0">
+              className="w-[22px] h-[22px] rounded-sm flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors shrink-0">
               <Icons.CaretRight style={{ width: 12, height: 12, transform: 'rotate(180deg)' }} />
             </button>
             <span className="eyebrow">{chunks.length} chunks</span>
@@ -97,7 +97,7 @@ export function KnowledgeDocumentView() {
 
       {/* New chunk form */}
       {showNew && (
-        <div className="flex flex-col gap-3 p-5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px]">
+        <div className="flex flex-col gap-3 p-5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-lg">
           <label className="text-[12px] font-semibold text-[var(--text-mute)]">New chunk content</label>
           <textarea
             autoFocus
@@ -105,11 +105,11 @@ export function KnowledgeDocumentView() {
             onChange={e => setNewContent(e.target.value)}
             placeholder="Type or paste the chunk text…"
             rows={5}
-            className="px-3 py-2.5 bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-[9px] text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none resize-none focus:border-[var(--border)] transition-colors"
+            className="px-3 py-2.5 bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-md text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none resize-none focus:border-[var(--border)] transition-colors"
           />
           <p className="text-[11px] font-mono text-[var(--text-dim)]">{newContent.length} chars</p>
           <div className="flex items-center justify-end gap-3">
-            <button onClick={() => { setShowNew(false); setNewContent('') }} className="px-4 py-2 rounded-[9px] text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
+            <button onClick={() => { setShowNew(false); setNewContent('') }} className="px-4 py-2 rounded-md text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
               Cancel
             </button>
             <button onClick={handleCreateChunk} disabled={!newContent.trim() || createChunk.isPending} className="btn btn-primary">
@@ -132,7 +132,7 @@ export function KnowledgeDocumentView() {
             <div
               key={chunk.id}
               onClick={() => { if (!isEditing) openEditor(chunk) }}
-              className={`flex flex-col gap-2 p-4 rounded-[10px] border transition-colors group
+              className={`flex flex-col gap-2 p-4 rounded-md border transition-colors group
                 ${isEditing
                   ? 'bg-[var(--surface)] border-[var(--border-soft)] cursor-default min-h-[calc(100vh-220px)]'
                   : 'bg-[var(--bg)] border-[var(--border-faint)] hover:border-[var(--border-soft)] cursor-pointer'}`}
@@ -148,7 +148,7 @@ export function KnowledgeDocumentView() {
                       <button
                         onClick={e => { e.stopPropagation(); navigateChunk('prev') }}
                         disabled={chunk.chunk_index === 0}
-                        className="w-[24px] h-[24px] rounded-[5px] flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--bg)] hover:text-[var(--text)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="w-[24px] h-[24px] rounded-sm flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--bg)] hover:text-[var(--text)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         title="Previous chunk"
                       >
                         <Icons.CaretRight style={{ width: 11, height: 11, transform: 'rotate(180deg)' }} />
@@ -156,7 +156,7 @@ export function KnowledgeDocumentView() {
                       <button
                         onClick={e => { e.stopPropagation(); navigateChunk('next') }}
                         disabled={chunk.chunk_index >= chunks.length - 1}
-                        className="w-[24px] h-[24px] rounded-[5px] flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--bg)] hover:text-[var(--text)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="w-[24px] h-[24px] rounded-sm flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--bg)] hover:text-[var(--text)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         title="Next chunk"
                       >
                         <Icons.CaretRight style={{ width: 11, height: 11 }} />
@@ -165,7 +165,7 @@ export function KnowledgeDocumentView() {
                   )}
                   <button
                     onClick={e => { e.stopPropagation(); handleDelete(chunk) }}
-                    className={`w-[20px] h-[20px] rounded-[5px] inline-flex items-center justify-center text-[var(--text-dim)] hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-all ${isEditing ? '' : 'opacity-0 group-hover:opacity-100'}`}
+                    className={`w-[20px] h-[20px] rounded-sm inline-flex items-center justify-center text-[var(--text-dim)] hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-all ${isEditing ? '' : 'opacity-0 group-hover:opacity-100'}`}
                     title="Delete chunk"
                   >
                     <Icons.Trash style={{ width: 11, height: 11 }} />
@@ -173,7 +173,7 @@ export function KnowledgeDocumentView() {
                   {isEditing && (
                     <button
                       onClick={e => { e.stopPropagation(); closeEditor() }}
-                      className="w-[24px] h-[24px] rounded-[5px] flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--bg)] hover:text-[var(--text)] transition-colors text-[12px] ml-1"
+                      className="w-[24px] h-[24px] rounded-sm flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--bg)] hover:text-[var(--text)] transition-colors text-[12px] ml-1"
                       title="Close"
                     >
                       ✕
@@ -189,21 +189,21 @@ export function KnowledgeDocumentView() {
                     value={editContent}
                     onChange={e => setEditContent(e.target.value)}
                     onClick={e => e.stopPropagation()}
-                    className="flex-1 min-h-[300px] px-3 py-2.5 bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-[9px] text-[13px] font-mono text-[var(--text)] outline-none resize-none focus:border-[var(--border)] transition-colors leading-relaxed"
+                    className="flex-1 min-h-[300px] px-3 py-2.5 bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-md text-[13px] font-mono text-[var(--text)] outline-none resize-none focus:border-[var(--border)] transition-colors leading-relaxed"
                   />
                   <div className="flex items-center justify-between">
                     <span className="text-[10.5px] font-mono text-[var(--text-dim)]">{editContent.length} chars</span>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={e => { e.stopPropagation(); closeEditor() }}
-                        className="px-3 py-1.5 rounded-[7px] text-[12.5px] font-medium text-[var(--text-mute)] bg-[var(--bg)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors"
+                        className="px-3 py-1.5 rounded-sm text-[12.5px] font-medium text-[var(--text-mute)] bg-[var(--bg)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={e => { e.stopPropagation(); void handleSave() }}
                         disabled={updateChunk.isPending || editContent === chunk.content}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] bg-[var(--text)] text-[var(--bg)] text-[12.5px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-[var(--text)] text-[var(--bg)] text-[12.5px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default"
                       >
                         {updateChunk.isPending ? 'Saving…' : 'Save & re-index'}
                       </button>

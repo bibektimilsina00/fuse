@@ -35,14 +35,14 @@ export function GreetingRow() {
       </div>
       <div className="flex items-center gap-[8px]">
         <button
-          className="inline-flex items-center gap-[7px] py-[8px] px-[14px] rounded-[9px] text-[13px] font-medium bg-[var(--surface)] border border-[var(--border-faint)] text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
+          className="inline-flex items-center gap-[7px] py-[8px] px-[14px] rounded-md text-[13px] font-medium bg-[var(--surface)] border border-[var(--border-faint)] text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
           onClick={() => navigate(APP_ROUTES.CONNECTIONS)}
         >
           <Icons.Plug className="w-3.5 h-3.5" />
           Connect app
         </button>
         <button
-          className="inline-flex items-center gap-[7px] py-[8px] px-[14px] rounded-[9px] text-[13px] font-medium bg-[var(--text)] text-[var(--bg)] border border-[var(--text)] hover:bg-[oklch(0.90_0.003_250)] transition-colors"
+          className="inline-flex items-center gap-[7px] py-[8px] px-[14px] rounded-md text-[13px] font-medium bg-[var(--text)] text-[var(--bg)] border border-[var(--text)] hover:bg-[oklch(0.90_0.003_250)] transition-colors"
           onClick={requestCreateWorkflow}
         >
           <Icons.Plus className="w-3.5 h-3.5" />

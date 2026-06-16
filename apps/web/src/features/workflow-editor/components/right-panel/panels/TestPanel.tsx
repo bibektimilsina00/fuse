@@ -7,8 +7,8 @@ interface TestPanelProps {
   isRunning: boolean
 }
 
-const inputCls = 'w-full rounded-[7px] border border-[var(--border-faint)] bg-[var(--bg)] px-2.5 py-1.5 text-[12.5px] text-[var(--text)] placeholder:text-[var(--text-dim)] outline-none transition-colors focus:border-[var(--border-soft)]'
-const iconBtnCls = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]'
+const inputCls = 'w-full rounded-sm border border-[var(--border-faint)] bg-[var(--bg)] px-2.5 py-1.5 text-[12.5px] text-[var(--text)] placeholder:text-[var(--text-dim)] outline-none transition-colors focus:border-[var(--border-soft)]'
+const iconBtnCls = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]'
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -64,7 +64,7 @@ export function TestPanel({ onRun, isRunning }: TestPanelProps) {
               key={s.id}
               onClick={() => setSelectedId(s.id)}
               className={cn(
-                'flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-left transition-colors',
+                'flex w-full items-center gap-2 rounded-sm px-2.5 py-1.5 text-left transition-colors',
                 s.id === selectedId ? 'bg-[var(--surface)]' : 'hover:bg-[var(--surface)]',
               )}
             >
@@ -199,7 +199,7 @@ export function TestPanel({ onRun, isRunning }: TestPanelProps) {
           onClick={runScenario}
           disabled={isRunning}
           className={cn(
-            'flex w-full items-center justify-center gap-2 rounded-[8px] bg-[var(--text)] py-2 text-[13px] font-medium text-[var(--bg)] transition-opacity',
+            'flex w-full items-center justify-center gap-2 rounded-md bg-[var(--text)] py-2 text-[13px] font-medium text-[var(--bg)] transition-opacity',
             'hover:opacity-90 disabled:pointer-events-none disabled:opacity-40',
           )}
         >

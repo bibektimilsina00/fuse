@@ -55,9 +55,9 @@ export function WorkspaceSelector() {
         ref={triggerRef}
         type="button"
         onClick={openDropdown}
-        className="flex items-center gap-[10px] py-[9px] px-[10px] w-full text-left bg-[var(--surface)] border border-[var(--border-faint)] rounded-[10px] cursor-pointer transition-all duration-120 hover:bg-[var(--surface-2)] hover:border-[var(--border-soft)] group-data-[collapsed=true]/shell:p-0 group-data-[collapsed=true]/shell:w-[36px] group-data-[collapsed=true]/shell:h-[36px] group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:mx-auto group-data-[collapsed=true]/shell:rounded-full"
+        className="flex items-center gap-[10px] py-[9px] px-[10px] w-full text-left bg-[var(--surface)] border border-[var(--border-faint)] rounded-md cursor-pointer transition-all duration-120 hover:bg-[var(--surface-2)] hover:border-[var(--border-soft)] group-data-[collapsed=true]/shell:p-0 group-data-[collapsed=true]/shell:w-[36px] group-data-[collapsed=true]/shell:h-[36px] group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:mx-auto group-data-[collapsed=true]/shell:rounded-full"
       >
-        <span className="w-[26px] h-[26px] rounded-[7px] bg-[var(--text)] text-[var(--bg)] inline-flex items-center justify-center text-[11px] font-semibold tracking-tight shrink-0 group-data-[collapsed=true]/shell:w-[28px] group-data-[collapsed=true]/shell:h-[28px] group-data-[collapsed=true]/shell:rounded-full transition-all duration-200">{initial}</span>
+        <span className="w-[26px] h-[26px] rounded-sm bg-[var(--text)] text-[var(--bg)] inline-flex items-center justify-center text-[11px] font-semibold tracking-tight shrink-0 group-data-[collapsed=true]/shell:w-[28px] group-data-[collapsed=true]/shell:h-[28px] group-data-[collapsed=true]/shell:rounded-full transition-all duration-200">{initial}</span>
         <span className="flex flex-col gap-[1px] min-w-0 flex-1 group-data-[collapsed=true]/shell:hidden">
           <span className="text-[13px] font-medium text-[var(--text)] whitespace-nowrap overflow-hidden text-ellipsis tracking-tight">{label}</span>
           <span className="text-[10.5px] text-[var(--text-faint)] font-mono tracking-widest uppercase">{isPersonal ? 'Personal' : 'Team workspace'}</span>
@@ -72,12 +72,12 @@ export function WorkspaceSelector() {
 
           {/* Dropdown */}
           <div
-            className="fixed z-[9999] bg-[var(--bg-2)] border border-[var(--border)] rounded-[13px] p-[6px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]"
+            className="fixed z-[9999] bg-[var(--bg-2)] border border-[var(--border)] rounded-md p-[6px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]"
             style={{ top: pos.top, left: pos.left, width: Math.max(pos.width, 260) }}
           >
             {/* Current workspace header */}
             <div className="flex items-center gap-[10px] pt-[8px] px-[8px] pb-[10px]">
-              <span className="w-[32px] h-[32px] rounded-[8px] bg-[var(--text)] text-[var(--bg)] inline-flex items-center justify-center text-[13px] font-bold shrink-0 tracking-tight">{initial}</span>
+              <span className="w-[32px] h-[32px] rounded-md bg-[var(--text)] text-[var(--bg)] inline-flex items-center justify-center text-[13px] font-bold shrink-0 tracking-tight">{initial}</span>
               <span className="flex flex-col gap-[2px] min-w-0">
                 <span className="text-[13px] font-semibold text-[var(--text)] tracking-tight truncate">{label}</span>
                 <span className="text-[10.5px] font-mono text-[var(--text-faint)] tracking-widest uppercase">
@@ -93,14 +93,14 @@ export function WorkspaceSelector() {
               <span className="text-[10px] font-mono text-[var(--text-dim)] tracking-widest uppercase px-[10px] py-[4px]">Workspaces</span>
               {workspaces.map(ws => (
                 <button
-                  key={ws.id}
-                  onClick={() => handleSwitch(ws)}
-                  className={cn(
-                    'flex items-center gap-[9px] py-[7px] px-[10px] rounded-[8px] w-full text-left text-[13px] font-medium text-[var(--text-mute)] bg-transparent border-none cursor-pointer transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]',
+                   key={ws.id}
+                   onClick={() => handleSwitch(ws)}
+                   className={cn(
+                    'flex items-center gap-[9px] py-[7px] px-[10px] rounded-md w-full text-left text-[13px] font-medium text-[var(--text-mute)] bg-transparent border-none cursor-pointer transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]',
                     ws.id === currentWorkspaceId && 'text-[var(--text)] bg-[var(--surface)]'
-                  )}
+                   )}
                 >
-                  <span className="w-[22px] h-[22px] rounded-[6px] bg-[var(--surface-3)] border border-[var(--border-soft)] inline-flex items-center justify-center text-[10px] font-bold text-[var(--text)] shrink-0">
+                  <span className="w-[22px] h-[22px] rounded-sm bg-[var(--surface-3)] border border-[var(--border-soft)] inline-flex items-center justify-center text-[10px] font-bold text-[var(--text)] shrink-0">
                     {ws.name[0]?.toUpperCase()}
                   </span>
                   <span className="flex-1 min-w-0 truncate">{ws.name}</span>
@@ -114,7 +114,7 @@ export function WorkspaceSelector() {
               {!showCreate ? (
                 <button
                   onClick={() => setShowCreate(true)}
-                  className="flex items-center gap-[8px] py-[7px] px-[10px] rounded-[8px] w-full text-left text-[12.5px] font-medium text-[var(--text-faint)] bg-transparent border-none cursor-pointer transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
+                  className="flex items-center gap-[8px] py-[7px] px-[10px] rounded-md w-full text-left text-[12.5px] font-medium text-[var(--text-faint)] bg-transparent border-none cursor-pointer transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
                 >
                   <Icons.Plus style={{ width: 12, height: 12 }} />
                   New workspace
@@ -128,12 +128,12 @@ export function WorkspaceSelector() {
                     onChange={e => setNewName(e.target.value)}
                     placeholder="Workspace name"
                     onKeyDown={e => e.key === 'Escape' && setShowCreate(false)}
-                    className="flex-1 h-[30px] px-2 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[7px] text-[12.5px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
+                    className="flex-1 h-[30px] px-2 bg-[var(--bg)] border border-[var(--border-faint)] rounded-sm text-[12.5px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
                   />
                   <button
                     type="submit"
                     disabled={!newName.trim() || createWorkspace.isPending}
-                    className="h-[30px] px-2.5 rounded-[7px] bg-[var(--text)] text-[var(--bg)] text-[12px] font-medium border-none cursor-pointer disabled:opacity-40"
+                    className="h-[30px] px-2.5 rounded-sm bg-[var(--text)] text-[var(--bg)] text-[12px] font-medium border-none cursor-pointer disabled:opacity-40"
                   >
                     {createWorkspace.isPending ? '…' : 'Create'}
                   </button>
@@ -146,7 +146,7 @@ export function WorkspaceSelector() {
             {/* Settings */}
             <button
               onClick={() => { close(); navigate(APP_ROUTES.WORKSPACE_SETTINGS) }}
-              className="flex items-center gap-[9px] py-[8px] px-[10px] rounded-[8px] w-full text-left text-[13px] font-medium text-[var(--text-mute)] bg-transparent border-none cursor-pointer transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
+              className="flex items-center gap-[9px] py-[8px] px-[10px] rounded-md w-full text-left text-[13px] font-medium text-[var(--text-mute)] bg-transparent border-none cursor-pointer transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
             >
               <Icons.Users style={{ width: 13, height: 13, color: 'var(--text-faint)' }} />
               Manage members

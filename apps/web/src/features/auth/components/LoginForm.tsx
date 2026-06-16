@@ -52,7 +52,7 @@ export function LoginForm() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {localError && (
-          <div className="p-3 text-xs bg-[oklch(0.35_0.12_20/0.15)] border border-[oklch(0.45_0.15_20/0.2)] text-err rounded-[8px] flex items-center gap-2">
+          <div className="p-3 text-xs bg-[oklch(0.35_0.12_20/0.15)] border border-[oklch(0.45_0.15_20/0.2)] text-err rounded-md flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-err shrink-0 animate-pulse" />
             <span>{localError}</span>
           </div>

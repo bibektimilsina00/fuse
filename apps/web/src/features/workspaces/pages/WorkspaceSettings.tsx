@@ -116,7 +116,7 @@ export function WorkspaceSettings() {
     <div className="view-body">
       {/* Hero header */}
       <div className="flex items-start gap-5">
-        <div className="w-[56px] h-[56px] rounded-[14px] bg-[var(--text)] text-[var(--bg)] flex items-center justify-center text-[22px] font-bold shrink-0">
+        <div className="w-[56px] h-[56px] rounded-xl bg-[var(--text)] text-[var(--bg)] flex items-center justify-center text-[22px] font-bold shrink-0">
           {initial}
         </div>
         <div className="flex flex-col gap-1.5 min-w-0">
@@ -125,7 +125,7 @@ export function WorkspaceSettings() {
               {currentWorkspace?.name ?? 'Workspace'}
             </h1>
             <span className={[
-              'font-mono text-[9.5px] font-semibold tracking-widest uppercase px-[8px] py-[3px] rounded-[5px]',
+              'font-mono text-[9.5px] font-semibold tracking-widest uppercase px-[8px] py-[3px] rounded-sm',
               isOwner ? 'bg-[oklch(0.78_0.14_145/0.14)] text-[var(--ok)]' :
               currentRole === 'admin' ? 'bg-[oklch(0.78_0.13_245/0.14)] text-[var(--accent)]' :
               'bg-[var(--surface-2)] text-[var(--text-mute)]'
@@ -147,13 +147,13 @@ export function WorkspaceSettings() {
       </div>
 
       {/* Tab nav */}
-      <div className="flex items-center gap-1 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] p-[3px] w-fit">
+      <div className="flex items-center gap-1 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md p-[3px] w-fit">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={[
-              'inline-flex items-center gap-[6px] px-[12px] py-[6px] rounded-[6px] text-[12.5px] font-medium transition-colors duration-80',
+              'inline-flex items-center gap-[6px] px-[12px] py-[6px] rounded-sm text-[12.5px] font-medium transition-colors duration-80',
               tab === t.id
                 ? 'bg-[var(--surface)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]'
                 : 'text-[var(--text-mute)] hover:text-[var(--text)]',
@@ -172,14 +172,14 @@ export function WorkspaceSettings() {
           {/* Filter bar */}
           <div className="flex items-center gap-3 flex-wrap">
             {/* Role filter tabs */}
-            <div className="flex items-center bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] p-[3px] gap-[2px]">
+            <div className="flex items-center bg-[var(--bg)] border border-[var(--border-faint)] rounded-md p-[3px] gap-[2px]">
               {(['all', 'owner', 'admin', 'member', 'viewer'] as const).map(r => (
                 roleCounts[r] > 0 || r === 'all' ? (
                   <button
                     key={r}
                     onClick={() => setMemberRoleFilter(r)}
                     className={[
-                      'inline-flex items-center gap-[6px] px-[10px] py-[5px] rounded-[6px] text-[12px] font-medium capitalize transition-colors duration-80',
+                      'inline-flex items-center gap-[6px] px-[10px] py-[5px] rounded-sm text-[12px] font-medium capitalize transition-colors duration-80',
                       memberRoleFilter === r
                         ? 'bg-[var(--surface)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]'
                         : 'text-[var(--text-mute)] hover:text-[var(--text)]',
@@ -195,7 +195,7 @@ export function WorkspaceSettings() {
             </div>
 
             {/* Search */}
-            <div className="flex items-center gap-2 flex-1 max-w-[280px] h-[34px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] focus-within:border-[var(--border)] transition-colors">
+            <div className="flex items-center gap-2 flex-1 max-w-[280px] h-[34px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md focus-within:border-[var(--border)] transition-colors">
               <Icons.Search className="w-[13px] h-[13px] text-[var(--text-faint)] shrink-0" />
               <input
                 type="text"
@@ -252,7 +252,7 @@ export function WorkspaceSettings() {
               { label: 'Members', value: String(members.length) },
               { label: 'Slug', value: currentWorkspace?.slug ?? '—', mono: true },
             ].map(item => (
-              <div key={item.label} className="flex flex-col gap-1.5 px-4 py-3.5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[10px]">
+              <div key={item.label} className="flex flex-col gap-1.5 px-4 py-3.5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md">
                 <span className="text-[10.5px] font-mono tracking-widest uppercase text-[var(--text-dim)]">{item.label}</span>
                 <span className={[
                   'text-[14px] font-medium',
@@ -267,14 +267,14 @@ export function WorkspaceSettings() {
           </div>
 
           {/* Rename workspace — owner only */}
-          <div className="flex flex-col gap-3 p-5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px]">
+          <div className="flex flex-col gap-3 p-5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-lg">
             <div>
               <div className="text-[13.5px] font-semibold text-[var(--text)]">Workspace name</div>
               <p className="text-[12px] text-[var(--text-faint)] mt-0.5">The display name shown across the app.</p>
             </div>
             <div className="flex items-center gap-3 max-w-md">
               <div className={[
-                'flex items-center gap-2.5 px-3 h-[38px] flex-1 border rounded-[9px] transition-colors',
+                'flex items-center gap-2.5 px-3 h-[38px] flex-1 border rounded-md transition-colors',
                 isOwner
                   ? 'bg-[var(--bg-2)] border-[var(--border-faint)] focus-within:border-[var(--border)]'
                   : 'bg-[var(--surface)] border-[var(--border-faint)] opacity-60 cursor-not-allowed',
@@ -293,7 +293,7 @@ export function WorkspaceSettings() {
                 <button
                   onClick={handleRename}
                   disabled={updateWorkspace.isPending || renameName.trim() === currentWorkspace?.name}
-                  className="inline-flex items-center gap-2 px-4 h-[38px] rounded-[9px] bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer shrink-0 hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default"
+                  className="inline-flex items-center gap-2 px-4 h-[38px] rounded-md bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer shrink-0 hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default"
                 >
                   {updateWorkspace.isPending ? 'Saving…' : 'Save'}
                 </button>
@@ -304,18 +304,18 @@ export function WorkspaceSettings() {
           </div>
 
           {/* Workspace ID */}
-          <div className="flex flex-col gap-3 p-5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px]">
+          <div className="flex flex-col gap-3 p-5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-lg">
             <div>
               <div className="text-[13.5px] font-semibold text-[var(--text)]">Workspace ID</div>
               <p className="text-[12px] text-[var(--text-faint)] mt-0.5">Use in API calls targeting this workspace.</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[12px] text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] px-3 py-1.5 rounded-[7px] select-all">
+              <span className="font-mono text-[12px] text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] px-3 py-1.5 rounded-sm select-all">
                 {currentWorkspaceId ?? '—'}
               </span>
               <button
                 onClick={() => { if (currentWorkspaceId) { navigator.clipboard.writeText(currentWorkspaceId); toast('Copied', { variant: 'ok' }) }}}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[7px] text-[12px] text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] hover:text-[var(--text)] transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm text-[12px] text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] hover:text-[var(--text)] transition-colors"
               >
                 <Icons.Copy className="w-[12px] h-[12px]" /> Copy
               </button>
@@ -329,7 +329,7 @@ export function WorkspaceSettings() {
         <div className="flex flex-col gap-4">
           {/* Leave workspace — non-owners only */}
           {!isOwner && (
-            <div className="flex items-center justify-between gap-6 p-5 bg-[var(--bg)] border border-[oklch(0.70_0.18_22/0.25)] rounded-[12px]">
+            <div className="flex items-center justify-between gap-6 p-5 bg-[var(--bg)] border border-[oklch(0.70_0.18_22/0.25)] rounded-lg">
               <div>
                 <div className="text-[13.5px] font-semibold text-[var(--text)]">Leave workspace</div>
                 <p className="text-[12px] text-[var(--text-faint)] mt-0.5 max-w-sm">
@@ -339,7 +339,7 @@ export function WorkspaceSettings() {
               {!leaveConfirmOpen ? (
                 <button
                   onClick={() => setLeaveConfirmOpen(true)}
-                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-[9px] border border-[oklch(0.70_0.18_22/0.4)] text-[var(--err)] text-[13px] font-medium bg-transparent hover:bg-[oklch(0.70_0.18_22/0.08)] transition-colors"
+                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-md border border-[oklch(0.70_0.18_22/0.4)] text-[var(--err)] text-[13px] font-medium bg-transparent hover:bg-[oklch(0.70_0.18_22/0.08)] transition-colors"
                 >
                   <Icons.Trash className="w-[13px] h-[13px]" />
                   Leave workspace
@@ -350,14 +350,14 @@ export function WorkspaceSettings() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setLeaveConfirmOpen(false)}
-                      className="px-3 py-1.5 rounded-[7px] text-[12.5px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors"
+                      className="px-3 py-1.5 rounded-sm text-[12.5px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleLeave}
                       disabled={leavePending}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] text-[12.5px] font-medium text-[var(--bg)] bg-[var(--err)] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-default"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-[12.5px] font-medium text-[var(--bg)] bg-[var(--err)] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-default"
                     >
                       {leavePending ? 'Leaving…' : 'Yes, leave'}
                     </button>
@@ -369,7 +369,7 @@ export function WorkspaceSettings() {
 
           {/* Delete workspace — owners only, non-personal */}
           {isOwner && !currentWorkspace?.is_personal && (
-            <div className="flex flex-col gap-4 p-5 bg-[var(--bg)] border border-[oklch(0.70_0.18_22/0.25)] rounded-[12px]">
+            <div className="flex flex-col gap-4 p-5 bg-[var(--bg)] border border-[oklch(0.70_0.18_22/0.25)] rounded-lg">
               <div className="flex items-start justify-between gap-6">
                 <div>
                   <div className="text-[13.5px] font-semibold text-[var(--text)]">Delete workspace</div>
@@ -380,7 +380,7 @@ export function WorkspaceSettings() {
                 {!deleteOpen && (
                   <button
                     onClick={() => setDeleteOpen(true)}
-                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-[9px] border border-[oklch(0.70_0.18_22/0.4)] text-[var(--err)] text-[13px] font-medium bg-transparent hover:bg-[oklch(0.70_0.18_22/0.08)] transition-colors"
+                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-md border border-[oklch(0.70_0.18_22/0.4)] text-[var(--err)] text-[13px] font-medium bg-transparent hover:bg-[oklch(0.70_0.18_22/0.08)] transition-colors"
                   >
                     <Icons.Trash className="w-[13px] h-[13px]" />
                     Delete workspace
@@ -399,18 +399,18 @@ export function WorkspaceSettings() {
                       value={deleteConfirmName}
                       onChange={e => setDeleteConfirmName(e.target.value)}
                       placeholder={currentWorkspace?.name}
-                      className="flex-1 max-w-sm px-3 h-[38px] bg-[var(--bg-2)] border border-[oklch(0.70_0.18_22/0.4)] rounded-[9px] text-[13px] text-[var(--text)] placeholder:text-[var(--text-dim)] outline-none focus:border-[var(--err)] transition-colors"
+                      className="flex-1 max-w-sm px-3 h-[38px] bg-[var(--bg-2)] border border-[oklch(0.70_0.18_22/0.4)] rounded-md text-[13px] text-[var(--text)] placeholder:text-[var(--text-dim)] outline-none focus:border-[var(--err)] transition-colors"
                     />
                     <button
                       onClick={handleDelete}
                       disabled={deleteConfirmName !== currentWorkspace?.name || deleteWorkspace.isPending}
-                      className="inline-flex items-center gap-2 px-4 h-[38px] rounded-[9px] bg-[var(--err)] text-white text-[13px] font-medium border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-default shrink-0"
+                      className="inline-flex items-center gap-2 px-4 h-[38px] rounded-md bg-[var(--err)] text-white text-[13px] font-medium border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-default shrink-0"
                     >
                       {deleteWorkspace.isPending ? 'Deleting…' : 'Delete permanently'}
                     </button>
                     <button
                       onClick={() => { setDeleteOpen(false); setDeleteConfirmName('') }}
-                      className="px-3 h-[38px] rounded-[9px] text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors"
+                      className="px-3 h-[38px] rounded-md text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors"
                     >
                       Cancel
                     </button>
@@ -422,7 +422,7 @@ export function WorkspaceSettings() {
 
           {/* Personal workspace — cannot delete */}
           {isOwner && currentWorkspace?.is_personal && (
-            <div className="flex items-start gap-3 px-4 py-3.5 bg-[var(--surface)] border border-[var(--border-faint)] rounded-[10px]">
+            <div className="flex items-start gap-3 px-4 py-3.5 bg-[var(--surface)] border border-[var(--border-faint)] rounded-md">
               <Icons.Activity className="w-[14px] h-[14px] text-[var(--text-faint)] shrink-0 mt-0.5" />
               <p className="text-[12px] text-[var(--text-faint)] m-0">
                 Personal workspaces cannot be deleted.
@@ -432,7 +432,7 @@ export function WorkspaceSettings() {
 
           {/* Owner can't leave note */}
           {isOwner && !currentWorkspace?.is_personal && (
-            <div className="flex items-start gap-3 px-4 py-3.5 bg-[var(--surface)] border border-[var(--border-faint)] rounded-[10px]">
+            <div className="flex items-start gap-3 px-4 py-3.5 bg-[var(--surface)] border border-[var(--border-faint)] rounded-md">
               <Icons.Activity className="w-[14px] h-[14px] text-[var(--text-faint)] shrink-0 mt-0.5" />
               <p className="text-[12px] text-[var(--text-faint)] m-0">
                 Owners cannot leave a workspace. Transfer ownership to a member first, or delete the workspace above.

@@ -181,7 +181,7 @@ export function MediaRenderer({
         onDragOver={onDragOver}
         onDrop={onDrop}
         className={cn(
-          'group relative flex items-center gap-1 rounded-[8px] border bg-surface',
+          'group relative flex items-center gap-1 rounded-md border bg-surface',
           'transition-colors',
           dragOver
             ? 'border-accent bg-accent/5'
@@ -191,7 +191,7 @@ export function MediaRenderer({
       >
         {current.type === 'asset' ? (
           <div className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1.5">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[5px] bg-surface-2">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-surface-2">
               {isImageMime(current.mime) ? (
                 <ImageIcon className="h-3.5 w-3.5 text-text-mute" />
               ) : (
@@ -214,7 +214,7 @@ export function MediaRenderer({
             <button
               type="button"
               onClick={() => onChange({ type: 'url', value: '' })}
-              className="rounded-[4px] p-1 text-text-faint hover:bg-surface-2 hover:text-text"
+              className="rounded-sm p-1 text-text-faint hover:bg-surface-2 hover:text-text"
               title="Remove"
             >
               <X className="h-3.5 w-3.5" />
@@ -269,7 +269,7 @@ export function MediaRenderer({
         />
 
         {dragOver && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[8px] bg-accent/10 text-[12px] font-medium text-accent">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-md bg-accent/10 text-[12px] font-medium text-accent">
             Drop to upload
           </div>
         )}
@@ -312,7 +312,7 @@ function IconBtn({
       disabled={disabled}
       title={title}
       className={cn(
-        'flex h-6 w-6 items-center justify-center rounded-[5px]',
+        'flex h-6 w-6 items-center justify-center rounded-sm',
         'text-text-mute hover:bg-surface-2 hover:text-text',
         'transition-colors',
         disabled && 'cursor-not-allowed opacity-50',
@@ -394,7 +394,7 @@ function LibraryModal({
           </div>
         )}
         {error && !loading && (
-          <div className="rounded-[6px] border border-[var(--err)] bg-[var(--err)]/5 px-3 py-2 text-[12px] text-[var(--err)]">
+          <div className="rounded-sm border border-[var(--err)] bg-[var(--err)]/5 px-3 py-2 text-[12px] text-[var(--err)]">
             {error}
           </div>
         )}
@@ -442,7 +442,7 @@ function AssetCard({
       onClick={onPick}
       title={asset.name}
       className={cn(
-        'group relative flex aspect-square flex-col overflow-hidden rounded-[8px] border text-left transition-all',
+        'group relative flex aspect-square flex-col overflow-hidden rounded-md border text-left transition-all',
         selected
           ? 'border-accent ring-2 ring-accent/40'
           : 'border-border-faint hover:border-text-mute hover:shadow-sm',

@@ -68,7 +68,7 @@ export function MetaResourceRenderer({ prop, properties, value, onChange, disabl
 
   if (query.isLoading) {
     return (
-      <div className="flex h-9 items-center gap-2 rounded-[7px] border border-border-faint bg-bg px-3 text-[12px] text-text-faint">
+      <div className="flex h-9 items-center gap-2 rounded-sm border border-border-faint bg-bg px-3 text-[12px] text-text-faint">
         <Loader2 size={13} className="animate-spin" />
         Loading {labelForKind(kind)}…
       </div>
@@ -77,7 +77,7 @@ export function MetaResourceRenderer({ prop, properties, value, onChange, disabl
 
   if (query.isError) {
     return (
-      <p className="rounded-[7px] border border-err/30 bg-err/10 px-2.5 py-1.5 text-[11.5px] text-err">
+      <p className="rounded-sm border border-err/30 bg-err/10 px-2.5 py-1.5 text-[11.5px] text-err">
         {query.error instanceof Error ? query.error.message : 'Failed to load resources.'}
       </p>
     )
@@ -85,7 +85,7 @@ export function MetaResourceRenderer({ prop, properties, value, onChange, disabl
 
   if (resources.length === 0) {
     return (
-      <p className="rounded-[7px] border border-dashed border-border-faint bg-bg px-2.5 py-1.5 text-[11.5px] text-text-faint">
+      <p className="rounded-sm border border-dashed border-border-faint bg-bg px-2.5 py-1.5 text-[11.5px] text-text-faint">
         No {labelForKind(kind)} reachable through this Meta credential.
       </p>
     )
@@ -98,7 +98,7 @@ export function MetaResourceRenderer({ prop, properties, value, onChange, disabl
         onChange={e => onChange(e.target.value)}
         disabled={disabled}
         className={cn(
-          'h-9 w-full appearance-none rounded-[7px] border border-border-faint bg-bg px-2.5 pr-7 text-[12px] text-text outline-none transition-colors',
+          'h-9 w-full appearance-none rounded-sm border border-border-faint bg-bg px-2.5 pr-7 text-[12px] text-text outline-none transition-colors',
           'hover:border-border-soft focus:border-border',
           disabled && 'opacity-50',
         )}

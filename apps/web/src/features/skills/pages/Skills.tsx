@@ -48,7 +48,7 @@ export function Skills() {
         <div className="mx-auto flex max-w-6xl flex-col gap-5">
           {/* Search */}
           {skills.length > 0 && (
-            <div className="flex h-9 items-center gap-2 rounded-[8px] border border-border-faint bg-bg px-3">
+            <div className="flex h-9 items-center gap-2 rounded-md border border-border-faint bg-bg px-3">
               <Search size={14} className="shrink-0 text-text-faint" />
               <input
                 value={query}
@@ -74,7 +74,7 @@ export function Skills() {
           ) : skills.length === 0 ? (
             <EmptyState onCreate={() => setCreateOpen(true)} />
           ) : filtered.length === 0 ? (
-            <p className="rounded-[8px] border border-dashed border-border-faint bg-bg p-8 text-center text-[12.5px] text-text-faint">
+            <p className="rounded-md border border-dashed border-border-faint bg-bg p-8 text-center text-[12.5px] text-text-faint">
               No skills match &ldquo;{query}&rdquo;.
             </p>
           ) : (
@@ -102,8 +102,8 @@ export function Skills() {
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-[12px] border border-dashed border-border-faint bg-bg p-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-accent/10 text-accent">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border-faint bg-bg p-12 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-accent/10 text-accent">
         <Sparkles size={20} />
       </div>
       <h2 className="text-[15px] font-semibold text-text">No skills yet</h2>

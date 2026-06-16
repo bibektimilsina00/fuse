@@ -85,7 +85,7 @@ export function CopilotEmptyState({ onSend, disabled }: Props) {
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 py-6">
-      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-[12px] bg-[var(--surface-2)]">
+      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--surface-2)]">
         <Sparkles className="h-5 w-5 text-[var(--text)]" />
       </div>
       <h2 className="text-[14px] font-semibold text-[var(--text)]">
@@ -103,10 +103,10 @@ export function CopilotEmptyState({ onSend, disabled }: Props) {
             key={s.title}
             disabled={disabled}
             onClick={() => onSend(s.prompt)}
-            className="group flex flex-col items-start gap-1 rounded-[10px] border border-[var(--border-faint)] bg-[var(--bg-2)] p-3 text-left transition-all hover:-translate-y-[1px] hover:border-[var(--border-soft)] hover:bg-[var(--surface)] disabled:cursor-default disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:bg-[var(--bg-2)]"
+            className="group flex flex-col items-start gap-1 rounded-md border border-[var(--border-faint)] bg-[var(--bg-2)] p-3 text-left transition-all hover:-translate-y-[1px] hover:border-[var(--border-soft)] hover:bg-[var(--surface)] disabled:cursor-default disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:bg-[var(--bg-2)]"
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-[6px] bg-[var(--surface-2)] text-[var(--text-mute)] group-hover:text-[var(--text)]">
+              <span className="flex h-5 w-5 items-center justify-center rounded-sm bg-[var(--surface-2)] text-[var(--text-mute)] group-hover:text-[var(--text)]">
                 <s.Icon className="h-3 w-3" />
               </span>
               <span className="text-[12.5px] font-medium text-[var(--text)]">{s.title}</span>

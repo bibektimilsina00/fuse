@@ -44,7 +44,7 @@ export function PromptCard({
   return (
     <div
       className={cn(
-        'rounded-[16px] p-px transition-all duration-200',
+        'rounded-xl p-px transition-all duration-200',
         focused || busy
           ? 'bg-gradient-to-br from-[var(--accent)] via-[var(--accent-line)] to-[var(--accent-soft)]'
           : 'bg-[var(--border-faint)]',
@@ -74,7 +74,7 @@ export function PromptCard({
                 <button
                   onClick={onCancel}
                   title="Cancel"
-                  className="inline-flex h-7 items-center gap-1 rounded-[7px] px-2 text-[11.5px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+                  className="inline-flex h-7 items-center gap-1 rounded-sm px-2 text-[11.5px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
                 >
                   <X className="h-3 w-3" /> Cancel
                 </button>

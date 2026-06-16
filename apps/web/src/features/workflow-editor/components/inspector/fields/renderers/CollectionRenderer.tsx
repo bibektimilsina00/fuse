@@ -69,7 +69,7 @@ export function CollectionRenderer({ prop, definition, value, onChange, properti
       <button
         type="button"
         onClick={addItem}
-        className="flex h-7 w-full items-center justify-center gap-1.5 rounded-[7px] border border-dashed border-border-faint text-[11px] text-text-faint hover:border-border-soft hover:text-text-mute transition-colors"
+        className="flex h-7 w-full items-center justify-center gap-1.5 rounded-sm border border-dashed border-border-faint text-[11px] text-text-faint hover:border-border-soft hover:text-text-mute transition-colors"
       >
         <Plus size={11} />
         {addLabel}
@@ -91,7 +91,7 @@ interface SingleItemProps {
 function SingleItem({ subProps, definition, item, onChange, allValues }: SingleItemProps) {
   const visible = subProps.filter(p => p.visibility !== 'hidden' && shouldShowProperty(p, { ...allValues, ...item }))
   return (
-    <div className="flex flex-col gap-3 rounded-[5px] border border-border-faint bg-bg p-3">
+    <div className="flex flex-col gap-3 rounded-sm border border-border-faint bg-bg p-3">
       {visible.map(p => (
         <PropertyField
           key={p.name}
@@ -123,7 +123,7 @@ function CollapsibleItem({ index, subProps, definition, item, onUpdate, onRemove
   const visible = subProps.filter(p => p.visibility !== 'hidden' && shouldShowProperty(p, { ...allValues, ...item }))
 
   return (
-    <div className="rounded-[5px] border border-border-faint bg-bg overflow-hidden">
+    <div className="rounded-sm border border-border-faint bg-bg overflow-hidden">
       <div className="flex items-center justify-between px-3 py-2">
         <button
           type="button"

@@ -10,7 +10,7 @@ interface NodeToolbarProps {
 }
 
 const BTN =
-  'flex size-[24px] items-center justify-center rounded-[7px] ' +
+  'flex size-[24px] items-center justify-center rounded-sm ' +
   'bg-[var(--surface)] border border-[var(--border-faint)] text-text-mute ' +
   'transition-colors hover:bg-[var(--surface-3)] hover:border-[var(--border-soft)] hover:text-text ' +
   '[&_svg]:size-[12px] disabled:opacity-40 disabled:cursor-not-allowed'

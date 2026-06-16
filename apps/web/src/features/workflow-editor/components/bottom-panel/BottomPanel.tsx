@@ -148,7 +148,7 @@ export function BottomPanel({
         <div className="flex items-center gap-1 px-2">
           <button
             onClick={() => toggleZone('bottom')}
-            className="flex h-7 w-7 items-center justify-center rounded-[6px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
+            className="flex h-7 w-7 items-center justify-center rounded-sm text-[var(--text-mute)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
             title={bottomOpen ? 'Collapse panel' : 'Expand panel'}
           >
             <ChevronDown

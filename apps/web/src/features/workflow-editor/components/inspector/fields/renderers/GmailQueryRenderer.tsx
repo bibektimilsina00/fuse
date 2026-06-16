@@ -157,7 +157,7 @@ export function GmailQueryRenderer({ prop, value, onChange, disabled }: Renderer
       </div>
       <div className={cn(
         'flex flex-wrap items-center gap-1.5',
-        'min-h-[42px] px-2 py-2 rounded-[5px]',
+        'min-h-[42px] px-2 py-2 rounded-sm',
         'bg-bg border border-border-faint',
         'hover:border-border-soft focus-within:border-border focus-within:bg-surface',
       )}>

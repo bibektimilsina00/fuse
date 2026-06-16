@@ -51,7 +51,7 @@ export function InspectorHeader({ label, definition, onLabelChange }: InspectorH
     <header className="shrink-0 border-b border-[var(--border-faint)] px-4 py-3">
       <div className="flex items-center gap-2.5">
         <div
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px] text-white [&_svg]:h-3.5 [&_svg]:w-3.5"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-white [&_svg]:h-3.5 [&_svg]:w-3.5"
           style={{ background: definition.color ?? 'var(--surface-3)' }}
         >
           {Icon}
@@ -87,7 +87,7 @@ export function InspectorHeader({ label, definition, onLabelChange }: InspectorH
 
         <button
           onClick={startEdit}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text-mute)]"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text-mute)]"
           title="Rename node"
         >
           <Pencil className="h-3 w-3" />

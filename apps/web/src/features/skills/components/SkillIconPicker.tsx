@@ -68,9 +68,9 @@ export function SkillIconPicker({ value, onChange }: SkillIconPickerProps) {
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="flex h-9 items-center gap-2 rounded-[8px] border border-border-faint bg-bg px-3 transition-colors hover:border-border-soft"
+        className="flex h-9 items-center gap-2 rounded-md border border-border-faint bg-bg px-3 transition-colors hover:border-border-soft"
       >
-        <span className="flex h-6 w-6 items-center justify-center rounded-[6px] bg-surface text-text-mute">
+        <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-surface text-text-mute">
           {createElement(Selected, { size: 14 })}
         </span>
         <span className="font-mono text-[12px] text-text-mute">{value}</span>
@@ -85,7 +85,7 @@ export function SkillIconPicker({ value, onChange }: SkillIconPickerProps) {
             className="fixed inset-0 z-20"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute left-0 top-11 z-30 w-[320px] overflow-hidden rounded-[10px] border border-border-faint bg-bg2 shadow-[0_12px_32px_-8px_oklch(0_0_0/0.55)]">
+          <div className="absolute left-0 top-11 z-30 w-[320px] overflow-hidden rounded-md border border-border-faint bg-bg2 shadow-[0_12px_32px_-8px_oklch(0_0_0/0.55)]">
             <div className="flex items-center gap-2 border-b border-border-faint px-3 py-2">
               <Search size={13} className="text-text-faint" />
               <input
@@ -122,7 +122,7 @@ export function SkillIconPicker({ value, onChange }: SkillIconPickerProps) {
                             }}
                             title={name}
                             className={cn(
-                              'relative flex h-8 w-8 items-center justify-center rounded-[6px] transition-colors',
+                              'relative flex h-8 w-8 items-center justify-center rounded-sm transition-colors',
                               active ? 'bg-surface text-text' : 'text-text-mute hover:bg-surface hover:text-text',
                             )}
                           >

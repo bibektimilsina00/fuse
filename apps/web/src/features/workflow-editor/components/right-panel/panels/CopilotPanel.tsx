@@ -20,19 +20,19 @@ function DiffBanner() {
     summary.deleted.length ? `-${summary.deleted.length} removed` : '',
   ].filter(Boolean)
   return (
-    <div className="mx-3 mb-2 flex items-center gap-2 rounded-[10px] border border-[var(--accent-line)] bg-[var(--accent-line)]/10 px-3 py-2">
+    <div className="mx-3 mb-2 flex items-center gap-2 rounded-md border border-[var(--accent-line)] bg-[var(--accent-line)]/10 px-3 py-2">
       <span className="flex-1 text-[12px] text-[var(--text)]">
         Copilot proposed changes — {parts.join(', ')}
       </span>
       <button
         onClick={reject}
-        className="flex items-center gap-1 rounded-[6px] px-2 py-1 text-[11.5px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+        className="flex items-center gap-1 rounded-sm px-2 py-1 text-[11.5px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
       >
         <X className="h-3 w-3" /> Reject
       </button>
       <button
         onClick={accept}
-        className="flex items-center gap-1 rounded-[6px] bg-[var(--text)] px-2 py-1 text-[11.5px] text-[var(--bg)] transition-colors hover:opacity-90"
+        className="flex items-center gap-1 rounded-sm bg-[var(--text)] px-2 py-1 text-[11.5px] text-[var(--bg)] transition-colors hover:opacity-90"
       >
         <Check className="h-3 w-3" /> Accept
       </button>
@@ -75,7 +75,7 @@ function MessageActions({ onCopy, onRetry }: MessageActionsProps) {
       <button
         onClick={onCopy}
         title="Copy"
-        className="flex items-center gap-1 rounded-[5px] px-1.5 py-0.5 text-[10.5px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+        className="flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10.5px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
       >
         <Copy className="h-3 w-3" /> Copy
       </button>
@@ -83,7 +83,7 @@ function MessageActions({ onCopy, onRetry }: MessageActionsProps) {
         <button
           onClick={onRetry}
           title="Retry from this prompt"
-          className="flex items-center gap-1 rounded-[5px] px-1.5 py-0.5 text-[10.5px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+          className="flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10.5px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
         >
           <RotateCcw className="h-3 w-3" /> Retry
         </button>
@@ -148,7 +148,7 @@ export function CopilotPanel() {
           <button
             onClick={newChat}
             title="New chat"
-            className="flex items-center gap-1 rounded-[6px] px-2 py-1 text-[11.5px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+            className="flex items-center gap-1 rounded-sm px-2 py-1 text-[11.5px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
           >
             <Plus className="h-3 w-3" /> New
           </button>
@@ -157,7 +157,7 @@ export function CopilotPanel() {
             <DropdownTrigger>
               <button
                 title="Chat history"
-                className="flex items-center gap-1 rounded-[6px] px-2 py-1 text-[11.5px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+                className="flex items-center gap-1 rounded-sm px-2 py-1 text-[11.5px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
               >
                 <History className="h-3 w-3" /> History
               </button>
@@ -169,7 +169,7 @@ export function CopilotPanel() {
                 sessions.map(s => (
                   <div
                     key={s.id}
-                    className="group flex items-center gap-1 rounded-[6px] px-2 py-1.5 hover:bg-[var(--surface-2)]"
+                    className="group flex items-center gap-1 rounded-sm px-2 py-1.5 hover:bg-[var(--surface-2)]"
                   >
                     <button
                       onClick={() => void loadSession(s.id)}
@@ -229,7 +229,7 @@ export function CopilotPanel() {
                       <div
                         className={cn(
                           'copilot-chat text-[13.5px] leading-[1.6] text-[var(--text)]',
-                          m.role === 'user' && 'rounded-[12px] bg-[var(--surface-2)] px-3 py-1.5 text-[13px] leading-[1.5]',
+                          m.role === 'user' && 'rounded-lg bg-[var(--surface-2)] px-3 py-1.5 text-[13px] leading-[1.5]',
                         )}
                       >
                         {m.toolCalls && m.toolCalls.length > 0 && (
@@ -262,7 +262,7 @@ export function CopilotPanel() {
                   (msgs[lastIdx].content.trim() ||
                     (msgs[lastIdx].toolCalls && msgs[lastIdx].toolCalls!.length > 0))
                 ) && (
-                  <div className="rounded-[10px] bg-[var(--surface)] px-3 py-2 w-fit">
+                  <div className="rounded-md bg-[var(--surface)] px-3 py-2 w-fit">
                     <TypingDots />
                   </div>
                 )}
@@ -305,7 +305,7 @@ export function CopilotPanel() {
         <DiffBanner />
 
         {error && (
-          <div className="mx-3 mb-2 rounded-[8px] border border-[var(--err)]/30 bg-[var(--err)]/10 px-3 py-2 text-[11.5px] text-[var(--err)]">
+          <div className="mx-3 mb-2 rounded-md border border-[var(--err)]/30 bg-[var(--err)]/10 px-3 py-2 text-[11.5px] text-[var(--err)]">
             {error}
           </div>
         )}
@@ -314,7 +314,7 @@ export function CopilotPanel() {
         <div className="shrink-0 border-t border-[var(--border-faint)] p-3">
           <div className="relative">
             {slashOpen && slashFilter.length > 0 && (
-              <div className="absolute bottom-[calc(100%+6px)] left-0 right-0 overflow-hidden rounded-[10px] border border-[var(--border)] bg-[var(--bg-2)] shadow-lg">
+              <div className="absolute bottom-[calc(100%+6px)] left-0 right-0 overflow-hidden rounded-md border border-[var(--border)] bg-[var(--bg-2)] shadow-lg">
                 {slashFilter.map((c, i) => (
                   <button
                     key={c.cmd}
@@ -333,7 +333,7 @@ export function CopilotPanel() {
               </div>
             )}
 
-            <div className="flex items-end gap-2 rounded-[10px] border border-[var(--border-faint)] bg-[var(--bg)] px-3 py-2 transition-colors focus-within:border-[var(--border-soft)]">
+            <div className="flex items-end gap-2 rounded-md border border-[var(--border-faint)] bg-[var(--bg)] px-3 py-2 transition-colors focus-within:border-[var(--border-soft)]">
               <textarea
                 ref={inputRef}
                 value={input}
@@ -359,7 +359,7 @@ export function CopilotPanel() {
                   onClick={cancel}
                   title="Stop generating"
                   className={cn(
-                    'flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px]',
+                    'flex h-6 w-6 shrink-0 items-center justify-center rounded-sm',
                     'bg-[var(--err)] text-[var(--bg)] transition-colors hover:opacity-90',
                   )}
                 >
@@ -371,7 +371,7 @@ export function CopilotPanel() {
                   onClick={() => void send()}
                   title="Send"
                   className={cn(
-                    'flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] bg-[var(--text)] text-[var(--bg)] transition-colors',
+                    'flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-[var(--text)] text-[var(--bg)] transition-colors',
                     'hover:opacity-90 disabled:pointer-events-none disabled:opacity-30',
                   )}
                 >

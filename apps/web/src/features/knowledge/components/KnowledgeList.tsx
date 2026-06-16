@@ -46,7 +46,7 @@ export function KnowledgeList({ items, onDelete }: Props) {
                 return <span className="kn-state indexed">indexed</span>
               })()}
               <button
-                className="w-[22px] h-[22px] rounded-[5px] flex items-center justify-center text-[var(--text-dim)] hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-colors"
+                className="w-[22px] h-[22px] rounded-sm flex items-center justify-center text-[var(--text-dim)] hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-colors"
                 onClick={e => { e.stopPropagation(); onDelete(kb) }}
                 title="Delete knowledge base"
               >

@@ -71,7 +71,7 @@ export function MessagesRenderer({ value, onChange, disabled }: RendererProps) {
         type="button"
         onClick={add}
         disabled={disabled}
-        className="flex h-7 w-full items-center justify-center gap-1.5 rounded-[7px] border border-dashed border-border-faint text-[11px] text-text-faint hover:border-border-soft hover:text-text-mute transition-colors disabled:opacity-40"
+        className="flex h-7 w-full items-center justify-center gap-1.5 rounded-sm border border-dashed border-border-faint text-[11px] text-text-faint hover:border-border-soft hover:text-text-mute transition-colors disabled:opacity-40"
       >
         <Plus size={11} />
         Add message
@@ -150,7 +150,7 @@ function MessageRow({
         : 'Assistant response…'
 
   return (
-    <div className="flex flex-col gap-1 rounded-[5px] border border-border-faint bg-bg p-2">
+    <div className="flex flex-col gap-1 rounded-sm border border-border-faint bg-bg p-2">
       <div className="flex items-center justify-between gap-2">
         <div className="flex gap-1">
           {ROLES.map(role => (
@@ -159,7 +159,7 @@ function MessageRow({
               type="button"
               onClick={() => onChangeRole(role)}
               className={cn(
-                'rounded-[5px] border px-2 py-0.5 text-[10px] font-medium transition-colors',
+                'rounded-sm border px-2 py-0.5 text-[10px] font-medium transition-colors',
                 message.role === role ? ROLE_STYLES[role] : 'border-transparent text-text-faint hover:text-text-mute',
               )}
             >
@@ -213,7 +213,7 @@ function MessageRow({
           onChange={e => handlePlainTyped(e.target.value)}
           rows={2}
           placeholder={placeholder}
-          className="min-h-[52px] rounded-[5px] text-[11px] leading-relaxed"
+          className="min-h-[52px] rounded-sm text-[11px] leading-relaxed"
           disabled={disabled}
         />
       )}

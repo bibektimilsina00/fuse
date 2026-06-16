@@ -35,7 +35,7 @@ export function Badge({ variant = 'default', children, className, dot }: BadgePr
       className={cn(
         'inline-flex items-center gap-1',
         'font-mono text-[10px] font-medium uppercase tracking-[0.08em]',
-        'px-2 py-[3px] rounded-[4px] leading-none',
+        'px-2 py-[3px] rounded-sm leading-none',
         variants[variant],
         className,
       )}

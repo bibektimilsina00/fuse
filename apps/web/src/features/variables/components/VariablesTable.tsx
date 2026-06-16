@@ -117,7 +117,7 @@ export function VariablesTable({ items, totalCount = 0 }: Props) {
                       value={editValue}
                       onChange={e => setEditValue(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') saveEdit(v); if (e.key === 'Escape') setEditingId(null) }}
-                      className="flex-1 min-w-0 bg-[var(--bg)] border border-[var(--border)] rounded-[6px] px-2 py-1 text-[12px] font-mono text-[var(--text)] outline-none"
+                      className="flex-1 min-w-0 bg-[var(--bg)] border border-[var(--border)] rounded-sm px-2 py-1 text-[12px] font-mono text-[var(--text)] outline-none"
                     />
                   ) : (
                     <span className="font-mono text-[12px] text-[var(--text-mute)] truncate">
@@ -142,7 +142,7 @@ export function VariablesTable({ items, totalCount = 0 }: Props) {
                     <button
                       onClick={() => saveEdit(v)}
                       disabled={update.isPending}
-                      className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-[5px] text-[11.5px] font-medium bg-[var(--text)] text-[var(--bg)] hover:opacity-80 transition-opacity"
+                      className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-[11.5px] font-medium bg-[var(--text)] text-[var(--bg)] hover:opacity-80 transition-opacity"
                     >
                       {update.isPending ? '…' : 'Save'}
                     </button>
@@ -160,7 +160,7 @@ export function VariablesTable({ items, totalCount = 0 }: Props) {
                 {/* Scope — inline select, no OS chrome */}
                 <span>
                   <button
-                    className={`font-mono text-[10px] tracking-widest uppercase px-[7px] py-[3px] pb-[2px] rounded-[4px] font-semibold border-none cursor-pointer transition-opacity hover:opacity-70 ${SCOPE_PILL[v.scope] ?? SCOPE_PILL.shared}`}
+                    className={`font-mono text-[10px] tracking-widest uppercase px-[7px] py-[3px] pb-[2px] rounded-sm font-semibold border-none cursor-pointer transition-opacity hover:opacity-70 ${SCOPE_PILL[v.scope] ?? SCOPE_PILL.shared}`}
                     onClick={() => {
                       const next: VariableScope[] = ['workspace', 'personal']
                       const idx = next.indexOf(v.scope as VariableScope)
@@ -183,7 +183,7 @@ export function VariablesTable({ items, totalCount = 0 }: Props) {
                     onClick={() => handleDelete(v.id, v.name)}
                     disabled={remove.isPending}
                     title="Delete variable"
-                    className="w-[22px] h-[22px] rounded-[5px] inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-all"
+                    className="w-[22px] h-[22px] rounded-sm inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-all"
                   >
                     <Icons.Trash style={{ width: 12, height: 12 }} />
                   </button>

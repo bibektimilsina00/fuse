@@ -20,7 +20,7 @@ export function CodeRenderer({ prop, value, onChange, disabled }: RendererProps)
     <div className="flex flex-col gap-1">
       {language && (
         <div className="flex items-center gap-1.5">
-          <span className="rounded-[4px] border border-border-faint bg-surface px-1.5 py-0.5 font-mono text-[10px] text-text-faint">
+          <span className="rounded-sm border border-border-faint bg-surface px-1.5 py-0.5 font-mono text-[10px] text-text-faint">
             {LANGUAGE_LABELS[language] ?? language}
           </span>
         </div>
@@ -32,7 +32,7 @@ export function CodeRenderer({ prop, value, onChange, disabled }: RendererProps)
         spellCheck={false}
         placeholder={prop.placeholder ?? `# Write ${language ?? 'code'} here`}
         disabled={disabled}
-        className="rounded-[5px] font-mono text-[11px] leading-relaxed"
+        className="rounded-sm font-mono text-[11px] leading-relaxed"
       />
     </div>
   )

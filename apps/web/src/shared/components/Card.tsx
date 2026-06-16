@@ -21,7 +21,7 @@ export function Card({ children, className, padding = 'md', elevated = false }: 
   return (
     <div
       className={cn(
-        'bg-bg2 border border-border-faint rounded-[12px]',
+        'bg-bg2 border border-border-faint rounded-lg',
         '[box-shadow:var(--card-shadow)]',
         paddingMap[padding],
         elevated && 'shadow-panel',

@@ -67,7 +67,7 @@ export function DropdownContent({ children, className }: { children: ReactNode; 
       data-state={open ? 'open' : 'closed'}
       className={cn(
         'absolute top-[calc(100%+6px)] left-0 min-w-[200px] z-50 flex flex-col gap-0.5',
-        'bg-bg border border-border-faint rounded-[10px] p-1 shadow-dropdown',
+        'bg-bg border border-border-faint rounded-md p-1 shadow-dropdown',
         'transition-[opacity,transform] duration-[150ms]',
         open ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-1 pointer-events-none',
         className,
@@ -98,7 +98,7 @@ export function DropdownItem({ children, onClick, variant = 'default', leftIcon,
       aria-disabled={disabled}
       onClick={() => { if (!disabled) { onClick?.(); setOpen(false) } }}
       className={cn(
-        'flex items-center gap-2 w-full px-3 py-2 rounded-[6px] text-sm text-left',
+        'flex items-center gap-2 w-full px-3 py-2 rounded-sm text-sm text-left',
         'transition-colors duration-[100ms]',
         '[&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:shrink-0',
         'disabled:opacity-40 disabled:pointer-events-none',

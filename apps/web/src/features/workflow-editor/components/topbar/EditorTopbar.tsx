@@ -72,7 +72,7 @@ export function EditorTopbar({
         {/* Workflow name + dropdown */}
         <Dropdown>
           <DropdownTrigger>
-            <button className="flex h-8 max-w-[280px] items-center gap-1.5 rounded-[7px] px-2 py-1 text-[12.5px] font-medium text-[var(--text)] transition-colors hover:bg-[var(--surface)]">
+            <button className="flex h-8 max-w-[280px] items-center gap-1.5 rounded-sm px-2 py-1 text-[12.5px] font-medium text-[var(--text)] transition-colors hover:bg-[var(--surface)]">
               {renaming ? (
                 <input
                   autoFocus
@@ -110,7 +110,7 @@ export function EditorTopbar({
           <DropdownTrigger>
             <button
               className={cn(
-                'flex items-center gap-1.5 rounded-[6px] border px-2 py-1 text-[11.5px] font-medium leading-none transition-colors',
+                'flex items-center gap-1.5 rounded-sm border px-2 py-1 text-[11.5px] font-medium leading-none transition-colors',
                 'border-[var(--border-faint)] bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-2)]',
               )}
             >
@@ -124,7 +124,7 @@ export function EditorTopbar({
           <DropdownContent className="w-52">
             <button
               onClick={() => { if (!isActive) { onToggleActive(); } setStateOpen(false) }}
-              className="flex w-full items-center gap-2.5 rounded-[7px] px-2.5 py-2 text-[12.5px] transition-colors hover:bg-[var(--surface)]"
+              className="flex w-full items-center gap-2.5 rounded-sm px-2.5 py-2 text-[12.5px] transition-colors hover:bg-[var(--surface)]"
             >
               <span className="h-2 w-2 rounded-full bg-[var(--ok)]" />
               <span className="flex-1 text-left">
@@ -135,7 +135,7 @@ export function EditorTopbar({
             </button>
             <button
               onClick={() => { if (isActive) { onToggleActive(); } setStateOpen(false) }}
-              className="flex w-full items-center gap-2.5 rounded-[7px] px-2.5 py-2 text-[12.5px] transition-colors hover:bg-[var(--surface)]"
+              className="flex w-full items-center gap-2.5 rounded-sm px-2.5 py-2 text-[12.5px] transition-colors hover:bg-[var(--surface)]"
             >
               <span className="h-2 w-2 rounded-full bg-[var(--warn)]" />
               <span className="flex-1 text-left">
@@ -157,7 +157,7 @@ export function EditorTopbar({
               <DropdownTrigger>
                 <button
                   className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-[8px] text-[var(--text-mute)] transition-colors',
+                    'flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-mute)] transition-colors',
                     'hover:bg-[var(--surface)] hover:text-[var(--text)]',
                   )}
                   title="Workflow options"
@@ -189,7 +189,7 @@ export function EditorTopbar({
 
             <button
               onClick={openCopilot}
-              className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[var(--text-mute)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-mute)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
               title="Open Copilot"
             >
               <MessageCircle className="h-4 w-4" />

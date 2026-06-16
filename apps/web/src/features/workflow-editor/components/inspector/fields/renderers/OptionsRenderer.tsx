@@ -104,7 +104,7 @@ function SimpleSelect({ options, value, onChange, placeholder, isLoading, disabl
         onClick={() => setOpen(v => !v)}
         disabled={disabled}
         className={cn(
-          'flex h-8 w-full items-center gap-2 rounded-[5px] border border-border-faint bg-bg px-3 text-[12px] text-left',
+          'flex h-8 w-full items-center gap-2 rounded-sm border border-border-faint bg-bg px-3 text-[12px] text-left',
           'transition-colors hover:border-border-soft',
           open && 'border-border bg-surface',
           disabled && 'opacity-50 cursor-not-allowed',
@@ -117,7 +117,7 @@ function SimpleSelect({ options, value, onChange, placeholder, isLoading, disabl
       </button>
 
       {open && (
-        <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 max-h-52 overflow-y-auto rounded-[10px] border border-border-faint bg-bg p-1.5 shadow-dropdown">
+        <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 max-h-52 overflow-y-auto rounded-md border border-border-faint bg-bg p-1.5 shadow-dropdown">
           {options.length === 0 && (
             <p className="px-2.5 py-2 text-[11px] text-text-faint">No options</p>
           )}
@@ -127,7 +127,7 @@ function SimpleSelect({ options, value, onChange, placeholder, isLoading, disabl
               type="button"
               onClick={() => { onChange(opt.value); setOpen(false) }}
               className={cn(
-                'flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-left text-[12px]',
+                'flex w-full items-center gap-2 rounded-sm px-2.5 py-1.5 text-left text-[12px]',
                 String(opt.value) === String(value) ? 'bg-surface-2 font-medium text-text' : 'text-text-mute hover:bg-surface hover:text-text',
               )}
             >
@@ -205,7 +205,7 @@ function ComboBox({ options, value, displayValue, onChange, placeholder, isLoadi
         onClick={() => setOpen(v => !v)}
         disabled={disabled}
         className={cn(
-          'flex h-8 w-full items-center gap-2 rounded-[5px] border border-border-faint bg-bg px-3 text-[12px] text-left',
+          'flex h-8 w-full items-center gap-2 rounded-sm border border-border-faint bg-bg px-3 text-[12px] text-left',
           'transition-colors hover:border-border-soft',
           open && 'border-border bg-surface',
           disabled && 'opacity-50 cursor-not-allowed',
@@ -218,7 +218,7 @@ function ComboBox({ options, value, displayValue, onChange, placeholder, isLoadi
       </button>
 
       {open && (
-        <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 rounded-[10px] border border-border-faint bg-bg shadow-dropdown">
+        <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 rounded-md border border-border-faint bg-bg shadow-dropdown">
           {/* Search input — pure filter, never mutates the value. */}
           <div className="border-b border-border-faint p-1.5">
             <input
@@ -235,7 +235,7 @@ function ComboBox({ options, value, displayValue, onChange, placeholder, isLoadi
               }}
               placeholder="Search…"
               spellCheck={false}
-              className="h-7 w-full rounded-[7px] bg-surface px-2.5 text-[12px] text-text outline-none placeholder:text-text-faint"
+              className="h-7 w-full rounded-sm bg-surface px-2.5 text-[12px] text-text outline-none placeholder:text-text-faint"
             />
           </div>
 
@@ -245,7 +245,7 @@ function ComboBox({ options, value, displayValue, onChange, placeholder, isLoadi
                 <button
                   type="button"
                   onMouseDown={e => { e.preventDefault(); commitCustom() }}
-                  className="flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-left text-[12px] text-text-mute hover:bg-surface hover:text-text"
+                  className="flex w-full items-center gap-2 rounded-sm px-2.5 py-1.5 text-left text-[12px] text-text-mute hover:bg-surface hover:text-text"
                 >
                   Use <span className="font-mono text-accent">{query.trim()}</span> as custom value
                 </button>
@@ -259,7 +259,7 @@ function ComboBox({ options, value, displayValue, onChange, placeholder, isLoadi
                   type="button"
                   onMouseDown={e => { e.preventDefault(); handleSelect(opt) }}
                   className={cn(
-                    'flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-left text-[12px]',
+                    'flex w-full items-center gap-2 rounded-sm px-2.5 py-1.5 text-left text-[12px]',
                     String(opt.value) === String(value) ? 'bg-surface-2 font-medium text-text' : 'text-text-mute hover:bg-surface hover:text-text',
                   )}
                 >
@@ -330,7 +330,7 @@ function MultiSelect({ options, value, onChange, placeholder, isLoading, disable
         onClick={() => setOpen(v => !v)}
         disabled={disabled}
         className={cn(
-          'flex min-h-8 w-full items-center gap-1.5 rounded-[5px] border border-border-faint bg-bg p-1 pl-2 text-[12px] text-left',
+          'flex min-h-8 w-full items-center gap-1.5 rounded-sm border border-border-faint bg-bg p-1 pl-2 text-[12px] text-left',
           'transition-colors hover:border-border-soft',
           open && 'border-border bg-surface',
           disabled && 'opacity-50 cursor-not-allowed',
@@ -343,7 +343,7 @@ function MultiSelect({ options, value, onChange, placeholder, isLoading, disable
             selectedOptions.map((opt, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-1 rounded-[5px] bg-surface-2 px-1.5 py-0.5 text-[11px] text-text"
+                className="inline-flex items-center gap-1 rounded-sm bg-surface-2 px-1.5 py-0.5 text-[11px] text-text"
               >
                 {opt.label}
                 <button
@@ -362,7 +362,7 @@ function MultiSelect({ options, value, onChange, placeholder, isLoading, disable
       </button>
 
       {open && (
-        <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 max-h-52 overflow-y-auto rounded-[10px] border border-border-faint bg-bg p-1.5 shadow-dropdown">
+        <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 max-h-52 overflow-y-auto rounded-md border border-border-faint bg-bg p-1.5 shadow-dropdown">
           {options.length === 0 && (
             <p className="px-2.5 py-2 text-[11px] text-text-faint">No options</p>
           )}
@@ -374,12 +374,12 @@ function MultiSelect({ options, value, onChange, placeholder, isLoading, disable
                 type="button"
                 onClick={() => toggle(opt.value)}
                 className={cn(
-                  'flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-left text-[12px]',
+                  'flex w-full items-center gap-2 rounded-sm px-2.5 py-1.5 text-left text-[12px]',
                   picked ? 'bg-surface-2 font-medium text-text' : 'text-text-mute hover:bg-surface hover:text-text',
                 )}
               >
                 <div className={cn(
-                  'flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors',
+                  'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors',
                   picked ? 'border-[var(--accent)] bg-[var(--accent)] text-bg' : 'border-border-faint',
                 )}>
                   {picked && <Check size={10} />}

@@ -25,13 +25,13 @@ export function AppTopBarActions({ controller }: AppTopBarActionsProps) {
 
   return (
     <div className="flex items-center gap-[6px]">
-      <button className="w-[32px] h-[32px] inline-flex items-center justify-center rounded-[8px] text-[var(--text-mute)] relative transition-colors duration-120 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[16px] [&_svg]:h-[16px]" title="Activity"><Icons.Activity /></button>
-      <button className="w-[32px] h-[32px] inline-flex items-center justify-center rounded-[8px] text-[var(--text-mute)] relative transition-colors duration-120 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[16px] [&_svg]:h-[16px]" title="Keyboard shortcuts" onClick={() => setShortcutsOpen(true)}><Icons.Cmd /></button>
+      <button className="w-[32px] h-[32px] inline-flex items-center justify-center rounded-md text-[var(--text-mute)] relative transition-colors duration-120 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[16px] [&_svg]:h-[16px]" title="Activity"><Icons.Activity /></button>
+      <button className="w-[32px] h-[32px] inline-flex items-center justify-center rounded-md text-[var(--text-mute)] relative transition-colors duration-120 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[16px] [&_svg]:h-[16px]" title="Keyboard shortcuts" onClick={() => setShortcutsOpen(true)}><Icons.Cmd /></button>
 
       <div className="relative">
         <button
           className={cn(
-            'w-[28px] h-[28px] rounded-[8px] bg-[var(--surface-3)] border border-[var(--border-soft)] cursor-pointer inline-flex items-center justify-center text-[11px] font-semibold text-[var(--text)] tracking-tight bg-cover bg-center transition-colors duration-120 hover:border-[var(--border)]',
+            'w-[28px] h-[28px] rounded-md bg-[var(--surface-3)] border border-[var(--border-soft)] cursor-pointer inline-flex items-center justify-center text-[11px] font-semibold text-[var(--text)] tracking-tight bg-cover bg-center transition-colors duration-120 hover:border-[var(--border)]',
             profileOpen && 'bg-[var(--surface-2)] text-[var(--text)]'
           )}
           onClick={() => setProfileOpen(value => !value)}
@@ -44,9 +44,9 @@ export function AppTopBarActions({ controller }: AppTopBarActionsProps) {
         {profileOpen && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-            <div className="absolute top-[calc(100%+8px)] right-0 w-[260px] bg-[var(--bg-2)] border border-[var(--border)] rounded-[13px] p-[6px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)] z-50 animate-in fade-in slide-in-from-top-2">
+            <div className="absolute top-[calc(100%+8px)] right-0 w-[260px] bg-[var(--bg-2)] border border-[var(--border)] rounded-lg p-[6px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)] z-50 animate-in fade-in slide-in-from-top-2">
               <div className="flex items-center gap-[10px] pt-[8px] px-[8px] pb-[10px]">
-                <span className="w-[32px] h-[32px] rounded-[9px] bg-[var(--surface-3)] border border-[var(--border-soft)] inline-flex items-center justify-center text-[13px] font-semibold text-[var(--text)] shrink-0">
+                <span className="w-[32px] h-[32px] rounded-md bg-[var(--surface-3)] border border-[var(--border-soft)] inline-flex items-center justify-center text-[13px] font-semibold text-[var(--text)] shrink-0">
                   {userInitial}
                 </span>
                 <span className="flex flex-col gap-[1px] min-w-0">

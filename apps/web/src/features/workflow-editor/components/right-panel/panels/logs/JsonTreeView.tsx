@@ -207,7 +207,7 @@ function Row({ keyName, kind, meta, expanded, onToggle, expression }: RowProps) 
       onDragStart={handleDragStart}
       title={expression ?? undefined}
       className={cn(
-        'group flex w-full items-center gap-2 rounded-[5px] py-[3px] pr-1.5 text-left transition-colors hover:bg-[var(--surface)]',
+        'group flex w-full items-center gap-2 rounded-sm py-[3px] pr-1.5 text-left transition-colors hover:bg-[var(--surface)]',
         draggable && 'cursor-grab active:cursor-grabbing',
       )}
     >
@@ -276,7 +276,7 @@ function TypeBadge({ kind }: { kind: ValueKind }) {
   return (
     <span
       className={cn(
-        'shrink-0 rounded-[5px] px-[6px] py-[1px] text-[10.5px] font-medium leading-[14px]',
+        'shrink-0 rounded-sm px-[6px] py-[1px] text-[10.5px] font-medium leading-[14px]',
         BADGE_CLASS[kind],
       )}
     >

@@ -37,7 +37,7 @@ export function LogRow({ log, selected, nodeInfo, onClick }: Props) {
       type="button"
       onClick={onClick}
       className={cn(
-        'flex w-full items-center gap-2 rounded-[8px] px-2 py-1.5 text-left text-[12px] transition-colors',
+        'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] transition-colors',
         isFailed
           ? selected
             ? 'bg-[var(--surface-2)] text-[var(--err)]'
@@ -48,7 +48,7 @@ export function LogRow({ log, selected, nodeInfo, onClick }: Props) {
       )}
     >
       <div
-        className="flex size-[20px] shrink-0 items-center justify-center rounded-[5px]"
+        className="flex size-[20px] shrink-0 items-center justify-center rounded-sm"
         style={{ background: nodeInfo.color ?? 'var(--surface-3)' }}
       >
         {React.cloneElement(

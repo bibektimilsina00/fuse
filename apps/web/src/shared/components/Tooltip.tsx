@@ -33,7 +33,7 @@ export function Tooltip({ content, children, side = 'top', className }: TooltipP
           'px-2 py-1',
           'bg-surface-3 border border-border shadow-float',
           'text-xs text-text-mute',
-          'rounded-[6px] whitespace-nowrap',
+          'rounded-sm whitespace-nowrap',
           'transition-[opacity,transform] duration-fast',
           sideStyles[side],
           visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95',

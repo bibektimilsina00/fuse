@@ -74,7 +74,7 @@ export function RegisterForm() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {localError && (
-          <div className="p-3 text-xs bg-[oklch(0.35_0.12_20/0.15)] border border-[oklch(0.45_0.15_20/0.2)] text-err rounded-[8px] flex items-center gap-2">
+          <div className="p-3 text-xs bg-[oklch(0.35_0.12_20/0.15)] border border-[oklch(0.45_0.15_20/0.2)] text-err rounded-md flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-err shrink-0 animate-pulse" />
             <span>{localError}</span>
           </div>
@@ -139,7 +139,7 @@ export function RegisterForm() {
         </FormField>
 
         {/* Requirements checklist */}
-        <div className="flex flex-col gap-1.5 p-2.5 bg-bg/50 border border-border-faint rounded-[8px] mt-1 text-[11px]">
+        <div className="flex flex-col gap-1.5 p-2.5 bg-bg/50 border border-border-faint rounded-md mt-1 text-[11px]">
           <div className="flex items-center gap-1.5 text-text-mute font-medium mb-0.5">Password requirements:</div>
           <div className="flex items-center gap-2">
             <span className={`flex items-center justify-center w-3.5 h-3.5 rounded-full ${reqs.length ? 'bg-ok/10 text-ok' : 'bg-text-faint/10 text-text-faint'}`}>

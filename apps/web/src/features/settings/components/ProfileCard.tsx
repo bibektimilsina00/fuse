@@ -42,7 +42,7 @@ export function ProfileCard({ profile, onSave, isSaving = false }: Props) {
   }
 
   return (
-    <div className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px] overflow-hidden">
+    <div className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-lg overflow-hidden">
       {/* Header */}
       <div className="px-6 py-4 border-b border-[var(--border-faint)]">
         <div className="flex items-center gap-2 text-[14px] font-semibold text-[var(--text)] tracking-tight">
@@ -55,7 +55,7 @@ export function ProfileCard({ profile, onSave, isSaving = false }: Props) {
       <div className="p-6 flex flex-col gap-6">
         {/* Avatar row */}
         <div className="flex items-center gap-4">
-          <div className="w-[52px] h-[52px] rounded-[12px] bg-[var(--text)] text-[var(--bg)] flex items-center justify-center text-[20px] font-bold tracking-tight shrink-0">
+          <div className="w-[52px] h-[52px] rounded-lg bg-[var(--text)] text-[var(--bg)] flex items-center justify-center text-[20px] font-bold tracking-tight shrink-0">
             {initial}
           </div>
           <div className="flex flex-col gap-1 min-w-0">
@@ -64,7 +64,7 @@ export function ProfileCard({ profile, onSave, isSaving = false }: Props) {
             </span>
             <span className="text-[12px] font-mono text-[var(--text-faint)] truncate">{profile.email}</span>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold tracking-widest uppercase px-[7px] py-[3px] rounded-[4px] bg-[oklch(0.78_0.14_145/0.14)] text-[var(--ok)]">
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold tracking-widest uppercase px-[7px] py-[3px] rounded-sm bg-[oklch(0.78_0.14_145/0.14)] text-[var(--ok)]">
                 <Icons.Check className="w-[9px] h-[9px]" /> Active
               </span>
               <span className="inline-flex items-center gap-1 text-[10px] font-mono text-[var(--text-dim)]">
@@ -81,7 +81,7 @@ export function ProfileCard({ profile, onSave, isSaving = false }: Props) {
           {/* Full name */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11.5px] font-medium text-[var(--text-mute)]">Full name</label>
-            <div className="flex items-center gap-2.5 px-3 h-[38px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-[9px] focus-within:border-[var(--border)] transition-colors">
+            <div className="flex items-center gap-2.5 px-3 h-[38px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-md focus-within:border-[var(--border)] transition-colors">
               <Icons.Users className="w-[14px] h-[14px] text-[var(--text-faint)] shrink-0" />
               <input
                 type="text"
@@ -96,7 +96,7 @@ export function ProfileCard({ profile, onSave, isSaving = false }: Props) {
           {/* Email — read only */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11.5px] font-medium text-[var(--text-mute)]">Email address</label>
-            <div className="flex items-center gap-2.5 px-3 h-[38px] bg-[var(--surface)] border border-[var(--border-faint)] rounded-[9px] opacity-60 cursor-not-allowed">
+            <div className="flex items-center gap-2.5 px-3 h-[38px] bg-[var(--surface)] border border-[var(--border-faint)] rounded-md opacity-60 cursor-not-allowed">
               <Icons.Feedback className="w-[14px] h-[14px] text-[var(--text-faint)] shrink-0" />
               <input
                 type="email"
@@ -112,7 +112,7 @@ export function ProfileCard({ profile, onSave, isSaving = false }: Props) {
             <label className="text-[11.5px] font-medium text-[var(--text-mute)]">
               New password <span className="text-[var(--text-dim)] font-normal">(optional)</span>
             </label>
-            <div className="flex items-center gap-2.5 px-3 h-[38px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-[9px] focus-within:border-[var(--border)] transition-colors">
+            <div className="flex items-center gap-2.5 px-3 h-[38px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-md focus-within:border-[var(--border)] transition-colors">
               <Icons.Key className="w-[14px] h-[14px] text-[var(--text-faint)] shrink-0" />
               <input
                 type="password"
@@ -127,7 +127,7 @@ export function ProfileCard({ profile, onSave, isSaving = false }: Props) {
           {/* Confirm password */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11.5px] font-medium text-[var(--text-mute)]">Confirm password</label>
-            <div className="flex items-center gap-2.5 px-3 h-[38px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-[9px] focus-within:border-[var(--border)] transition-colors">
+            <div className="flex items-center gap-2.5 px-3 h-[38px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-md focus-within:border-[var(--border)] transition-colors">
               <Icons.Key className="w-[14px] h-[14px] text-[var(--text-faint)] shrink-0" />
               <input
                 type="password"
@@ -141,7 +141,7 @@ export function ProfileCard({ profile, onSave, isSaving = false }: Props) {
         </div>
 
         {error && (
-          <div className="text-[12px] text-[var(--err)] bg-[oklch(0.70_0.18_22/0.10)] border border-[oklch(0.70_0.18_22/0.25)] px-3 py-2.5 rounded-[8px]">
+          <div className="text-[12px] text-[var(--err)] bg-[oklch(0.70_0.18_22/0.10)] border border-[oklch(0.70_0.18_22/0.25)] px-3 py-2.5 rounded-md">
             {error}
           </div>
         )}
@@ -150,7 +150,7 @@ export function ProfileCard({ profile, onSave, isSaving = false }: Props) {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-[9px] bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer transition-colors hover:bg-[oklch(0.90_0.003_250)] disabled:opacity-50 disabled:cursor-default"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer transition-colors hover:bg-[oklch(0.90_0.003_250)] disabled:opacity-50 disabled:cursor-default"
           >
             <Icons.Check className="w-[13px] h-[13px]" />
             {isSaving ? 'Saving…' : 'Save changes'}

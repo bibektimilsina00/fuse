@@ -55,14 +55,14 @@ export function ConnectorModal({ kbId, onClose, onConnected }: Props) {
   return createPortal(
     <>
       <div className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[540px] max-h-[80vh] bg-[var(--bg-2)] border border-[var(--border)] rounded-[16px] flex flex-col shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]">
+      <div className="fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[540px] max-h-[80vh] bg-[var(--bg-2)] border border-[var(--border)] rounded-xl flex flex-col shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]">
 
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-faint)] shrink-0">
           <div>
             <h3 className="text-[15px] font-semibold text-[var(--text)] tracking-tight">Connect source</h3>
             <p className="text-[12px] text-[var(--text-faint)] mt-0.5">Sync an external source into this knowledge base</p>
           </div>
-          <button onClick={onClose} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px]">✕</button>
+          <button onClick={onClose} className="w-[28px] h-[28px] rounded-sm flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px]">✕</button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5">
@@ -71,7 +71,7 @@ export function ConnectorModal({ kbId, onClose, onConnected }: Props) {
               <button
                 key={s.id}
                 onClick={() => setSelected(s.id)}
-                className={`flex flex-col items-start gap-1.5 p-3 rounded-[10px] border text-left transition-colors relative ${selected === s.id ? 'bg-[var(--surface)] border-[var(--border-soft)]' : 'bg-[var(--bg)] border-[var(--border-faint)] hover:border-[var(--border-soft)]'}`}
+                className={`flex flex-col items-start gap-1.5 p-3 rounded-md border text-left transition-colors relative ${selected === s.id ? 'bg-[var(--surface)] border-[var(--border-soft)]' : 'bg-[var(--bg)] border-[var(--border-faint)] hover:border-[var(--border-soft)]'}`}
               >
                 {!s.available && (
                   <span className="absolute top-2 right-2 text-[9px] font-mono tracking-widest uppercase text-[var(--text-dim)] bg-[var(--surface-2)] px-1.5 py-0.5 rounded-[3px]">soon</span>
@@ -90,12 +90,12 @@ export function ConnectorModal({ kbId, onClose, onConnected }: Props) {
               <input type="url" value={urlInput} onChange={e => setUrlInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleConnect()}
                 placeholder="https://docs.example.com"
-                className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors" />
+                className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors" />
             </div>
           )}
 
           {selected && selected !== 'website' && !SOURCES.find(s => s.id === selected)?.available && (
-            <div className="mt-4 flex items-center gap-2 px-4 py-3 bg-[var(--surface)] border border-[var(--border-faint)] rounded-[10px]">
+            <div className="mt-4 flex items-center gap-2 px-4 py-3 bg-[var(--surface)] border border-[var(--border-faint)] rounded-md">
               <Icons.Activity style={{ width: 13, height: 13, color: 'var(--text-faint)' }} />
               <span className="text-[12.5px] text-[var(--text-faint)]">
                 {SOURCES.find(s => s.id === selected)?.name} connector is coming soon. You'll be notified when it's available.
@@ -105,13 +105,13 @@ export function ConnectorModal({ kbId, onClose, onConnected }: Props) {
         </div>
 
         <div className="px-5 py-4 border-t border-[var(--border-faint)] shrink-0 flex items-center justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 rounded-[9px] text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
+          <button onClick={onClose} className="px-4 py-2 rounded-md text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
             Cancel
           </button>
           <button
             onClick={handleConnect}
             disabled={!selected || connecting || (selected === 'website' && !urlInput.trim())}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-[9px] bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default"
           >
             <Icons.Plug style={{ width: 13, height: 13 }} />
             {connecting ? 'Connecting…' : 'Connect'}

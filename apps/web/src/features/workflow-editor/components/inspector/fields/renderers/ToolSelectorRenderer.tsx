@@ -234,7 +234,7 @@ export function ToolSelectorRenderer({ value, onChange }: RendererProps) {
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
-          className="flex h-7 w-full items-center justify-center gap-1.5 rounded-[5px] border border-dashed border-border-faint text-[11px] text-text-faint hover:border-border-soft hover:text-text-mute transition-colors"
+          className="flex h-7 w-full items-center justify-center gap-1.5 rounded-sm border border-dashed border-border-faint text-[11px] text-text-faint hover:border-border-soft hover:text-text-mute transition-colors"
         >
           <Plus size={11} />
           Add tool
@@ -305,7 +305,7 @@ function McpServerSection({ servers, onChange }: McpServerSectionProps) {
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="flex h-7 w-full items-center justify-center gap-1.5 rounded-[5px] border border-dashed border-border-faint text-[11px] text-text-faint hover:border-border-soft hover:text-text-mute transition-colors"
+          className="flex h-7 w-full items-center justify-center gap-1.5 rounded-sm border border-dashed border-border-faint text-[11px] text-text-faint hover:border-border-soft hover:text-text-mute transition-colors"
         >
           <Plus size={11} />
           Add MCP server
@@ -325,7 +325,7 @@ interface McpServerRowProps {
 
 function McpServerRow({ server, editing, onToggleEdit, onChange, onRemove }: McpServerRowProps) {
   return (
-    <div className="flex flex-col rounded-[5px] border border-border-faint bg-bg">
+    <div className="flex flex-col rounded-sm border border-border-faint bg-bg">
       <div className="flex items-center gap-1.5 px-2.5 py-1.5">
         <button
           type="button"
@@ -427,7 +427,7 @@ function McpProbe({ url, apiKey }: McpProbeProps) {
         onClick={runProbe}
         disabled={!canProbe || loading}
         className={cn(
-          'flex h-7 w-fit items-center gap-1.5 rounded-[4px] border px-2 text-[11px] transition-colors',
+          'flex h-7 w-fit items-center gap-1.5 rounded-sm border px-2 text-[11px] transition-colors',
           canProbe && !loading
             ? 'border-border-faint text-text-mute hover:border-border-soft hover:text-text'
             : 'cursor-not-allowed border-border-faint text-text-faint',
@@ -438,13 +438,13 @@ function McpProbe({ url, apiKey }: McpProbeProps) {
       </button>
 
       {error && (
-        <p className="rounded-[4px] bg-err/10 px-2 py-1 text-[10.5px] text-err">{error}</p>
+        <p className="rounded-sm bg-err/10 px-2 py-1 text-[10.5px] text-err">{error}</p>
       )}
 
       {result && !error && (
         <div
           className={cn(
-            'flex flex-col gap-1 rounded-[4px] px-2 py-1.5 text-[10.5px]',
+            'flex flex-col gap-1 rounded-sm px-2 py-1.5 text-[10.5px]',
             result.success ? 'bg-ok/10 text-ok' : 'bg-err/10 text-err',
           )}
         >
@@ -488,7 +488,7 @@ function McpServerForm({ onSubmit, onCancel }: McpServerFormProps) {
   const canSubmit = name.trim() && url.trim()
 
   return (
-    <div className="flex flex-col gap-2 rounded-[5px] border border-border-faint bg-bg p-2">
+    <div className="flex flex-col gap-2 rounded-sm border border-border-faint bg-bg p-2">
       <McpField label="Name" placeholder="my-server" value={name} onChange={setName} />
       <McpField label="URL" placeholder="https://mcp.example.com" value={url} onChange={setUrl} />
       <McpField
@@ -503,7 +503,7 @@ function McpServerForm({ onSubmit, onCancel }: McpServerFormProps) {
         <button
           type="button"
           onClick={onCancel}
-          className="h-7 rounded-[4px] px-2 text-[11px] text-text-faint hover:text-text-mute"
+          className="h-7 rounded-sm px-2 text-[11px] text-text-faint hover:text-text-mute"
         >
           Cancel
         </button>
@@ -519,7 +519,7 @@ function McpServerForm({ onSubmit, onCancel }: McpServerFormProps) {
             })
           }
           className={cn(
-            'h-7 rounded-[4px] px-2 text-[11px] transition-colors',
+            'h-7 rounded-sm px-2 text-[11px] transition-colors',
             canSubmit
               ? 'bg-accent/15 text-accent hover:bg-accent/25'
               : 'cursor-not-allowed bg-surface text-text-faint',
@@ -551,7 +551,7 @@ function McpField({ label, value, placeholder, password, onChange }: McpFieldPro
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-7 rounded-[4px] text-[11px]"
+        className="h-7 rounded-sm text-[11px]"
       />
     </div>
   )
@@ -634,7 +634,7 @@ function SelectedToolRow({
   return (
     <div
       className={cn(
-        'flex flex-col rounded-[5px] border bg-bg',
+        'flex flex-col rounded-sm border bg-bg',
         isOrphan ? 'border-warn/40' : isStale ? 'border-warn/40' : 'border-border-faint',
       )}
     >
@@ -684,7 +684,7 @@ function SelectedToolRow({
             type="button"
             onClick={onRefreshSnapshot}
             title="Refresh snapshot from current workflow"
-            className="flex h-5 items-center gap-1 rounded-[4px] border border-warn/40 bg-warn/10 px-1.5 text-[10px] font-medium text-warn transition-colors hover:bg-warn/20"
+            className="flex h-5 items-center gap-1 rounded-sm border border-warn/40 bg-warn/10 px-1.5 text-[10px] font-medium text-warn transition-colors hover:bg-warn/20"
           >
             <RefreshCw size={10} />
             Refresh
@@ -695,7 +695,7 @@ function SelectedToolRow({
           type="button"
           onClick={onCycleUsage}
           className={cn(
-            'shrink-0 rounded-[4px] border px-1.5 py-0.5 text-[10px] font-medium transition-colors',
+            'shrink-0 rounded-sm border px-1.5 py-0.5 text-[10px] font-medium transition-colors',
             USAGE_STYLES[entry.usageControl],
           )}
           title="Click to cycle usage control"
@@ -998,7 +998,7 @@ function StringParam({
           value={str}
           onChange={e => handlePlain(e.target.value)}
           placeholder={placeholder}
-          className="h-7 rounded-[4px] text-[11px]"
+          className="h-7 rounded-sm text-[11px]"
         />
       )}
     </div>
@@ -1023,7 +1023,7 @@ function NumberParam({
       value={str}
       onChange={e => onChange(e.target.value === '' ? '' : Number(e.target.value))}
       placeholder={placeholder}
-      className="h-7 rounded-[4px] text-[11px]"
+      className="h-7 rounded-sm text-[11px]"
     />
   )
 }
@@ -1045,7 +1045,7 @@ function BooleanParam({
       role="switch"
       aria-checked={checked}
       className={cn(
-        'flex h-7 w-fit items-center gap-2 rounded-[4px] border px-2 text-[11px] transition-colors',
+        'flex h-7 w-fit items-center gap-2 rounded-sm border px-2 text-[11px] transition-colors',
         checked
           ? 'border-accent/40 bg-accent/10 text-accent'
           : 'border-border-faint bg-bg text-text-mute hover:border-border-soft',
@@ -1106,7 +1106,7 @@ function JsonParam({
         spellCheck={false}
         placeholder={placeholder ?? '{}'}
         className={cn(
-          'rounded-[4px] font-mono text-[10.5px] leading-relaxed',
+          'rounded-sm font-mono text-[10.5px] leading-relaxed',
           invalid && 'border-err focus-visible:ring-err/30',
         )}
       />
@@ -1138,7 +1138,7 @@ function RetryConfig({ value, onChange }: RetryConfigProps) {
         role="switch"
         aria-checked={enabled}
         className={cn(
-          'flex h-7 w-fit items-center gap-2 rounded-[4px] border px-2 text-[11px] transition-colors',
+          'flex h-7 w-fit items-center gap-2 rounded-sm border px-2 text-[11px] transition-colors',
           enabled
             ? 'border-accent/40 bg-accent/10 text-accent'
             : 'border-border-faint bg-bg text-text-mute hover:border-border-soft',
@@ -1195,7 +1195,7 @@ function RetryNumberField({
           const n = Number(e.target.value)
           if (Number.isFinite(n)) onChange(n)
         }}
-        className="h-7 rounded-[4px] text-[11px]"
+        className="h-7 rounded-sm text-[11px]"
       />
     </div>
   )
@@ -1292,9 +1292,9 @@ function ToolPicker({ catalog, alreadyAdded, loading, error, onPick, onClose }: 
       ref={wrapperRef}
       onBlur={handleBlur}
       tabIndex={-1}
-      className="flex flex-col gap-1 rounded-[5px] border border-border bg-bg p-1.5 shadow-[0_8px_24px_-8px_oklch(0_0_0/0.4)]"
+      className="flex flex-col gap-1 rounded-sm border border-border bg-bg p-1.5 shadow-[0_8px_24px_-8px_oklch(0_0_0/0.4)]"
     >
-      <div className="flex items-center gap-1.5 rounded-[4px] bg-surface px-2 py-1">
+      <div className="flex items-center gap-1.5 rounded-sm bg-surface px-2 py-1">
         <Search size={11} className="shrink-0 text-text-faint" />
         <input
           ref={inputRef}
@@ -1350,7 +1350,7 @@ function ToolPicker({ catalog, alreadyAdded, loading, error, onPick, onClose }: 
                 onClick={() => !disabled && onPick(tool.id)}
                 disabled={disabled}
                 className={cn(
-                  'flex w-full items-start gap-2 rounded-[4px] px-2 py-1.5 text-left transition-colors',
+                  'flex w-full items-start gap-2 rounded-sm px-2 py-1.5 text-left transition-colors',
                   active && !disabled ? 'bg-surface' : 'hover:bg-surface',
                   disabled && 'opacity-40 cursor-not-allowed',
                 )}

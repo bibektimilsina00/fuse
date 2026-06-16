@@ -21,7 +21,7 @@ export function DropdownMenu({ id, activeId, position, onClose, children }: Drop
         }}
       />
       <div
-        className="w-[240px] bg-[var(--bg-2)] border border-[var(--border)] rounded-[11px] p-[5px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)] animate-in fade-in zoom-in-95 duration-100"
+        className="w-[240px] bg-[var(--bg-2)] border border-[var(--border)] rounded-lg p-[5px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)] animate-in fade-in zoom-in-95 duration-100"
         style={{ position: 'fixed', top: position.top, left: position.left, zIndex: 9999 }}
         onClick={event => event.stopPropagation()}
       >

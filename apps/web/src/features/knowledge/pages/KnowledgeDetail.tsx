@@ -107,7 +107,7 @@ export function KnowledgeDetail() {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <button onClick={() => navigate(APP_ROUTES.KNOWLEDGE)}
-              className="w-[22px] h-[22px] rounded-[6px] flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors shrink-0">
+              className="w-[22px] h-[22px] rounded-sm flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors shrink-0">
               <Icons.CaretRight style={{ width: 12, height: 12, transform: 'rotate(180deg)' }} />
             </button>
             <span className="eyebrow">Knowledge base</span>
@@ -129,7 +129,7 @@ export function KnowledgeDetail() {
       </div>
 
       {/* Stats */}
-      <div className="flex items-center flex-wrap bg-[var(--bg)] border border-[var(--border-faint)] rounded-[10px] overflow-hidden">
+      <div className="flex items-center flex-wrap bg-[var(--bg)] border border-[var(--border-faint)] rounded-md overflow-hidden">
         {[
           { label: 'Documents', value: kb.document_count },
           { label: 'Chunks', value: kb.total_chunks.toLocaleString() },
@@ -147,12 +147,12 @@ export function KnowledgeDetail() {
 
       {/* Add mode inline panel */}
       {addMode && (
-        <div className="flex flex-col gap-4 p-5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px]">
+        <div className="flex flex-col gap-4 p-5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-lg">
           {/* Tab bar */}
-          <div className="flex items-center gap-1 bg-[var(--surface)] border border-[var(--border-faint)] rounded-[8px] p-[3px] w-fit">
+          <div className="flex items-center gap-1 bg-[var(--surface)] border border-[var(--border-faint)] rounded-md p-[3px] w-fit">
             {(['file', 'text', 'url'] as const).map(m => (
               <button key={m} onClick={() => setAddMode(m)}
-                className={`px-3 py-1 rounded-[5px] text-[12px] font-medium capitalize transition-colors ${addMode === m ? 'bg-[var(--bg-2)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]' : 'text-[var(--text-mute)] hover:text-[var(--text)]'}`}>
+                className={`px-3 py-1 rounded-sm text-[12px] font-medium capitalize transition-colors ${addMode === m ? 'bg-[var(--bg-2)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]' : 'text-[var(--text-mute)] hover:text-[var(--text)]'}`}>
                 {m === 'file' ? 'Upload file' : m === 'text' ? 'Paste text' : 'From URL'}
               </button>
             ))}
@@ -169,7 +169,7 @@ export function KnowledgeDetail() {
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={e => { e.preventDefault(); setIsDragging(false); handleFileUpload(e.dataTransfer.files) }}
                 onClick={() => fileInputRef.current?.click()}
-                className={`flex flex-col items-center gap-2 py-10 border-2 border-dashed rounded-[10px] cursor-pointer transition-colors ${isDragging ? 'border-[var(--text)] bg-[var(--surface)]' : 'border-[var(--border-faint)] hover:border-[var(--border-soft)] hover:bg-[var(--surface)]'}`}>
+                className={`flex flex-col items-center gap-2 py-10 border-2 border-dashed rounded-md cursor-pointer transition-colors ${isDragging ? 'border-[var(--text)] bg-[var(--surface)]' : 'border-[var(--border-faint)] hover:border-[var(--border-soft)] hover:bg-[var(--surface)]'}`}>
                 <Icons.Folder style={{ width: 24, height: 24, color: 'var(--text-dim)' }} />
                 <div className="text-center">
                   <p className="text-[13px] font-medium text-[var(--text-mute)]">Drop files here or click to browse</p>
@@ -188,9 +188,9 @@ export function KnowledgeDetail() {
           {addMode === 'text' && (
             <div className="flex flex-col gap-3">
               <input type="text" value={textName} onChange={e => setTextName(e.target.value)} placeholder="Document name"
-                className="h-[38px] px-3 bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-[9px] text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors" />
+                className="h-[38px] px-3 bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-md text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors" />
               <textarea value={textBody} onChange={e => setTextBody(e.target.value)} placeholder="Paste document content here…" rows={8}
-                className="px-3 py-2.5 bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-[9px] text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none resize-none focus:border-[var(--border)] transition-colors" />
+                className="px-3 py-2.5 bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-md text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none resize-none focus:border-[var(--border)] transition-colors" />
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-mono text-[var(--text-dim)]">{textBody.length.toLocaleString()} chars</span>
                 <button onClick={handleAddText} disabled={!textName.trim() || !textBody.trim() || isBusy} className="btn btn-primary">
@@ -206,7 +206,7 @@ export function KnowledgeDetail() {
               <div className="flex gap-2">
                 <input type="url" value={urlValue} onChange={e => setUrlValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddUrl()}
                   placeholder="https://docs.example.com/page"
-                  className="flex-1 h-[38px] px-3 bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-[9px] text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors" />
+                  className="flex-1 h-[38px] px-3 bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-md text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors" />
                 <button onClick={handleAddUrl} disabled={!urlValue.trim() || isBusy} className="btn btn-primary shrink-0">
                   {addUrlDoc.isPending ? 'Fetching…' : 'Fetch & index'}
                 </button>
@@ -272,7 +272,7 @@ export function KnowledgeDetail() {
 
                   {/* Status badge + reindex button */}
                   <span className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                    <span className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-[4px] whitespace-nowrap ${
+                    <span className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-sm whitespace-nowrap ${
                       isIndexed ? 'bg-[oklch(0.78_0.14_145/0.12)] text-[var(--ok)]' :
                       isFailed  ? 'bg-[oklch(0.70_0.18_22/0.12)] text-[var(--err)]' :
                       'bg-[oklch(0.82_0.14_80/0.12)] text-[var(--warn)]'
@@ -291,7 +291,7 @@ export function KnowledgeDetail() {
                             }),
                           })
                         }}
-                        className="flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:border-[var(--border-soft)] hover:text-[var(--text)] transition-colors shrink-0 disabled:opacity-50"
+                        className="flex items-center gap-1 px-2 py-0.5 rounded-sm text-[11px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:border-[var(--border-soft)] hover:text-[var(--text)] transition-colors shrink-0 disabled:opacity-50"
                         title="Reindex this document"
                       >
                         {isReindexing
@@ -307,7 +307,7 @@ export function KnowledgeDetail() {
                   <span className="flex items-center justify-end" onClick={e => e.stopPropagation()}>
                     <button
                       onClick={() => handleDeleteDoc(doc.id, doc.name)}
-                      className="w-[22px] h-[22px] rounded-[5px] inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-all"
+                      className="w-[22px] h-[22px] rounded-sm inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-all"
                     >
                       <Icons.Trash style={{ width: 12, height: 12 }} />
                     </button>

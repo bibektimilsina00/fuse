@@ -20,7 +20,7 @@ export function Checkbox({ checked = false, onChange, label, className, id }: Ch
     >
       <div
         className={cn(
-          'relative w-[14px] h-[14px] shrink-0 rounded-[4px] border',
+          'relative w-[14px] h-[14px] shrink-0 rounded-sm border',
           'transition-[background,border-color] duration-[120ms]',
           checked
             ? 'bg-text border-text'

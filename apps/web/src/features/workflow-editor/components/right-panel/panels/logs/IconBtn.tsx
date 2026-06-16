@@ -25,7 +25,7 @@ export function IconBtn({ icon, title, onClick, active, disabled, btnRef }: Prop
       disabled={disabled}
       title={title}
       className={cn(
-        'flex h-6 w-6 items-center justify-center rounded-[5px] transition-colors',
+        'flex h-6 w-6 items-center justify-center rounded-sm transition-colors',
         active
           ? 'bg-[var(--surface-2)] text-[var(--text)]'
           : 'text-[var(--text-mute)] hover:bg-[var(--surface)] hover:text-[var(--text)]',

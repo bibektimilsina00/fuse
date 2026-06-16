@@ -36,13 +36,13 @@ export function ListRenderer({ prop, value, onChange, disabled }: RendererProps)
             onChange={e => update(i, e.target.value)}
             placeholder={`Item ${i + 1}`}
             disabled={disabled}
-            className="h-7 flex-1 rounded-[5px] text-[11px]"
+            className="h-7 flex-1 rounded-sm text-[11px]"
           />
           <button
             type="button"
             onClick={() => remove(i)}
             disabled={disabled}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-text-faint hover:bg-surface hover:text-err transition-colors disabled:opacity-40"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-text-faint hover:bg-surface hover:text-err transition-colors disabled:opacity-40"
           >
             <X size={12} />
           </button>
@@ -52,7 +52,7 @@ export function ListRenderer({ prop, value, onChange, disabled }: RendererProps)
         type="button"
         onClick={add}
         disabled={disabled}
-        className="flex h-7 w-full items-center justify-center gap-1.5 rounded-[7px] border border-dashed border-border-faint text-[11px] text-text-faint hover:border-border-soft hover:text-text-mute transition-colors disabled:opacity-40"
+        className="flex h-7 w-full items-center justify-center gap-1.5 rounded-sm border border-dashed border-border-faint text-[11px] text-text-faint hover:border-border-soft hover:text-text-mute transition-colors disabled:opacity-40"
       >
         <Plus size={11} />
         {addLabel}

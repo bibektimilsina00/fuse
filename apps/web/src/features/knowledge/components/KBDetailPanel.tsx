@@ -144,13 +144,13 @@ export function KBDetailPanel({ kb, onClose }: Props) {
               {detail?.total_chunks ?? kb.total_chunks} chunks · {kb.embedding_model}
             </p>
           </div>
-          <button onClick={onClose} className="w-[28px] h-[28px] shrink-0 rounded-[7px] flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px]">✕</button>
+          <button onClick={onClose} className="w-[28px] h-[28px] shrink-0 rounded-sm flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px]">✕</button>
         </div>
 
         {/* ── Setup required banner ── */}
         {!isConfigured && (
           <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
-            <div className="flex items-start gap-3 px-4 py-3.5 bg-[oklch(0.82_0.14_80/0.10)] border border-[oklch(0.82_0.14_80/0.3)] rounded-[10px]">
+            <div className="flex items-start gap-3 px-4 py-3.5 bg-[oklch(0.82_0.14_80/0.10)] border border-[oklch(0.82_0.14_80/0.3)] rounded-md">
               <Icons.Activity style={{ width: 14, height: 14, color: 'var(--warn)', flexShrink: 0, marginTop: 1 }} />
               <div className="flex flex-col gap-0.5">
                 <span className="text-[13px] font-semibold text-[var(--warn)]">Setup required</span>
@@ -168,7 +168,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                     <div className="flex flex-col gap-1.5">
                       {EMBEDDING_MODELS.filter(m => m.provider === provider).map(m => (
                         <label key={m.id} onClick={() => { setSetupModel(m.id); setSetupCredId('') }}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-[9px] border cursor-pointer transition-colors ${setupModel === m.id ? 'bg-[var(--surface)] border-[var(--border-soft)]' : 'bg-[var(--bg)] border-[var(--border-faint)] hover:border-[var(--border-soft)]'}`}>
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-md border cursor-pointer transition-colors ${setupModel === m.id ? 'bg-[var(--surface)] border-[var(--border-soft)]' : 'bg-[var(--bg)] border-[var(--border-faint)] hover:border-[var(--border-soft)]'}`}>
                           <input type="radio" name="setup-model" value={m.id} checked={setupModel === m.id} readOnly className="accent-[var(--text)]" />
                           <div className="flex flex-col gap-0.5">
                             <span className="text-[13px] font-medium text-[var(--text)]">{m.label}</span>
@@ -186,14 +186,14 @@ export function KBDetailPanel({ kb, onClose }: Props) {
             <div className="flex flex-col gap-2">
               <label className="text-[12px] font-semibold text-[var(--text-mute)]">{selectedSetupModel?.provider} credential</label>
               {relevantCreds.length === 0 ? (
-                <div className="flex items-center gap-2 px-3 py-2.5 bg-[oklch(0.82_0.14_80/0.10)] border border-[oklch(0.82_0.14_80/0.3)] rounded-[9px]">
+                <div className="flex items-center gap-2 px-3 py-2.5 bg-[oklch(0.82_0.14_80/0.10)] border border-[oklch(0.82_0.14_80/0.3)] rounded-md">
                   <Icons.Activity style={{ width: 13, height: 13, color: 'var(--warn)' }} />
                   <span className="text-[12px] text-[var(--warn)]">No {selectedSetupModel?.provider} credentials. Add one in Connections first.</span>
                 </div>
               ) : (
                 <Dropdown className="w-full">
                   <DropdownTrigger className="w-full">
-                    <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
+                    <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
                       <span className={selectedSetupCred ? 'text-[var(--text)]' : 'text-[var(--text-faint)]'}>
                         {selectedSetupCred?.name ?? `Select ${selectedSetupModel?.provider} credential…`}
                       </span>
@@ -227,7 +227,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                     <span className="text-[11px] text-[var(--text-faint)]">{f.label}</span>
                     <div className="relative">
                       <input type="number" value={f.val} min={f.min} onChange={e => f.set(Math.max(f.min, Number(e.target.value)))}
-                        className="w-full h-[34px] px-2 pr-12 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[8px] text-[12.5px] text-[var(--text)] outline-none focus:border-[var(--border)] transition-colors" />
+                        className="w-full h-[34px] px-2 pr-12 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[12.5px] text-[var(--text)] outline-none focus:border-[var(--border)] transition-colors" />
                       <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-mono text-[var(--text-dim)] pointer-events-none">{f.unit}</span>
                     </div>
                   </div>
@@ -239,7 +239,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                 <span className="text-[11px] text-[var(--text-faint)]">Strategy</span>
                 <Dropdown className="w-full">
                   <DropdownTrigger className="w-full">
-                    <div className="flex items-center justify-between h-[34px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[8px] text-[12.5px] text-[var(--text)] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
+                    <div className="flex items-center justify-between h-[34px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[12.5px] text-[var(--text)] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
                       <span>{selectedSetupStrategy?.label ?? 'Auto'}</span>
                       <Icons.Caret style={{ width: 10, height: 10, color: 'var(--text-faint)' }} />
                     </div>
@@ -276,7 +276,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
             <button
               key={id}
               onClick={() => setPanel(id)}
-              className={`px-3 py-1.5 rounded-[7px] text-[12.5px] font-medium transition-colors ${panel === id ? 'bg-[var(--surface)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]' : 'text-[var(--text-mute)] hover:text-[var(--text)]'}`}
+              className={`px-3 py-1.5 rounded-sm text-[12.5px] font-medium transition-colors ${panel === id ? 'bg-[var(--surface)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]' : 'text-[var(--text-mute)] hover:text-[var(--text)]'}`}
             >
               {label}
               {id === 'docs' && detail && (
@@ -316,7 +316,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                   const isReindexing = reindexDoc.isPending && (reindexDoc.variables as string | undefined) === doc.id
 
                   return (
-                    <div key={doc.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[10px] hover:border-[var(--border-soft)] transition-colors group">
+                    <div key={doc.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md hover:border-[var(--border-soft)] transition-colors group">
 
                       {/* Status indicator dot */}
                       <div
@@ -336,7 +336,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                             {doc.chunk_count} chunk{doc.chunk_count !== 1 ? 's' : ''} · {doc.source_type} · {new Date(doc.created_at).toLocaleDateString()}
                           </span>
                           {/* Status badge */}
-                          <span className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-[4px] ${
+                          <span className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-sm ${
                             isIndexed ? 'bg-[oklch(0.78_0.14_145/0.12)] text-[var(--ok)]' :
                             isFailed  ? 'bg-[oklch(0.70_0.18_22/0.12)] text-[var(--err)]' :
                             'bg-[oklch(0.82_0.14_80/0.12)] text-[var(--warn)]'
@@ -359,7 +359,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                             })
                           }}
                           disabled={isReindexing}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[7px] text-[11.5px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:border-[var(--border-soft)] hover:text-[var(--text)] transition-colors shrink-0 disabled:opacity-50"
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm text-[11.5px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:border-[var(--border-soft)] hover:text-[var(--text)] transition-colors shrink-0 disabled:opacity-50"
                           title="Reindex this document"
                         >
                           {isReindexing ? (
@@ -374,7 +374,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                       {/* Delete button */}
                       <button
                         onClick={() => handleDeleteDoc(doc.id, doc.name)}
-                        className="w-[24px] h-[24px] rounded-[6px] flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-all shrink-0"
+                        className="w-[24px] h-[24px] rounded-sm flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-all shrink-0"
                         title="Delete document"
                       >
                         <Icons.Trash style={{ width: 12, height: 12 }} />
@@ -390,12 +390,12 @@ export function KBDetailPanel({ kb, onClose }: Props) {
           {panel === 'add' && (
             <div className="flex flex-col gap-5">
               {/* Source type tabs */}
-              <div className="flex items-center bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] p-[3px] gap-[2px] w-fit">
+              <div className="flex items-center bg-[var(--bg)] border border-[var(--border-faint)] rounded-md p-[3px] gap-[2px] w-fit">
                 {([['text', 'Paste text'], ['file', 'Upload file'], ['url', 'From URL']] as const).map(([t, label]) => (
                   <button
                     key={t}
                     onClick={() => setAddTab(t)}
-                    className={`px-4 py-1.5 rounded-[6px] text-[12.5px] font-medium transition-colors ${addTab === t ? 'bg-[var(--surface)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]' : 'text-[var(--text-mute)] hover:text-[var(--text)]'}`}
+                    className={`px-4 py-1.5 rounded-sm text-[12.5px] font-medium transition-colors ${addTab === t ? 'bg-[var(--surface)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]' : 'text-[var(--text-mute)] hover:text-[var(--text)]'}`}
                   >
                     {label}
                   </button>
@@ -411,7 +411,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                       value={textName}
                       onChange={e => setTextName(e.target.value)}
                       placeholder="e.g. Refund Policy"
-                      className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
+                      className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -421,7 +421,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                       onChange={e => setTextBody(e.target.value)}
                       placeholder="Paste your document text here…"
                       rows={10}
-                      className="px-3 py-2.5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors resize-none font-mono"
+                      className="px-3 py-2.5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors resize-none font-mono"
                     />
                     <span className="text-[11px] text-[var(--text-dim)] font-mono">{textBody.length.toLocaleString()} chars</span>
                   </div>
@@ -439,7 +439,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                 <div className="flex flex-col gap-4">
                   <input ref={fileInputRef} type="file" accept=".txt,.pdf,.md,.csv" className="hidden" onChange={handleFileUpload} />
                   <div
-                    className="flex flex-col items-center gap-3 py-12 border-2 border-dashed border-[var(--border-faint)] rounded-[12px] cursor-pointer hover:border-[var(--border-soft)] transition-colors"
+                    className="flex flex-col items-center gap-3 py-12 border-2 border-dashed border-[var(--border-faint)] rounded-lg cursor-pointer hover:border-[var(--border-soft)] transition-colors"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Icons.Folder style={{ width: 24, height: 24, color: 'var(--text-dim)' }} />
@@ -470,7 +470,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                       onChange={e => setUrlValue(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleAddUrl()}
                       placeholder="https://docs.example.com/refund-policy"
-                      className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
+                      className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
                     />
                   </div>
                   <button
@@ -505,7 +505,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                   onChange={e => setQuery(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSearch()}
                   placeholder="What is your refund policy?"
-                  className="flex-1 h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
+                  className="flex-1 h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
                 />
                 <button
                   onClick={handleSearch}
@@ -522,10 +522,10 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                     {results.length} result{results.length !== 1 ? 's' : ''}
                   </span>
                   {results.map((r, i) => (
-                    <div key={r.id} className="flex flex-col gap-2 p-4 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[10px]">
+                    <div key={r.id} className="flex flex-col gap-2 p-4 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-[11.5px] font-mono text-[var(--text-faint)]">chunk #{r.chunk_index} · match {i + 1}</span>
-                        <span className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded-[4px] ${r.score > 0.8 ? 'bg-[oklch(0.78_0.14_145/0.14)] text-[var(--ok)]' : r.score > 0.6 ? 'bg-[oklch(0.82_0.14_80/0.16)] text-[var(--warn)]' : 'bg-[var(--surface)] text-[var(--text-mute)]'}`}>
+                        <span className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded-sm ${r.score > 0.8 ? 'bg-[oklch(0.78_0.14_145/0.14)] text-[var(--ok)]' : r.score > 0.6 ? 'bg-[oklch(0.82_0.14_80/0.16)] text-[var(--warn)]' : 'bg-[var(--surface)] text-[var(--text-mute)]'}`}>
                           {(r.score * 100).toFixed(0)}% match
                         </span>
                       </div>

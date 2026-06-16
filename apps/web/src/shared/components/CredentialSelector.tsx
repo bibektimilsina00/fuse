@@ -68,7 +68,7 @@ export function CredentialSelector({
     <>
       <Dropdown className={className ?? 'w-full'}>
         <DropdownTrigger className="w-full" disabled={disabled}>
-          <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
+          <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
             <span className={selected ? 'text-[var(--text)]' : 'text-[var(--text-faint)]'}>
               {selected?.name ?? `Select ${label} credential…`}
             </span>

@@ -70,7 +70,7 @@ export const CanvasControls = React.forwardRef<HTMLDivElement, CanvasControlsPro
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           className={cn(
-            'pointer-events-auto overflow-hidden rounded-[12px] border border-[var(--border-faint)] bg-[var(--bg-2)]/85 backdrop-blur-md shadow-[0_12px_32px_rgba(0,0,0,0.5)] transition-all duration-300 ease-out origin-bottom-left',
+            'pointer-events-auto overflow-hidden rounded-lg border border-[var(--border-faint)] bg-[var(--bg-2)]/85 backdrop-blur-md shadow-[0_12px_32px_rgba(0,0,0,0.5)] transition-all duration-300 ease-out origin-bottom-left',
             (isOpen || isHovered)
               ? 'opacity-100 scale-100 translate-y-0 translate-x-0'
               : 'opacity-0 scale-95 translate-y-2 -translate-x-1 pointer-events-none'
@@ -95,7 +95,7 @@ export const CanvasControls = React.forwardRef<HTMLDivElement, CanvasControlsPro
         <button
           onClick={onFitView}
           className={cn(
-            'flex h-[34px] w-[34px] items-center justify-center rounded-[8px]',
+            'flex h-[34px] w-[34px] items-center justify-center rounded-md',
             'border border-[var(--border-faint)] bg-[var(--bg-2)]/90 backdrop-blur-sm text-[var(--text-mute)] shadow-md',
             'transition-all hover:bg-[var(--surface)] hover:text-[var(--text)] active:scale-95 cursor-pointer'
           )}
@@ -106,7 +106,7 @@ export const CanvasControls = React.forwardRef<HTMLDivElement, CanvasControlsPro
         <button
           onClick={onZoomIn}
           className={cn(
-            'flex h-[34px] w-[34px] items-center justify-center rounded-[8px]',
+            'flex h-[34px] w-[34px] items-center justify-center rounded-md',
             'border border-[var(--border-faint)] bg-[var(--bg-2)]/90 backdrop-blur-sm text-[var(--text-mute)] shadow-md',
             'transition-all hover:bg-[var(--surface)] hover:text-[var(--text)] active:scale-95 cursor-pointer'
           )}
@@ -117,7 +117,7 @@ export const CanvasControls = React.forwardRef<HTMLDivElement, CanvasControlsPro
         <button
           onClick={onZoomOut}
           className={cn(
-            'flex h-[34px] w-[34px] items-center justify-center rounded-[8px]',
+            'flex h-[34px] w-[34px] items-center justify-center rounded-md',
             'border border-[var(--border-faint)] bg-[var(--bg-2)]/90 backdrop-blur-sm text-[var(--text-mute)] shadow-md',
             'transition-all hover:bg-[var(--surface)] hover:text-[var(--text)] active:scale-95 cursor-pointer'
           )}
@@ -128,7 +128,7 @@ export const CanvasControls = React.forwardRef<HTMLDivElement, CanvasControlsPro
         <button
           onClick={onCleanLayout}
           className={cn(
-            'flex h-[34px] w-[34px] items-center justify-center rounded-[8px]',
+            'flex h-[34px] w-[34px] items-center justify-center rounded-md',
             'border border-[var(--border-faint)] bg-[var(--bg-2)]/90 backdrop-blur-sm text-[var(--text-mute)] shadow-md',
             'transition-all hover:bg-[var(--surface)] hover:text-[var(--text)] active:scale-95 cursor-pointer'
           )}

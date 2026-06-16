@@ -59,7 +59,7 @@ export function WaitingView({ nodeInfo, payload, onCancel }: Props) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-2 rounded-[8px] border border-[var(--border-faint)] bg-[var(--surface)] p-3">
+        <div className="grid grid-cols-1 gap-2 rounded-md border border-[var(--border-faint)] bg-[var(--surface)] p-3">
           <DetailRow icon={<Tag className="h-3.5 w-3.5" />} label="Event">
             <span className="font-mono text-[11.5px] text-[var(--text)]">
               {waitingFor}
@@ -96,7 +96,7 @@ export function WaitingView({ nodeInfo, payload, onCancel }: Props) {
           <button
             type="button"
             onClick={onCancel}
-            className="self-start rounded-[6px] border border-[var(--border-faint)] bg-[var(--surface)] px-3 py-1.5 text-[11.5px] text-[var(--text-mute)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+            className="self-start rounded-sm border border-[var(--border-faint)] bg-[var(--surface)] px-3 py-1.5 text-[11.5px] text-[var(--text-mute)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
           >
             Cancel listen
           </button>

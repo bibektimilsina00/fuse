@@ -82,7 +82,7 @@ export function ConnectModal({ providers, onClose, initialProviderId, onCreated 
   return createPortal(
     <>
       <div className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[640px] h-[72vh] bg-[var(--bg-2)] border border-[var(--border)] rounded-[16px] flex flex-col shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]">
+      <div className="fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[640px] h-[72vh] bg-[var(--bg-2)] border border-[var(--border)] rounded-xl flex flex-col shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-faint)]">
           <div>
@@ -95,14 +95,14 @@ export function ConnectModal({ providers, onClose, initialProviderId, onCreated 
               </button>
             )}
           </div>
-          <button onClick={onClose} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px]">✕</button>
+          <button onClick={onClose} className="w-[28px] h-[28px] rounded-sm flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px]">✕</button>
         </div>
 
         {!selected ? (
           <>
             {/* Search + filter */}
             <div className="px-5 pt-4 pb-3 flex items-center gap-3 border-b border-[var(--border-faint)]">
-              <div className="flex items-center gap-2 flex-1 h-[34px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] focus-within:border-[var(--border)] transition-colors">
+              <div className="flex items-center gap-2 flex-1 h-[34px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md focus-within:border-[var(--border)] transition-colors">
                 <Icons.Search style={{ width: 13, height: 13, color: 'var(--text-faint)', flexShrink: 0 }} />
                 <input
                   autoFocus
@@ -113,12 +113,12 @@ export function ConnectModal({ providers, onClose, initialProviderId, onCreated 
                   className="flex-1 bg-transparent border-none outline-none text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)]"
                 />
               </div>
-              <div className="flex items-center bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] p-[3px] gap-[2px]">
+              <div className="flex items-center bg-[var(--bg)] border border-[var(--border-faint)] rounded-md p-[3px] gap-[2px]">
                 {(['all', 'oauth', 'api_key'] as const).map(t => (
                   <button
                     key={t}
                     onClick={() => setTypeFilter(t)}
-                    className={`px-3 py-1 rounded-[6px] text-[12px] font-medium capitalize transition-colors ${typeFilter === t ? 'bg-[var(--surface)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]' : 'text-[var(--text-mute)] hover:text-[var(--text)]'}`}
+                    className={`px-3 py-1 rounded-sm text-[12px] font-medium capitalize transition-colors ${typeFilter === t ? 'bg-[var(--surface)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]' : 'text-[var(--text-mute)] hover:text-[var(--text)]'}`}
                   >
                     {t === 'api_key' ? 'API Key' : t === 'oauth' ? 'OAuth' : 'All'}
                   </button>
@@ -139,12 +139,12 @@ export function ConnectModal({ providers, onClose, initialProviderId, onCreated 
                     <button
                       key={p.id}
                       onClick={() => handleSelectProvider(p)}
-                      className="flex items-center gap-3 px-4 py-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[10px] text-left hover:border-[var(--border-soft)] hover:bg-[var(--surface)] transition-all group"
+                      className="flex items-center gap-3 px-4 py-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-left hover:border-[var(--border-soft)] hover:bg-[var(--surface)] transition-all group"
                     >
                       {p.icon_url ? (
-                        <img src={p.icon_url} alt={p.name} className="w-[32px] h-[32px] rounded-[7px] object-contain bg-[var(--surface)] p-1 shrink-0" onError={e => { (e.target as HTMLImageElement).style.display='none' }} />
+                        <img src={p.icon_url} alt={p.name} className="w-[32px] h-[32px] rounded-sm object-contain bg-[var(--surface)] p-1 shrink-0" onError={e => { (e.target as HTMLImageElement).style.display='none' }} />
                       ) : (
-                        <span className="w-[32px] h-[32px] rounded-[7px] bg-[var(--surface-2)] flex items-center justify-center text-[11px] font-bold text-[var(--text)] shrink-0">
+                        <span className="w-[32px] h-[32px] rounded-sm bg-[var(--surface-2)] flex items-center justify-center text-[11px] font-bold text-[var(--text)] shrink-0">
                           {p.name.slice(0,2).toUpperCase()}
                         </span>
                       )}
@@ -165,15 +165,15 @@ export function ConnectModal({ providers, onClose, initialProviderId, onCreated 
           /* Connect form */
           <div className="p-6 flex flex-col gap-5 overflow-y-auto">
             {/* Provider info */}
-            <div className="flex items-center gap-3 p-4 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[10px]">
+            <div className="flex items-center gap-3 p-4 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md">
               {selected.icon_url && (
-                <img src={selected.icon_url} alt={selected.name} className="w-[40px] h-[40px] rounded-[9px] object-contain bg-[var(--surface)] p-1.5 shrink-0" />
+                <img src={selected.icon_url} alt={selected.name} className="w-[40px] h-[40px] rounded-md object-contain bg-[var(--surface)] p-1.5 shrink-0" />
               )}
               <div className="flex flex-col gap-0.5">
                 <span className="text-[13.5px] font-semibold text-[var(--text)]">{selected.name}</span>
                 <span className="text-[12px] text-[var(--text-faint)]">{selected.description}</span>
               </div>
-              <span className={`ml-auto shrink-0 font-mono text-[9.5px] font-semibold tracking-widest uppercase px-[8px] py-[3px] rounded-[4px] ${selected.type === 'oauth' ? 'bg-[oklch(0.78_0.13_245/0.14)] text-[var(--accent)]' : 'bg-[var(--surface-2)] text-[var(--text-mute)]'}`}>
+              <span className={`ml-auto shrink-0 font-mono text-[9.5px] font-semibold tracking-widest uppercase px-[8px] py-[3px] rounded-sm ${selected.type === 'oauth' ? 'bg-[oklch(0.78_0.13_245/0.14)] text-[var(--accent)]' : 'bg-[var(--surface-2)] text-[var(--text-mute)]'}`}>
                 {selected.type === 'oauth' ? 'OAuth 2.0' : 'API Key'}
               </span>
             </div>
@@ -201,7 +201,7 @@ export function ConnectModal({ providers, onClose, initialProviderId, onCreated 
                 value={connName}
                 onChange={e => setConnName(e.target.value)}
                 placeholder={selected.name}
-                className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
+                className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
               />
             </div>
 
@@ -215,19 +215,19 @@ export function ConnectModal({ providers, onClose, initialProviderId, onCreated 
                   value={fieldValues[field.id] ?? ''}
                   onChange={e => setFieldValues(v => ({ ...v, [field.id]: e.target.value }))}
                   placeholder={field.placeholder}
-                  className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
+                  className="h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] font-mono text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none focus:border-[var(--border)] transition-colors"
                 />
               </div>
             ))}
 
             <div className="flex items-center justify-end gap-3 pt-2 border-t border-[var(--border-faint)]">
-              <button onClick={onClose} className="px-4 py-2 rounded-[9px] text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
+              <button onClick={onClose} className="px-4 py-2 rounded-md text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
                 Cancel
               </button>
               <button
                 onClick={handleConnect}
                 disabled={!canSubmit || connecting}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-[9px] bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default"
               >
                 {connecting ? (
                   <><div className="w-[12px] h-[12px] border-2 border-[var(--bg)] border-t-transparent rounded-full animate-spin" /> Connecting…</>

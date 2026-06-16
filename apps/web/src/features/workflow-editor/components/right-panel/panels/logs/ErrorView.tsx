@@ -77,20 +77,20 @@ export function ErrorView({ log, nodeInfo, tab, onTabChange }: Props) {
           <button
             onClick={fixWithCopilot}
             disabled={!log.nodeId}
-            className="inline-flex items-center gap-1.5 rounded-[7px] bg-[var(--text)] px-2.5 py-1.5 text-[11.5px] font-medium text-[var(--bg)] transition-colors hover:opacity-90 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-sm bg-[var(--text)] px-2.5 py-1.5 text-[11.5px] font-medium text-[var(--bg)] transition-colors hover:opacity-90 disabled:opacity-40"
           >
             <Sparkles className="h-3.5 w-3.5" /> Fix with Copilot
           </button>
           <button
             onClick={inspectNode}
             disabled={!log.nodeId}
-            className="inline-flex items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] font-medium text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)] disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-[11.5px] font-medium text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)] disabled:opacity-40"
           >
             <SlidersHorizontal className="h-3.5 w-3.5" /> Inspect node
           </button>
           <button
             onClick={copyError}
-            className="ml-auto inline-flex items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[11.5px] font-medium text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-[11.5px] font-medium text-[var(--text-mute)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
           >
             <Copy className="h-3.5 w-3.5" /> Copy
           </button>

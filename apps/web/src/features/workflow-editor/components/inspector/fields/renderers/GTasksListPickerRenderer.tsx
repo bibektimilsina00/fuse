@@ -186,7 +186,7 @@ export function GTasksListPickerRenderer({
         disabled={triggerDisabled}
         title={!credentialId ? 'Pick a Google account on this node first.' : undefined}
         className={cn(
-          'flex w-full items-center gap-2 rounded-[6px] border bg-surface px-2.5 py-1.5',
+          'flex w-full items-center gap-2 rounded-sm border bg-surface px-2.5 py-1.5',
           'text-left text-[12px] transition-colors',
           open ? 'border-accent' : 'border-border-faint hover:border-text-faint',
           triggerDisabled && 'cursor-not-allowed opacity-50',
@@ -212,7 +212,7 @@ export function GTasksListPickerRenderer({
               e.stopPropagation()
               onChange('')
             }}
-            className="rounded-[4px] p-0.5 text-text-faint hover:bg-surface-2 hover:text-text"
+            className="rounded-sm p-0.5 text-text-faint hover:bg-surface-2 hover:text-text"
             title="Clear"
           >
             <X className="h-3 w-3" />
@@ -229,7 +229,7 @@ export function GTasksListPickerRenderer({
       {open && credentialId && (
         <div
           className={cn(
-            'absolute z-30 mt-1 w-full overflow-hidden rounded-[8px] border border-border-faint',
+            'absolute z-30 mt-1 w-full overflow-hidden rounded-md border border-border-faint',
             'bg-bg2 shadow-lg',
           )}
         >
@@ -242,7 +242,7 @@ export function GTasksListPickerRenderer({
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Filter tasklists…"
                 className={cn(
-                  'h-7 w-full rounded-[5px] bg-surface pl-7 pr-2 text-[12px] text-text',
+                  'h-7 w-full rounded-sm bg-surface pl-7 pr-2 text-[12px] text-text',
                   'outline-none placeholder:text-text-faint',
                   'focus:ring-1 focus:ring-accent',
                 )}
@@ -273,7 +273,7 @@ export function GTasksListPickerRenderer({
                 onClick={() => void handleCreate()}
                 disabled={creating || !creatingTitle.trim()}
                 className={cn(
-                  'rounded-[4px] px-2 py-0.5 text-[10.5px] font-medium transition-colors',
+                  'rounded-sm px-2 py-0.5 text-[10.5px] font-medium transition-colors',
                   'bg-accent text-bg hover:opacity-90',
                   (creating || !creatingTitle.trim()) && 'cursor-not-allowed opacity-50',
                 )}

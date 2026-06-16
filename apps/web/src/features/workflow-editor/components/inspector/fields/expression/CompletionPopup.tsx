@@ -36,7 +36,7 @@ export function CompletionPopup({
   return (
     <div
       ref={listRef}
-      className="fixed z-50 max-h-[260px] w-[280px] overflow-y-auto rounded-[8px] border border-border shadow-[0_12px_32px_-8px_oklch(0_0_0/0.55)] backdrop-blur-md"
+      className="fixed z-50 max-h-[260px] w-[280px] overflow-y-auto rounded-md border border-border shadow-[0_12px_32px_-8px_oklch(0_0_0/0.55)] backdrop-blur-md"
       style={{
         left: anchor.left,
         top: anchor.top,

@@ -14,14 +14,14 @@ export function RecentRuns({ items, totalToday, onViewAll }: Props) {
   const navigate = useNavigate()
 
   return (
-    <div className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px] overflow-hidden flex flex-col">
+    <div className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-lg overflow-hidden flex flex-col">
       <PanelHead
         icon={<Icons.Activity className="w-3.5 h-3.5" />}
         title="Recent runs"
         count={`${totalToday.toLocaleString()} today`}
         action={
           <button
-            className="text-[12px] text-[var(--text-mute)] py-[4px] px-[8px] rounded-[6px] transition-colors inline-flex items-center gap-[4px] hover:text-[var(--text)] hover:bg-[var(--surface)]"
+            className="text-[12px] text-[var(--text-mute)] py-[4px] px-[8px] rounded-sm transition-colors inline-flex items-center gap-[4px] hover:text-[var(--text)] hover:bg-[var(--surface)]"
             onClick={onViewAll}
           >
             <span>View all</span>

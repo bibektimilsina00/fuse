@@ -12,9 +12,9 @@ interface AvatarProps {
 }
 
 const sizeMap: Record<AvatarSize, { wrapper: string; text: string }> = {
-  sm: { wrapper: 'w-[22px] h-[22px] rounded-[5px] text-[10px]', text: '' },
-  md: { wrapper: 'w-[26px] h-[26px] rounded-[7px] text-[11px]', text: '' },
-  lg: { wrapper: 'w-[32px] h-[32px] rounded-[8px] text-[13px]', text: '' },
+  sm: { wrapper: 'w-[22px] h-[22px] rounded-sm text-[10px]', text: '' },
+  md: { wrapper: 'w-[26px] h-[26px] rounded-sm text-[11px]', text: '' },
+  lg: { wrapper: 'w-[32px] h-[32px] rounded-md text-[13px]', text: '' },
 }
 
 export function Avatar({ name, src, fallback, size = 'md', className }: AvatarProps) {

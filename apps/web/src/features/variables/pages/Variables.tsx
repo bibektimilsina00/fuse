@@ -83,14 +83,14 @@ export function Variables() {
       {showForm && (
         <form
           onSubmit={handleCreate}
-          className="flex flex-col gap-4 p-5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px]"
+          className="flex flex-col gap-4 p-5 bg-[var(--bg)] border border-[var(--border-faint)] rounded-lg"
         >
           <div className="text-[13.5px] font-semibold text-[var(--text)]">New variable</div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-[11.5px] font-medium text-[var(--text-mute)]">Key</label>
-              <div className="flex items-center gap-2 px-3 h-[38px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-[9px] focus-within:border-[var(--border)] transition-colors">
+              <div className="flex items-center gap-2 px-3 h-[38px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-md focus-within:border-[var(--border)] transition-colors">
                 <Icons.Key style={{ width: 13, height: 13, color: 'var(--text-faint)', flexShrink: 0 }} />
                 <input
                   type="text"
@@ -104,7 +104,7 @@ export function Variables() {
 
             <div className="flex flex-col gap-1.5">
               <label className="text-[11.5px] font-medium text-[var(--text-mute)]">Value</label>
-              <div className="flex items-center gap-2 px-3 h-[38px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-[9px] focus-within:border-[var(--border)] transition-colors">
+              <div className="flex items-center gap-2 px-3 h-[38px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-md focus-within:border-[var(--border)] transition-colors">
                 <input
                   type={newIsSecret ? 'password' : 'text'}
                   value={newVal}
@@ -119,12 +119,12 @@ export function Variables() {
           <div className="flex items-center gap-5 flex-wrap">
             <div className="flex items-center gap-2">
               <span className="text-[12px] text-[var(--text-mute)]">Scope:</span>
-              <div className="flex items-center bg-[var(--surface)] border border-[var(--border-faint)] rounded-[7px] p-[2px] gap-[2px]">
+              <div className="flex items-center bg-[var(--surface)] border border-[var(--border-faint)] rounded-sm p-[2px] gap-[2px]">
                 {SCOPES.map(s => (
                   <button
                     key={s} type="button"
                     onClick={() => setNewScope(s)}
-                    className={`px-3 py-1 rounded-[5px] text-[11.5px] font-medium capitalize transition-colors ${newScope === s ? 'bg-[var(--bg-2)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]' : 'text-[var(--text-mute)] hover:text-[var(--text)]'}`}
+                    className={`px-3 py-1 rounded-sm text-[11.5px] font-medium capitalize transition-colors ${newScope === s ? 'bg-[var(--bg-2)] text-[var(--text)] shadow-[inset_0_0_0_1px_var(--border-faint)]' : 'text-[var(--text-mute)] hover:text-[var(--text)]'}`}
                   >
                     {s}
                   </button>
@@ -147,11 +147,11 @@ export function Variables() {
 
           <div className="flex items-center justify-end gap-3">
             <button type="button" onClick={() => { setShowForm(false); setFormError(null) }}
-              className="px-4 py-2 rounded-[9px] text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
+              className="px-4 py-2 rounded-md text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
               Cancel
             </button>
             <button type="submit" disabled={createVar.isPending}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-[9px] bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-50">
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-50">
               <Icons.Plus style={{ width: 13, height: 13 }} />
               {createVar.isPending ? 'Creating…' : 'Create variable'}
             </button>

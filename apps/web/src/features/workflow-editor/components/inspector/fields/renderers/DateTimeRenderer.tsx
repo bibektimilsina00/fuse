@@ -101,7 +101,7 @@ export function DateTimeRenderer({
         placeholder={placeholder}
         disabled={disabled}
         className={cn(
-          'w-full rounded-[6px] border border-border-faint bg-surface',
+          'w-full rounded-sm border border-border-faint bg-surface',
           'pl-2.5 pr-8 py-1.5 text-[12px] text-text outline-none',
           'placeholder:text-text-faint',
           'focus:border-accent',
@@ -115,7 +115,7 @@ export function DateTimeRenderer({
         title="Pick a date"
         className={cn(
           'absolute right-1.5 top-1/2 -translate-y-1/2',
-          'flex h-6 w-6 items-center justify-center rounded-[4px]',
+          'flex h-6 w-6 items-center justify-center rounded-sm',
           'text-text-faint hover:bg-surface-2 hover:text-text',
           'transition-colors',
           disabled && 'cursor-not-allowed opacity-50',

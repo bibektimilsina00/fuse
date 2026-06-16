@@ -45,7 +45,9 @@ module.exports = {
         sm:   v('--r-sm'),
         md:   v('--r-md'),
         lg:   v('--r-lg'),
-        xl:   '20px',
+        xl:   v('--r-xl'),
+        '2xl': v('--r-2xl'),
+        '3xl': v('--r-3xl'),
         full: '9999px',
       },
 

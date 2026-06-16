@@ -52,10 +52,10 @@ export const NAV_GROUPS: NavGroup[] = [
 ]
 
 export const MENU_ITEM_CLASS =
-  'flex items-center gap-[9px] py-[8px] px-[10px] rounded-[7px] text-[13px] text-[var(--text-mute)] w-full text-left transition-colors duration-80 font-medium hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px] [&_svg]:shrink-0'
+  'flex items-center gap-[9px] py-[8px] px-[10px] rounded-sm text-[13px] text-[var(--text-mute)] w-full text-left transition-colors duration-80 font-medium hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px] [&_svg]:shrink-0'
 
 export const NAV_LINK_CLASS =
-  "flex items-center gap-[10px] py-[7px] px-[10px] rounded-[8px] text-[13px] text-[var(--text-mute)] cursor-pointer transition-colors duration-100 w-full font-medium no-underline relative hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-current [&_svg]:opacity-85 group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:p-[9px] group-data-[collapsed=true]/shell:gap-0"
+  "flex items-center gap-[10px] py-[7px] px-[10px] rounded-md text-[13px] text-[var(--text-mute)] cursor-pointer transition-colors duration-100 w-full font-medium no-underline relative hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:text-current [&_svg]:opacity-85 group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:p-[9px] group-data-[collapsed=true]/shell:gap-0"
 
 export const ACTIVE_NAV_LINK_CLASS =
   "bg-[var(--surface)] text-[var(--text)] group-data-[collapsed=true]/shell:shadow-[inset_0_0_0_1px_var(--border-soft)] before:content-[''] before:w-[3px] before:h-[14px] before:bg-[var(--text)] before:rounded-[0_2px_2px_0] before:absolute before:left-0 group-data-[collapsed=true]/shell:before:hidden"

@@ -37,7 +37,7 @@ export function InviteForm() {
     <div className="flex flex-col gap-[10px]">
       <form className="grid grid-cols-[1fr_120px_auto] gap-[8px]" onSubmit={handleSubmit}>
         <input
-          className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[var(--text)] text-[13px] px-[12px] py-[8px] outline-none transition-colors duration-120 focus:border-[var(--border)] placeholder:text-[var(--text-faint)] h-[37px]"
+          className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[var(--text)] text-[13px] px-[12px] py-[8px] outline-none transition-colors duration-120 focus:border-[var(--border)] placeholder:text-[var(--text-faint)] h-[37px]"
           type="email"
           placeholder="teammate@company.com"
           value={email}
@@ -55,7 +55,7 @@ export function InviteForm() {
           variant="primary"
           leftIcon={<Icons.Plus />}
           loading={createInvite.isPending}
-          className="h-[37px] px-[20px] rounded-[9px]"
+          className="h-[37px] px-[20px] rounded-md"
         >
           {createInvite.isPending ? 'Sending…' : 'Invite'}
         </Button>
@@ -72,10 +72,10 @@ export function InviteForm() {
       </label>
 
       {latestInvite && (
-        <div className="flex items-center gap-[10px] px-[14px] py-[10px] bg-[var(--surface)] border border-[var(--border-faint)] rounded-[9px] mt-2">
+        <div className="flex items-center gap-[10px] px-[14px] py-[10px] bg-[var(--surface)] border border-[var(--border-faint)] rounded-md mt-2">
           <Icons.Link style={{ width: 13, height: 13, color: 'var(--text-faint)', flexShrink: 0 }} />
           <span className="flex-1 min-w-0 text-[11.5px] font-mono text-[var(--text-mute)] overflow-hidden text-ellipsis whitespace-nowrap">{latestInvite.invite_url}</span>
-          <button className="inline-flex items-center gap-[5px] px-[10px] py-[5px] rounded-[7px] bg-[var(--surface-2)] border border-[var(--border-faint)] text-[var(--text-mute)] text-[11.5px] font-medium cursor-pointer transition-colors duration-80 whitespace-nowrap hover:bg-[var(--surface-3)] hover:text-[var(--text)]" onClick={handleCopy} type="button">
+          <button className="inline-flex items-center gap-[5px] px-[10px] py-[5px] rounded-sm bg-[var(--surface-2)] border border-[var(--border-faint)] text-[var(--text-mute)] text-[11.5px] font-medium cursor-pointer transition-colors duration-80 whitespace-nowrap hover:bg-[var(--surface-3)] hover:text-[var(--text)]" onClick={handleCopy} type="button">
             {copied ? <Icons.Check style={{ width: 12, height: 12, color: 'var(--ok)' }} /> : <Icons.Copy style={{ width: 12, height: 12 }} />}
             {copied ? 'Copied' : 'Copy'}
           </button>

@@ -10,10 +10,10 @@ import type { WorkflowWithStats } from '@/features/workflows/types/workflowTypes
 
 /** Must match NAV_ITEM in app-sidebar.tsx */
 const ROW_BASE =
-  'flex items-center gap-[10px] py-[6px] px-[10px] rounded-[8px] text-[13px] font-medium w-full cursor-pointer transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] relative text-[var(--text-mute)]'
+  'flex items-center gap-[10px] py-[6px] px-[10px] rounded-md text-[13px] font-medium w-full cursor-pointer transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] relative text-[var(--text-mute)]'
 
 const MENU_ITEM =
-  'flex items-center gap-[9px] py-[8px] px-[10px] rounded-[7px] text-[13px] text-[var(--text-mute)] w-full text-left transition-colors duration-80 font-medium hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px] [&_svg]:shrink-0'
+  'flex items-center gap-[9px] py-[8px] px-[10px] rounded-sm text-[13px] text-[var(--text-mute)] w-full text-left transition-colors duration-80 font-medium hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px] [&_svg]:shrink-0'
 
 interface SidebarFolderItemProps {
   folder: Folder
@@ -120,7 +120,7 @@ export function SidebarFolderItem({
 
         <button
           className={cn(
-            'w-[22px] h-[22px] rounded-[5px] text-[var(--text-faint)] inline-flex items-center justify-center opacity-0 transition-all duration-100 shrink-0 hover:bg-[var(--surface-2)] hover:text-[var(--text)] group-hover/folder:opacity-100 [&_svg]:w-[13px] [&_svg]:h-[13px]',
+            'w-[22px] h-[22px] rounded-sm text-[var(--text-faint)] inline-flex items-center justify-center opacity-0 transition-all duration-100 shrink-0 hover:bg-[var(--surface-2)] hover:text-[var(--text)] group-hover/folder:opacity-100 [&_svg]:w-[13px] [&_svg]:h-[13px]',
             isMenuOpen && 'opacity-100 bg-[var(--surface-2)] text-[var(--text)]'
           )}
           onClick={handleMoreClick}
@@ -185,7 +185,7 @@ export function SidebarFolderItem({
             onPointerDown={(e) => e.stopPropagation()}
           />
           <div
-            className="w-[240px] bg-[var(--bg-2)] border border-[var(--border)] rounded-[11px] p-[5px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)] animate-in fade-in zoom-in-95 duration-100"
+            className="w-[240px] bg-[var(--bg-2)] border border-[var(--border)] rounded-lg p-[5px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)] animate-in fade-in zoom-in-95 duration-100"
             style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 9999 }}
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}

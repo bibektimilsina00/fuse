@@ -20,7 +20,7 @@ interface AppSidebarProps {
 
 /** Base class for all nav items — used by NavLink, workflow and folder rows */
 const NAV_ITEM =
-  'flex items-center gap-[10px] py-[6px] px-[10px] rounded-[8px] text-[13px] font-medium text-[var(--text-mute)] w-full cursor-pointer transition-all duration-200 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:shrink-0 [&_svg]:text-current [&_svg]:opacity-80 relative no-underline group-data-[collapsed=true]/shell:w-[36px] group-data-[collapsed=true]/shell:h-[36px] group-data-[collapsed=true]/shell:p-0 group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:mx-auto'
+  'flex items-center gap-[10px] py-[6px] px-[10px] rounded-md text-[13px] font-medium text-[var(--text-mute)] w-full cursor-pointer transition-all duration-200 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[15px] [&_svg]:h-[15px] [&_svg]:shrink-0 [&_svg]:text-current [&_svg]:opacity-80 relative no-underline group-data-[collapsed=true]/shell:w-[36px] group-data-[collapsed=true]/shell:h-[36px] group-data-[collapsed=true]/shell:p-0 group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:mx-auto'
 
 const NAV_ITEM_ACTIVE =
   "bg-[var(--surface)] text-[var(--text)] [&_svg]:opacity-100"
@@ -29,10 +29,10 @@ const SECTION_HEADER =
   'flex items-center gap-[6px] px-[10px] pt-[6px] pb-[4px] select-none group-data-[collapsed=true]/shell:hidden'
 
 const ACTION_BTN =
-  'w-[20px] h-[20px] rounded-[5px] inline-flex items-center justify-center text-[var(--text-faint)] transition-colors duration-100 shrink-0 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[12px] [&_svg]:h-[12px]'
+  'w-[20px] h-[20px] rounded-sm inline-flex items-center justify-center text-[var(--text-faint)] transition-colors duration-100 shrink-0 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[12px] [&_svg]:h-[12px]'
 
 const MENU_ITEM =
-  'flex items-center gap-[9px] py-[8px] px-[10px] rounded-[7px] text-[13px] text-[var(--text-mute)] w-full text-left transition-colors duration-80 font-medium hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px] [&_svg]:shrink-0'
+  'flex items-center gap-[9px] py-[8px] px-[10px] rounded-sm text-[13px] text-[var(--text-mute)] w-full text-left transition-colors duration-80 font-medium hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px] [&_svg]:shrink-0'
 
 export function AppSidebar({ controller, variant = 'floating' }: AppSidebarProps) {
   const [helpOpen, setHelpOpen] = useState(false)
@@ -86,7 +86,7 @@ export function AppSidebar({ controller, variant = 'floating' }: AppSidebarProps
         'relative flex flex-col overflow-hidden transition-all duration-300 ease-in-out z-20',
         isFlat
           ? 'h-screen bg-[var(--bg-2)] border-r border-[var(--border-faint)]'
-          : 'h-[calc(100vh-28px)] my-[14px] mx-[14px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-[16px] shadow-[inset_0_1px_0_oklch(0.30_0.004_250/0.4),0_24px_48px_-28px_oklch(0_0_0/0.6)]'
+          : 'h-[calc(100vh-28px)] my-[14px] mx-[14px] bg-[var(--bg-2)] border border-[var(--border-faint)] rounded-lg shadow-[inset_0_1px_0_oklch(0.30_0.004_250/0.4),0_24px_48px_-28px_oklch(0_0_0/0.6)]'
       )}
     >
       <SidebarHeader collapsed={collapsed} onToggleCollapsed={() => setCollapsed(value => !value)} />
@@ -249,14 +249,14 @@ export function AppSidebar({ controller, variant = 'floating' }: AppSidebarProps
       <div className="shrink-0 h-[36px] px-[8px] border-t border-[var(--border-faint)] flex items-center gap-[2px] group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:h-[48px] group-data-[collapsed=true]/shell:px-0">
         <div className="flex w-full gap-[2px] group-data-[collapsed=true]/shell:hidden">
           <button
-            className="flex-1 h-[24px] inline-flex items-center justify-center gap-[6px] px-[8px] rounded-[7px] text-[12px] text-[var(--text-faint)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px]"
+            className="flex-1 h-[24px] inline-flex items-center justify-center gap-[6px] px-[8px] rounded-sm text-[12px] text-[var(--text-faint)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px]"
             type="button"
           >
             <Icons.Help />
             <span>Help & docs</span>
           </button>
           <button
-            className="flex-1 h-[24px] inline-flex items-center justify-center gap-[6px] px-[8px] rounded-[7px] text-[12px] text-[var(--text-faint)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px]"
+            className="flex-1 h-[24px] inline-flex items-center justify-center gap-[6px] px-[8px] rounded-sm text-[12px] text-[var(--text-faint)] font-medium transition-colors duration-100 hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px]"
             type="button"
           >
             <Icons.Feedback />
@@ -267,7 +267,7 @@ export function AppSidebar({ controller, variant = 'floating' }: AppSidebarProps
         <button
           ref={helpTriggerRef}
           onClick={toggleHelp}
-          className="hidden group-data-[collapsed=true]/shell:inline-flex w-[36px] h-[36px] items-center justify-center rounded-[8px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[15px] [&_svg]:h-[15px]"
+          className="hidden group-data-[collapsed=true]/shell:inline-flex w-[36px] h-[36px] items-center justify-center rounded-sm text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[15px] [&_svg]:h-[15px]"
           type="button"
           title="Help & feedback"
         >
@@ -279,18 +279,18 @@ export function AppSidebar({ controller, variant = 'floating' }: AppSidebarProps
         <>
           <div className="fixed inset-0 z-[9998]" onClick={() => setHelpOpen(false)} />
           <div
-            className="fixed z-[9999] w-[160px] bg-[var(--bg-2)] border border-[var(--border)] rounded-[11px] p-[5px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)] animate-in fade-in slide-in-from-bottom-2 duration-100 flex flex-col gap-[2px]"
+            className="fixed z-[9999] w-[160px] bg-[var(--bg-2)] border border-[var(--border)] rounded-md p-[5px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)] animate-in fade-in slide-in-from-bottom-2 duration-100 flex flex-col gap-[2px]"
             style={{ top: helpPos.top, left: helpPos.left }}
           >
             <button
-              className="flex items-center gap-[9px] py-[7px] px-[10px] rounded-[7px] text-[13px] text-[var(--text-mute)] w-full text-left transition-colors font-medium hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px] bg-transparent border-none cursor-pointer"
+              className="flex items-center gap-[9px] py-[7px] px-[10px] rounded-sm text-[13px] text-[var(--text-mute)] w-full text-left transition-colors font-medium hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px] bg-transparent border-none cursor-pointer"
               onClick={() => setHelpOpen(false)}
             >
               <Icons.Help />
               Help & docs
             </button>
             <button
-              className="flex items-center gap-[9px] py-[7px] px-[10px] rounded-[7px] text-[13px] text-[var(--text-mute)] w-full text-left transition-colors font-medium hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px] bg-transparent border-none cursor-pointer"
+              className="flex items-center gap-[9px] py-[7px] px-[10px] rounded-sm text-[13px] text-[var(--text-mute)] w-full text-left transition-colors font-medium hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px] bg-transparent border-none cursor-pointer"
               onClick={() => setHelpOpen(false)}
             >
               <Icons.Feedback />
@@ -311,13 +311,13 @@ function SidebarHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean; o
       {/* Logo row */}
       <div className="flex items-center justify-between group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:w-full">
         <span className="inline-flex items-center gap-[8px] text-[14px] font-semibold tracking-tight text-[var(--text)] group-data-[collapsed=true]/shell:hidden">
-          <span className="w-[22px] h-[22px] inline-flex items-center justify-center rounded-[6px] bg-[var(--text)] text-[var(--bg)] shrink-0">
+          <span className="w-[22px] h-[22px] inline-flex items-center justify-center rounded-sm bg-[var(--text)] text-[var(--bg)] shrink-0">
             <Icons.FuseMark style={{ width: 13, height: 13 }} />
           </span>
           <span>fuse</span>
         </span>
         <button
-          className="rounded-[6px] text-[var(--text-faint)] inline-flex items-center justify-center transition-all duration-200 shrink-0 w-[24px] h-[24px] hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px] group-data-[collapsed=true]/shell:w-[32px] group-data-[collapsed=true]/shell:h-[32px] group-data-[collapsed=true]/shell:relative group-data-[collapsed=true]/shell:mx-auto group-data-[collapsed=true]/shell:bg-transparent group-data-[collapsed=true]/shell:hover:bg-[var(--surface)] group-data-[collapsed=true]/shell:hover:text-[var(--text)] group-data-[collapsed=true]/shell:p-0"
+          className="rounded-sm text-[var(--text-faint)] inline-flex items-center justify-center transition-all duration-200 shrink-0 w-[24px] h-[24px] hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px] group-data-[collapsed=true]/shell:w-[32px] group-data-[collapsed=true]/shell:h-[32px] group-data-[collapsed=true]/shell:relative group-data-[collapsed=true]/shell:mx-auto group-data-[collapsed=true]/shell:bg-transparent group-data-[collapsed=true]/shell:hover:bg-[var(--surface)] group-data-[collapsed=true]/shell:hover:text-[var(--text)] group-data-[collapsed=true]/shell:p-0"
           onClick={onToggleCollapsed}
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
@@ -325,7 +325,7 @@ function SidebarHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean; o
             {collapsed ? <Icons.PanelOpen /> : <Icons.PanelClose />}
           </span>
           <span className="hidden group-data-[collapsed=true]/shell:flex items-center justify-center w-full h-full relative group/btn">
-            <span className="w-[22px] h-[22px] inline-flex items-center justify-center rounded-[6px] bg-[var(--text)] text-[var(--bg)] absolute transition-all duration-150 group-hover/btn:opacity-0 group-hover/btn:scale-75">
+            <span className="w-[22px] h-[22px] inline-flex items-center justify-center rounded-sm bg-[var(--text)] text-[var(--bg)] absolute transition-all duration-150 group-hover/btn:opacity-0 group-hover/btn:scale-75">
               <Icons.FuseMark style={{ width: 13, height: 13 }} />
             </span>
             <span className="absolute opacity-0 scale-75 transition-all duration-150 group-hover/btn:opacity-100 group-hover/btn:scale-100 text-[var(--text-faint)] group-hover/btn:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px]">
@@ -341,7 +341,7 @@ function SidebarHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean; o
       </div>
 
       {/* Search bar */}
-      <div className="flex items-center gap-[8px] px-[10px] h-[32px] rounded-[8px] bg-[var(--bg)] border border-[var(--border-faint)] transition-all duration-120 w-full min-w-0 hover:border-[var(--border-soft)] focus-within:border-[var(--border)] focus-within:bg-[var(--surface)] [&>svg]:w-[13px] [&>svg]:h-[13px] [&>svg]:text-[var(--text-faint)] [&>svg]:shrink-0 group-data-[collapsed=true]/shell:hidden">
+      <div className="flex items-center gap-[8px] px-[10px] h-[32px] rounded-md bg-[var(--bg)] border border-[var(--border-faint)] transition-all duration-120 w-full min-w-0 hover:border-[var(--border-soft)] focus-within:border-[var(--border)] focus-within:bg-[var(--surface)] [&>svg]:w-[13px] [&>svg]:h-[13px] [&>svg]:text-[var(--text-faint)] [&>svg]:shrink-0 group-data-[collapsed=true]/shell:hidden">
         <Icons.Search />
         <input
           placeholder="Search"
@@ -400,7 +400,7 @@ function WorkflowTree({
           <Spinner />
         </div>
       ) : folders.length === 0 && workflows.length === 0 ? (
-        <div className="mx-[2px] mt-[2px] flex flex-col items-center justify-center gap-[6px] py-[20px] px-[12px] rounded-[8px] border border-dashed border-[var(--border-faint)]">
+        <div className="mx-[2px] mt-[2px] flex flex-col items-center justify-center gap-[6px] py-[20px] px-[12px] rounded-md border border-dashed border-[var(--border-faint)]">
           <span className="text-[11px] text-[var(--text-faint)] text-center leading-relaxed">
             No workflows yet
           </span>

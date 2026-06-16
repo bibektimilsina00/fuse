@@ -23,7 +23,7 @@ export function MemberList({ members, workspaceId }: Props) {
   const removeMember = useRemoveMember(workspaceId)
 
   return (
-    <div className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px] overflow-hidden">
+    <div className="bg-[var(--bg)] border border-[var(--border-faint)] rounded-lg overflow-hidden">
       <div className="grid grid-cols-[minmax(0,1fr)_120px_120px_40px] gap-[12px] px-[16px] py-[9px] border-b border-[var(--border-faint)] font-mono text-[10.5px] tracking-widest uppercase text-text-mute">
         <span>Member</span>
         <span>Role</span>
@@ -40,11 +40,11 @@ export function MemberList({ members, workspaceId }: Props) {
         return (
           <div key={m.id} className="grid grid-cols-[minmax(0,1fr)_120px_120px_40px] gap-[12px] px-[16px] py-[12px] items-center border-b border-[var(--border-faint)] transition-colors duration-80 last:border-none hover:bg-[var(--surface)]">
             <div className="flex items-center gap-[10px] min-w-0">
-              <span className="w-[28px] h-[28px] rounded-[8px] bg-[var(--surface-3)] border border-[var(--border-soft)] inline-flex items-center justify-center text-[11px] font-semibold text-[var(--text)] shrink-0">{initial}</span>
+              <span className="w-[28px] h-[28px] rounded-md bg-[var(--surface-3)] border border-[var(--border-soft)] inline-flex items-center justify-center text-[11px] font-semibold text-[var(--text)] shrink-0">{initial}</span>
               <span className="flex flex-col gap-[1px] min-w-0">
                 <span className="text-[13px] font-medium text-[var(--text)] inline-flex items-center gap-[6px] whitespace-nowrap overflow-hidden text-ellipsis">
                   {displayName}
-                  {isCurrentUser && <span className="text-[9.5px] font-mono font-semibold tracking-widest uppercase text-[var(--accent)] bg-[oklch(0.78_0.13_245/0.14)] py-[2px] px-[6px] pb-[1px] rounded-[4px]">you</span>}
+                  {isCurrentUser && <span className="text-[9.5px] font-mono font-semibold tracking-widest uppercase text-[var(--accent)] bg-[oklch(0.78_0.13_245/0.14)] py-[2px] px-[6px] pb-[1px] rounded-sm">you</span>}
                 </span>
                 <span className="text-[11px] text-[var(--text-faint)] font-mono">{m.user.email}</span>
               </span>
@@ -72,7 +72,7 @@ export function MemberList({ members, workspaceId }: Props) {
                 />
               ) : (
                 <span className={cn(
-                  "font-mono text-[10px] tracking-widest uppercase py-[3px] px-[8px] pb-[2px] rounded-[5px] font-medium",
+                  "font-mono text-[10px] tracking-widest uppercase py-[3px] px-[8px] pb-[2px] rounded-sm font-medium",
                   m.role === 'owner' && "bg-[oklch(0.78_0.14_145/0.14)] text-[var(--ok)]",
                   m.role === 'admin' && "bg-[oklch(0.78_0.13_245/0.14)] text-[var(--accent)]",
                   m.role === 'member' && "bg-[var(--surface-2)] text-[var(--text-mute)]",

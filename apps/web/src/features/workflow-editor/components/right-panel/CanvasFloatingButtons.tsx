@@ -23,7 +23,7 @@ export function CanvasFloatingButtons({
   const setZoneOpen    = useEditorLayoutStore((s) => s.setZoneOpen)
 
   const btnBase = cn(
-    'w-[38px] h-[38px] rounded-[10px]',
+    'w-[38px] h-[38px] rounded-md',
     'bg-[var(--bg-2)] border border-[var(--border-faint)]',
     'flex items-center justify-center',
     'text-[var(--text-mute)] hover:text-[var(--text)] hover:border-[var(--border-soft)]',

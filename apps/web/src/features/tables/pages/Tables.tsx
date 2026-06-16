@@ -97,7 +97,7 @@ export function Tables() {
           </div>
           <button
             onClick={() => setCreateOpen(true)}
-            className="flex h-7 w-7 items-center justify-center rounded-[7px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
+            className="flex h-7 w-7 items-center justify-center rounded-sm text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
             title="New table"
           >
             <Icons.Plus className="h-3.5 w-3.5" />
@@ -110,7 +110,7 @@ export function Tables() {
             <input placeholder="Search" value={search} onChange={event => setSearch(event.target.value)} />
           </div>
           <button
-            className="mt-2 flex w-full items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 text-left text-[12px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
+            className="mt-2 flex w-full items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-left text-[12px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
             onClick={() => fileInputRef.current?.click()}
           >
             <Icons.Download className="h-3.5 w-3.5" /> {importCsv.isPending ? 'Importing...' : 'Import CSV'}
@@ -176,7 +176,7 @@ export function Tables() {
             {items.length === 0 && (
               <button
                 onClick={() => setCreateOpen(true)}
-                className="flex items-center gap-1.5 rounded-[8px] border border-[var(--border-faint)] px-4 py-2 text-[13px] text-[var(--text-faint)] transition-colors hover:border-[var(--border-soft)] hover:text-[var(--text)]"
+                className="flex items-center gap-1.5 rounded-md border border-[var(--border-faint)] px-4 py-2 text-[13px] text-[var(--text-faint)] transition-colors hover:border-[var(--border-soft)] hover:text-[var(--text)]"
               >
                 <Icons.Plus className="h-3.5 w-3.5" /> New table
               </button>

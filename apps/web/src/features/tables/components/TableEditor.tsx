@@ -307,7 +307,7 @@ export function TableEditor({ table }: TableEditorProps) {
             <button
               onClick={() => setShowFilterBar(prev => !prev)}
               className={cn(
-                'flex items-center gap-1.5 rounded-[8px] border px-2.5 py-1.5 text-[12px] transition-colors',
+                'flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[12px] transition-colors',
                 showFilterBar
                   ? 'border-[var(--border-soft)] bg-[var(--surface)] text-[var(--text)] font-medium'
                   : 'border-[var(--border-faint)] text-[var(--text-faint)] hover:border-[var(--border-soft)] hover:text-[var(--text)]',
@@ -318,7 +318,7 @@ export function TableEditor({ table }: TableEditorProps) {
             <button
               onClick={() => setShowSortBar(prev => !prev)}
               className={cn(
-                'flex items-center gap-1.5 rounded-[8px] border px-2.5 py-1.5 text-[12px] transition-colors',
+                'flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[12px] transition-colors',
                 showSortBar
                   ? 'border-[var(--border-soft)] bg-[var(--surface)] text-[var(--text)] font-medium'
                   : 'border-[var(--border-faint)] text-[var(--text-faint)] hover:border-[var(--border-soft)] hover:text-[var(--text)]',
@@ -342,7 +342,7 @@ export function TableEditor({ table }: TableEditorProps) {
             </button>
             <button
               className={cn(
-                'flex items-center gap-1.5 rounded-[8px] border px-2.5 py-1.5 text-[12px] transition-colors',
+                'flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[12px] transition-colors',
                 columnPanelOpen && !editingColumn
                   ? 'border-[var(--border-soft)] bg-[var(--surface)] text-[var(--text)]'
                   : 'border-[var(--border-faint)] text-[var(--text-faint)] hover:border-[var(--border-soft)] hover:text-[var(--text)]',
@@ -397,7 +397,7 @@ export function TableEditor({ table }: TableEditorProps) {
                     value={filterValue}
                     onChange={e => setFilterValue(e.target.value)}
                     placeholder="Value..."
-                    className="rounded-[6px] border border-[var(--border-faint)] bg-[var(--surface)] px-2.5 py-1 text-[12px] text-[var(--text)] outline-none focus:border-[var(--border-soft)] placeholder:text-[var(--text-faint)] min-w-[150px] h-8"
+                    className="rounded-sm border border-[var(--border-faint)] bg-[var(--surface)] px-2.5 py-1 text-[12px] text-[var(--text)] outline-none focus:border-[var(--border-soft)] placeholder:text-[var(--text-faint)] min-w-[150px] h-8"
                   />
                 )}
 
@@ -548,7 +548,7 @@ function ColumnPanel({
             value={form.name}
             onChange={event => setForm(current => ({ ...current, name: event.target.value }))}
             placeholder="Column name"
-            className="w-full rounded-[8px] border border-[var(--border-faint)] bg-[var(--surface)] px-3 py-2 text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-faint)] focus:border-[var(--border-soft)]"
+            className="w-full rounded-md border border-[var(--border-faint)] bg-[var(--surface)] px-3 py-2 text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-faint)] focus:border-[var(--border-soft)]"
           />
         </div>
 
@@ -566,7 +566,7 @@ function ColumnPanel({
                   type="button"
                   onClick={() => setForm(current => ({ ...current, colType: typeDef.type }))}
                   className={cn(
-                    'flex w-full items-center gap-2.5 rounded-[8px] border px-3 py-2 text-left transition-colors',
+                    'flex w-full items-center gap-2.5 rounded-md border px-3 py-2 text-left transition-colors',
                     active
                       ? 'border-[var(--border-soft)] bg-[var(--surface)] text-[var(--text)]'
                       : 'border-transparent text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)]',
@@ -593,7 +593,7 @@ function ColumnPanel({
               {form.choices.map((choice, index) => (
                 <div
                   key={`${choice}:${index}`}
-                  className="group flex items-center gap-2 rounded-[8px] border border-[var(--border-faint)] bg-[var(--surface)] px-2.5 py-1.5"
+                  className="group flex items-center gap-2 rounded-md border border-[var(--border-faint)] bg-[var(--surface)] px-2.5 py-1.5"
                 >
                   <div className="h-2 w-2 shrink-0 rounded-full bg-[var(--ok)]" />
                   <span className="flex-1 truncate text-[12px] text-[var(--text)]">{choice}</span>
@@ -620,12 +620,12 @@ function ColumnPanel({
                   addChoice(setForm)
                 }}
                 placeholder="Add option..."
-                className="min-w-0 flex-1 rounded-[8px] border border-[var(--border-faint)] bg-[var(--surface)] px-2.5 py-1.5 text-[12px] text-[var(--text)] outline-none placeholder:text-[var(--text-faint)] focus:border-[var(--border-soft)]"
+                className="min-w-0 flex-1 rounded-md border border-[var(--border-faint)] bg-[var(--surface)] px-2.5 py-1.5 text-[12px] text-[var(--text)] outline-none placeholder:text-[var(--text-faint)] focus:border-[var(--border-soft)]"
               />
               <button
                 type="button"
                 onClick={() => addChoice(setForm)}
-                className="rounded-[8px] border border-[var(--border-faint)] px-2.5 py-1.5 text-[var(--text-faint)] transition-colors hover:text-[var(--text)]"
+                className="rounded-md border border-[var(--border-faint)] px-2.5 py-1.5 text-[var(--text-faint)] transition-colors hover:text-[var(--text)]"
               >
                 <Icons.Plus className="h-3.5 w-3.5" />
               </button>
@@ -668,7 +668,7 @@ function ColumnPanel({
               value={form.defaultValue}
               onChange={event => setForm(current => ({ ...current, defaultValue: event.target.value }))}
               placeholder="Leave empty for none"
-              className="w-full rounded-[8px] border border-[var(--border-faint)] bg-[var(--surface)] px-3 py-2 text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-faint)] focus:border-[var(--border-soft)]"
+              className="w-full rounded-md border border-[var(--border-faint)] bg-[var(--surface)] px-3 py-2 text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-faint)] focus:border-[var(--border-soft)]"
             />
           </div>
         )}
@@ -680,7 +680,7 @@ function ColumnPanel({
             type="button"
             onClick={onDelete}
             disabled={deleting}
-            className="rounded-[8px] border border-[var(--border-faint)] px-3 py-2 text-[12px] text-[var(--err)] transition-colors hover:bg-[var(--surface)] disabled:opacity-40"
+            className="rounded-md border border-[var(--border-faint)] px-3 py-2 text-[12px] text-[var(--err)] transition-colors hover:bg-[var(--surface)] disabled:opacity-40"
           >
             Delete
           </button>
@@ -688,14 +688,14 @@ function ColumnPanel({
         <button
           type="button"
           onClick={onClose}
-          className="flex-1 rounded-[8px] border border-[var(--border-faint)] py-2 text-[12px] text-[var(--text-faint)] transition-colors hover:text-[var(--text)]"
+          className="flex-1 rounded-md border border-[var(--border-faint)] py-2 text-[12px] text-[var(--text-faint)] transition-colors hover:text-[var(--text)]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={saving || !form.name.trim()}
-          className="flex-1 rounded-[8px] bg-[var(--text)] py-2 text-[12px] font-semibold text-[var(--bg)] transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="flex-1 rounded-md bg-[var(--text)] py-2 text-[12px] font-semibold text-[var(--bg)] transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           {saving ? 'Saving...' : editingColumn ? 'Save changes' : 'Add column'}
         </button>

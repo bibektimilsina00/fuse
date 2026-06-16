@@ -16,7 +16,7 @@ export function NodeLibraryPanel() {
             onChange={e => setQuery(e.target.value)}
             placeholder="Search nodes…"
             className={cn(
-              'h-8 w-full rounded-[8px] border border-[var(--border-faint)] bg-[var(--surface)]',
+              'h-8 w-full rounded-md border border-[var(--border-faint)] bg-[var(--surface)]',
               'pl-8 pr-3 text-[12.5px] text-[var(--text)] placeholder:text-[var(--text-dim)]',
               'outline-none transition-colors focus:border-[var(--border-soft)] focus:bg-[var(--bg-2)]',
             )}
@@ -42,13 +42,13 @@ export function NodeLibraryPanel() {
                     onClick={() => spawnNode(def)}
                     onDragStart={e => onDragStart(e, def)}
                     className={cn(
-                      'flex cursor-pointer select-none items-center gap-2.5 rounded-[8px] px-2.5 py-2',
+                      'flex cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 py-2',
                       'transition-colors hover:bg-[var(--surface)] active:bg-[var(--surface-2)] active:cursor-grabbing',
                     )}
                     title="Click to add · Drag to position"
                   >
                     <div
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] text-white [&_svg]:h-3 [&_svg]:w-3"
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-white [&_svg]:h-3 [&_svg]:w-3"
                       style={{ background: def.color ?? 'var(--surface-3)' }}
                     >
                       {Icon}

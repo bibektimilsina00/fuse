@@ -60,9 +60,9 @@ export function Showcase() {
       <div className="relative max-w-6xl mx-auto px-6 py-8 md:px-10 md:py-12 flex flex-col gap-8 z-10">
         
         {/* Top Navbar Header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-bg2/50 backdrop-blur-md border border-border-faint rounded-[14px] p-4 shadow-panel">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-bg2/50 backdrop-blur-md border border-border-faint rounded-xl p-4 shadow-panel">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-[8px] bg-text text-bg flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-md bg-text text-bg flex items-center justify-center shadow-sm">
               <Zap size={15} />
             </div>
             <div>
@@ -76,13 +76,13 @@ export function Showcase() {
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Sync State Mockup */}
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-text-mute bg-bg border border-border-faint px-3 py-1.5 rounded-[8px]">
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-text-mute bg-bg border border-border-faint px-3 py-1.5 rounded-md">
               <StatusDot status="ok" size="sm" />
               <span>System Synced</span>
             </div>
 
             {/* Search Mockup */}
-            <div className="relative hidden lg:flex items-center w-48 h-8 bg-bg border border-border-faint rounded-[8px] px-2.5 text-text-faint text-xs hover:border-border-soft transition-colors cursor-text">
+            <div className="relative hidden lg:flex items-center w-48 h-8 bg-bg border border-border-faint rounded-md px-2.5 text-text-faint text-xs hover:border-border-soft transition-colors cursor-text">
               <Search size={12} className="mr-1.5" />
               <span>Search components...</span>
               <span className="kbd ml-auto">⌘K</span>
@@ -176,7 +176,7 @@ export function Showcase() {
                   title="Authentication Module Showcase" 
                   description="Stateful Login and Registration forms utilizing our custom-styled shared UI elements." 
                 />
-                <div className="flex gap-2 self-start sm:self-center bg-bg p-1 border border-border-faint rounded-[8px]">
+                <div className="flex gap-2 self-start sm:self-center bg-bg p-1 border border-border-faint rounded-md">
                   <Button 
                     variant={authTab === 'login' ? 'primary' : 'secondary'} 
                     size="sm"
@@ -196,7 +196,7 @@ export function Showcase() {
                 </div>
               </div>
               
-              <div className="flex justify-center items-center py-8 px-4 bg-bg border border-border-faint rounded-[12px] min-h-[460px] relative overflow-hidden">
+              <div className="flex justify-center items-center py-8 px-4 bg-bg border border-border-faint rounded-lg min-h-[460px] relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-tr from-bg/10 via-surface/5 to-text/2 opacity-20 pointer-events-none" />
                 <div className="w-full max-w-[400px] z-10">
                   {authTab === 'login' ? (
@@ -230,11 +230,11 @@ export function Showcase() {
                 
                 <TabsContent value="overview" className="pt-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-[8px] bg-bg border border-border-faint flex flex-col gap-1">
+                    <div className="p-4 rounded-md bg-bg border border-border-faint flex flex-col gap-1">
                       <span className="text-xs text-text-mute">Last Executed</span>
                       <span className="text-sm font-semibold text-text">2 minutes ago</span>
                     </div>
-                    <div className="p-4 rounded-[8px] bg-bg border border-border-faint flex flex-col gap-1">
+                    <div className="p-4 rounded-md bg-bg border border-border-faint flex flex-col gap-1">
                       <span className="text-xs text-text-mute">Average Duration</span>
                       <span className="text-sm font-semibold text-text">410ms</span>
                     </div>
@@ -242,7 +242,7 @@ export function Showcase() {
                 </TabsContent>
                 
                 <TabsContent value="runs" className="pt-4">
-                  <div className="border border-border-faint rounded-[8px] overflow-hidden bg-bg">
+                  <div className="border border-border-faint rounded-md overflow-hidden bg-bg">
                     {[
                       { id: "run-e2a1", time: "10:01:03", state: "ok" as const, desc: "Completed successfully" },
                       { id: "run-9c2b", time: "09:44:12", state: "err" as const, desc: "Task failed at StripeAPI Node" },
@@ -261,7 +261,7 @@ export function Showcase() {
                 </TabsContent>
                 
                 <TabsContent value="logs" className="pt-4">
-                  <div className="p-4 rounded-[8px] bg-bg border border-border-faint font-mono text-xs text-text-mute leading-relaxed">
+                  <div className="p-4 rounded-md bg-bg border border-border-faint font-mono text-xs text-text-mute leading-relaxed">
                     <div className="flex items-center gap-1 text-text-faint">
                       <Terminal size={12} />
                       <span>Console output:</span>
@@ -277,7 +277,7 @@ export function Showcase() {
                 </TabsContent>
                 
                 <TabsContent value="settings" className="pt-4">
-                  <div className="p-4 rounded-[8px] bg-bg border border-border-faint flex flex-col gap-3">
+                  <div className="p-4 rounded-md bg-bg border border-border-faint flex flex-col gap-3">
                     <FormField label="Concurrency Limit">
                       <Select 
                         options={[
@@ -336,7 +336,7 @@ export function Showcase() {
 
                 {/* empty templates */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-bg/40 border border-border-faint rounded-[12px] p-6 text-center flex flex-col items-center justify-center">
+                  <div className="bg-bg/40 border border-border-faint rounded-lg p-6 text-center flex flex-col items-center justify-center">
                     <Empty 
                       icon={<Workflow size={16} />} 
                       title="No Connected Tables" 
@@ -345,7 +345,7 @@ export function Showcase() {
                     />
                   </div>
                   
-                  <div className="bg-bg/40 border border-border-faint rounded-[12px] p-6 text-center flex flex-col items-center justify-center">
+                  <div className="bg-bg/40 border border-border-faint rounded-lg p-6 text-center flex flex-col items-center justify-center">
                     <Empty 
                       icon={<Filter size={16} />} 
                       title="No Executed Runs" 
@@ -438,7 +438,7 @@ export function Showcase() {
 
                 <div className="flex flex-col gap-2">
                   <span className="mono-label text-text-faint">StatusDot Legend</span>
-                  <div className="grid grid-cols-2 gap-3 bg-bg/50 border border-border-faint rounded-[8px] p-3">
+                  <div className="grid grid-cols-2 gap-3 bg-bg/50 border border-border-faint rounded-md p-3">
                     {(['ok', 'warn', 'err', 'run', 'draft'] as const).map(s => (
                       <div key={s} className="flex items-center gap-2">
                         <StatusDot status={s} size="md" />

@@ -27,7 +27,7 @@ export function SkillIconBadge({ iconName, size = 'md' }: SkillIconBadgeProps) {
   const dims = SIZE_MAP[size]
   return (
     <div
-      className={`flex ${dims.box} shrink-0 items-center justify-center rounded-[8px] bg-surface text-text-mute`}
+      className={`flex ${dims.box} shrink-0 items-center justify-center rounded-md bg-surface text-text-mute`}
     >
       {createElement(Icon, { size: dims.icon })}
     </div>

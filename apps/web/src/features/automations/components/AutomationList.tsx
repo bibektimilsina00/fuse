@@ -112,7 +112,7 @@ export function AutomationList({ items }: Props) {
               <button
                 onClick={e => handleRun(a, e)}
                 disabled={run.isPending || a.status === 'draft'}
-                className="w-[24px] h-[24px] rounded-[5px] inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[oklch(0.78_0.14_145/0.14)] hover:text-[var(--ok)] transition-all disabled:opacity-30"
+                className="w-[24px] h-[24px] rounded-sm inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[oklch(0.78_0.14_145/0.14)] hover:text-[var(--ok)] transition-all disabled:opacity-30"
                 title="Run now"
               >
                 <Icons.Activity style={{ width: 12, height: 12 }} />
@@ -122,7 +122,7 @@ export function AutomationList({ items }: Props) {
               <button
                 onClick={e => handleToggle(a, e)}
                 disabled={toggle.isPending || a.status === 'draft'}
-                className="w-[24px] h-[24px] rounded-[5px] inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[var(--surface-2)] hover:text-[var(--text)] transition-all disabled:opacity-30"
+                className="w-[24px] h-[24px] rounded-sm inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[var(--surface-2)] hover:text-[var(--text)] transition-all disabled:opacity-30"
                 title={a.is_active ? 'Pause' : 'Resume'}
               >
                 {a.is_active
@@ -135,7 +135,7 @@ export function AutomationList({ items }: Props) {
               <button
                 onClick={e => handleDuplicate(a, e)}
                 disabled={duplicate.isPending}
-                className="w-[24px] h-[24px] rounded-[5px] inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[var(--surface-2)] hover:text-[var(--text)] transition-all disabled:opacity-30"
+                className="w-[24px] h-[24px] rounded-sm inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[var(--surface-2)] hover:text-[var(--text)] transition-all disabled:opacity-30"
                 title="Duplicate"
               >
                 <Icons.Copy style={{ width: 11, height: 11 }} />
@@ -145,7 +145,7 @@ export function AutomationList({ items }: Props) {
               <button
                 onClick={e => handleDelete(a, e)}
                 disabled={remove.isPending}
-                className="w-[24px] h-[24px] rounded-[5px] inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-all disabled:opacity-30"
+                className="w-[24px] h-[24px] rounded-sm inline-flex items-center justify-center text-[var(--text-dim)] opacity-0 group-hover:opacity-100 hover:bg-[oklch(0.70_0.18_22/0.14)] hover:text-[var(--err)] transition-all disabled:opacity-30"
                 title="Delete"
               >
                 <Icons.Trash style={{ width: 11, height: 11 }} />

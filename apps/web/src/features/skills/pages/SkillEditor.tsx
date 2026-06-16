@@ -162,7 +162,7 @@ export function SkillEditor() {
               {draft.name.trim() || (isNew ? 'New skill' : 'Untitled skill')}
             </span>
             {dirty && (
-              <span className="rounded-[4px] bg-warn/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-warn">
+              <span className="rounded-sm bg-warn/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-warn">
                 Unsaved
               </span>
             )}
@@ -238,7 +238,7 @@ export function SkillEditor() {
           </div>
 
           {error && (
-            <div className="rounded-[6px] border border-err/40 bg-err/10 px-3 py-2 text-[11.5px] text-err">
+            <div className="rounded-sm border border-err/40 bg-err/10 px-3 py-2 text-[11.5px] text-err">
               {error}
             </div>
           )}

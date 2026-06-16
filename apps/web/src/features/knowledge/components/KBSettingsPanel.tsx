@@ -107,7 +107,7 @@ export function KBSettingsPanel({ kb, onClose, onSaved }: Props) {
             <h3 className="text-[14px] font-semibold text-[var(--text)] tracking-tight">Settings</h3>
             <p className="text-[12px] text-[var(--text-faint)] mt-0.5">{kb.name}</p>
           </div>
-          <button onClick={onClose} className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px]">✕</button>
+          <button onClick={onClose} className="w-[28px] h-[28px] rounded-sm flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px]">✕</button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-6">
@@ -120,7 +120,7 @@ export function KBSettingsPanel({ kb, onClose, onSaved }: Props) {
             </div>
             <Dropdown className="w-full">
               <DropdownTrigger className="w-full">
-                <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
+                <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[13px] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
                   <span className="text-[var(--text)]">{provider}</span>
                   <Icons.Caret style={{ width: 11, height: 11, color: 'var(--text-faint)' }} />
                 </div>
@@ -169,26 +169,26 @@ export function KBSettingsPanel({ kb, onClose, onSaved }: Props) {
             </div>
             <div className="flex flex-col gap-1.5">
               {!isDefault && !credId ? (
-                <div className="px-3 py-3 text-[12px] text-[var(--text-faint)] bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px]">
+                <div className="px-3 py-3 text-[12px] text-[var(--text-faint)] bg-[var(--bg)] border border-[var(--border-faint)] rounded-md">
                   Select a credential above to list available models.
                 </div>
               ) : modelsQuery.isError ? (
-                <div className="px-3 py-3 text-[12px] text-[var(--err)] bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px]">
+                <div className="px-3 py-3 text-[12px] text-[var(--err)] bg-[var(--bg)] border border-[var(--border-faint)] rounded-md">
                   {modelsQuery.error instanceof Error ? modelsQuery.error.message : 'Failed to list models.'}
                 </div>
               ) : modelsQuery.isLoading ? (
-                <div className="px-3 py-3 text-[12px] text-[var(--text-faint)] bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px]">
+                <div className="px-3 py-3 text-[12px] text-[var(--text-faint)] bg-[var(--bg)] border border-[var(--border-faint)] rounded-md">
                   Loading models from {provider}…
                 </div>
               ) : providerModels.length === 0 ? (
-                <div className="px-3 py-3 text-[12px] text-[var(--text-faint)] bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px]">
+                <div className="px-3 py-3 text-[12px] text-[var(--text-faint)] bg-[var(--bg)] border border-[var(--border-faint)] rounded-md">
                   No embedding models available for {provider}.
                 </div>
               ) : (
                 providerModels.map(m => (
                   <label key={m.id}
                     onClick={() => setModel(m.id)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-[9px] border cursor-pointer transition-colors
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-md border cursor-pointer transition-colors
                       ${effectiveModel === m.id ? 'bg-[var(--surface)] border-[var(--border-soft)]' : 'bg-[var(--bg)] border-[var(--border-faint)] hover:border-[var(--border-soft)]'}`
                     }>
                     <input type="radio" name="setting-model" value={m.id} checked={effectiveModel === m.id} readOnly className="accent-[var(--text)]" />
@@ -221,7 +221,7 @@ export function KBSettingsPanel({ kb, onClose, onSaved }: Props) {
                   <span className="text-[11px] text-[var(--text-faint)]">{f.label}</span>
                   <div className="relative">
                     <input type="number" value={f.val} min={f.min} onChange={e => f.set(Math.max(f.min, Number(e.target.value)))}
-                      className="w-full h-[34px] px-2 pr-12 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[8px] text-[12.5px] text-[var(--text)] outline-none focus:border-[var(--border)] transition-colors" />
+                      className="w-full h-[34px] px-2 pr-12 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[12.5px] text-[var(--text)] outline-none focus:border-[var(--border)] transition-colors" />
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-mono text-[var(--text-dim)] pointer-events-none">{f.unit}</span>
                   </div>
                 </div>
@@ -231,7 +231,7 @@ export function KBSettingsPanel({ kb, onClose, onSaved }: Props) {
 
             <Dropdown className="w-full">
               <DropdownTrigger className="w-full">
-                <div className="flex items-center justify-between h-[36px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[8px] text-[12.5px] text-[var(--text)] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
+                <div className="flex items-center justify-between h-[36px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-md text-[12.5px] text-[var(--text)] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
                   <span>{selectedStrategy?.label ?? 'Auto'}</span>
                   <Icons.Caret style={{ width: 10, height: 10, color: 'var(--text-faint)' }} />
                 </div>
@@ -254,13 +254,13 @@ export function KBSettingsPanel({ kb, onClose, onSaved }: Props) {
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-[var(--border-faint)] shrink-0 flex items-center justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 rounded-[9px] text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
+          <button onClick={onClose} className="px-4 py-2 rounded-md text-[13px] font-medium text-[var(--text-mute)] bg-[var(--surface)] border border-[var(--border-faint)] hover:bg-[var(--surface-2)] transition-colors">
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving || !effectiveModel || (!isDefault && !credId)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-[9px] bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[var(--text)] text-[var(--bg)] text-[13px] font-medium border-none cursor-pointer hover:bg-[oklch(0.90_0.003_250)] transition-colors disabled:opacity-40 disabled:cursor-default"
           >
             {saving ? 'Saving…' : 'Save settings'}
           </button>

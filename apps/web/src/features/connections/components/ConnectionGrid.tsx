@@ -77,7 +77,7 @@ export function ConnectionGrid({ credentials, providers, canManage = true }: Pro
                 <img
                   src={provider.icon_url}
                   alt={provider.name}
-                  className="w-[34px] h-[34px] rounded-[8px] object-contain bg-[var(--surface)] p-1"
+                  className="w-[34px] h-[34px] rounded-md object-contain bg-[var(--surface)] p-1"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                 />
               ) : (
@@ -86,7 +86,7 @@ export function ConnectionGrid({ credentials, providers, canManage = true }: Pro
                 </span>
               )}
               <div className="flex items-center gap-2 ml-auto">
-                <span className={`font-mono text-[9.5px] font-semibold tracking-widest uppercase px-[7px] py-[3px] pb-[2px] rounded-[4px] ${STATUS_COLOR[status]}`}>
+                <span className={`font-mono text-[9.5px] font-semibold tracking-widest uppercase px-[7px] py-[3px] pb-[2px] rounded-sm ${STATUS_COLOR[status]}`}>
                   {STATUS_LABEL[status]}
                 </span>
               </div>
@@ -100,7 +100,7 @@ export function ConnectionGrid({ credentials, providers, canManage = true }: Pro
                   onChange={e => setEditName(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') handleRename(cred.id); if (e.key === 'Escape') setEditingId(null) }}
                   onBlur={() => handleRename(cred.id)}
-                  className="conn-card-name bg-[var(--bg)] border border-[var(--border)] rounded-[6px] px-2 py-0.5 outline-none w-full text-[13px]"
+                  className="conn-card-name bg-[var(--bg)] border border-[var(--border)] rounded-sm px-2 py-0.5 outline-none w-full text-[13px]"
                 />
               ) : (
                 <div

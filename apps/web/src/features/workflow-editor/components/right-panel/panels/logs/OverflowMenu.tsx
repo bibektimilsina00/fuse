@@ -45,7 +45,7 @@ export function OverflowMenu({ anchorRect, items, onClose }: Props) {
   return createPortal(
     <div
       data-overflow-menu
-      className="fixed z-[9999] rounded-[10px] border border-[var(--border)] bg-[var(--bg-2)] p-[5px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]"
+      className="fixed z-[9999] rounded-md border border-[var(--border)] bg-[var(--bg-2)] p-[5px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]"
       style={{ left, top, width: MENU_W }}
     >
       {items.map((item, i) => (
@@ -56,7 +56,7 @@ export function OverflowMenu({ anchorRect, items, onClose }: Props) {
             disabled={item.disabled}
             onClick={() => { if (!item.disabled) { item.onClick(); onClose() } }}
             className={cn(
-              'flex w-full items-center gap-2 rounded-[6px] px-2.5 py-[6px] text-left text-[12px] font-medium transition-colors text-[var(--text)] hover:bg-[var(--surface-2)]',
+              'flex w-full items-center gap-2 rounded-sm px-2.5 py-[6px] text-left text-[12px] font-medium transition-colors text-[var(--text)] hover:bg-[var(--surface-2)]',
               item.disabled && 'cursor-default opacity-35 hover:bg-transparent',
             )}
           >

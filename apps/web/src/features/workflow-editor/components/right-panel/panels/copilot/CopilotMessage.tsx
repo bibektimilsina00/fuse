@@ -49,7 +49,7 @@ export function CopilotMessage({ content }: Props) {
           ),
           hr: () => <hr className="my-3 border-[var(--border-faint)]" />,
           table: ({ children }) => (
-            <div className="my-3 overflow-x-auto rounded-[6px] border border-[var(--border-faint)]">
+            <div className="my-3 overflow-x-auto rounded-sm border border-[var(--border-faint)]">
               <table className="min-w-full border-collapse text-[12.5px]">{children}</table>
             </div>
           ),
@@ -83,7 +83,7 @@ function InlineOrBlockCode({ inline, className, children }: CodeProps) {
   const looksInline = inline ?? (!className && !text.includes('\n'))
   if (looksInline) {
     return (
-      <code className="rounded-[4px] border border-[var(--border-faint)] bg-[var(--surface-2)] px-[5px] py-[1px] font-mono text-[11.5px] text-[#7dcfff]">
+      <code className="rounded-sm border border-[var(--border-faint)] bg-[var(--surface-2)] px-[5px] py-[1px] font-mono text-[11.5px] text-[#7dcfff]">
         {children}
       </code>
     )
@@ -110,7 +110,7 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
   }
 
   return (
-    <div className="group relative mb-2 overflow-hidden rounded-[8px] border border-[var(--border-faint)] bg-[var(--bg)] last:mb-0">
+    <div className="group relative mb-2 overflow-hidden rounded-md border border-[var(--border-faint)] bg-[var(--bg)] last:mb-0">
       <div className="flex items-center justify-between border-b border-[var(--border-faint)] bg-[var(--surface)] px-2.5 py-1">
         <span className="font-mono text-[10.5px] uppercase tracking-wide text-[var(--text-faint)]">
           {lang ?? 'text'}
@@ -118,7 +118,7 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
         <button
           onClick={copy}
           className={cn(
-            'flex items-center gap-1 rounded-[4px] px-1.5 py-0.5 text-[10.5px] text-[var(--text-faint)] transition-colors',
+            'flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10.5px] text-[var(--text-faint)] transition-colors',
             'hover:bg-[var(--surface-2)] hover:text-[var(--text)]',
           )}
           title="Copy code"

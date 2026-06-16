@@ -38,7 +38,7 @@ export function RoleSelect({ value, options, onChange, disabled, className }: Pr
       <DropdownTrigger disabled={disabled}>
         <button
           className={cn(
-            "inline-flex items-center gap-[6px] px-[9px] py-[5px] pl-[8px] rounded-[7px]",
+            "inline-flex items-center gap-[6px] px-[9px] py-[5px] pl-[8px] rounded-sm",
             "bg-[var(--surface)] border border-[var(--border-faint)] text-[12px] font-medium",
             "transition-colors duration-100 outline-none justify-between",
             disabled 
@@ -60,13 +60,13 @@ export function RoleSelect({ value, options, onChange, disabled, className }: Pr
       </DropdownTrigger>
 
       <DropdownContent
-        className="bg-[var(--bg-2)] border border-[var(--border)] rounded-[11px] p-[5px] shadow-[0_16px_40px_-12px_oklch(0_0_0/0.6)] animate-in fade-in slide-in-from-top-1 flex flex-col gap-[2px] min-w-[180px]"
+        className="bg-[var(--bg-2)] border border-[var(--border)] rounded-lg p-[5px] shadow-[0_16px_40px_-12px_oklch(0_0_0/0.6)] animate-in fade-in slide-in-from-top-1 flex flex-col gap-[2px] min-w-[180px]"
       >
         {options.map(role => (
           <DropdownItem
             key={role}
             className={cn(
-              "flex items-center gap-[10px] w-full px-[10px] py-[8px] rounded-[7px] bg-transparent border-none cursor-pointer transition-colors duration-75 hover:bg-[var(--surface)]",
+              "flex items-center gap-[10px] w-full px-[10px] py-[8px] rounded-sm bg-transparent border-none cursor-pointer transition-colors duration-75 hover:bg-[var(--surface)]",
               role === value && "bg-[var(--surface)]"
             )}
             onClick={() => handleSelect(role)}

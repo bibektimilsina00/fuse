@@ -58,22 +58,22 @@ const variants: Record<Variant, string> = {
   icon: [
     'relative bg-transparent border border-border-faint text-text-mute',
     'hover:bg-surface hover:text-text',
-    'w-9 h-9 rounded-[8px]',
+    'w-9 h-9 rounded-md',
     'before:absolute before:inset-[-4px] before:content-[""]',
     '[&_svg]:w-[15px] [&_svg]:h-[15px]',
   ].join(' '),
   'icon-sm': [
     'relative bg-transparent border border-border-faint text-text-mute',
     'hover:bg-surface hover:text-text',
-    'w-7 h-7 rounded-[6px]',
+    'w-7 h-7 rounded-sm',
     'before:absolute before:inset-[-7px] before:content-[""]',
     '[&_svg]:w-[13px] [&_svg]:h-[13px]',
   ].join(' '),
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-7 px-3 text-xs gap-1.5 rounded-[6px] [&_svg]:w-3 [&_svg]:h-3',
-  md: 'h-9 px-4 text-sm gap-2 rounded-[8px] [&_svg]:w-3.5 [&_svg]:h-3.5',
+  sm: 'h-7 px-3 text-xs gap-1.5 rounded-sm [&_svg]:w-3 [&_svg]:h-3',
+  md: 'h-9 px-4 text-sm gap-2 rounded-md [&_svg]:w-3.5 [&_svg]:h-3.5',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

@@ -151,7 +151,7 @@ export function JsonInspector({
               key={t}
               onClick={() => onTabChange(t)}
               className={cn(
-                'rounded-[6px] px-2 py-1 text-[11.5px] capitalize transition-colors',
+                'rounded-sm px-2 py-1 text-[11.5px] capitalize transition-colors',
                 tab === t
                   ? 'bg-[var(--surface-2)] text-[var(--text)]'
                   : 'text-[var(--text-mute)] hover:text-[var(--text)]',
@@ -248,7 +248,7 @@ export function JsonInspector({
   if (fullscreen) {
     return createPortal(
       <div className="fixed inset-0 z-[9990] flex items-stretch bg-[oklch(0_0_0/0.55)] p-6 backdrop-blur-sm">
-        <div className="flex h-full w-full flex-col overflow-hidden rounded-[12px] border border-[var(--border-faint)] bg-[var(--bg-2)] shadow-[0_24px_60px_-20px_oklch(0_0_0/0.7)]">
+        <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-[var(--border-faint)] bg-[var(--bg-2)] shadow-[0_24px_60px_-20px_oklch(0_0_0/0.7)]">
           {body}
         </div>
       </div>,

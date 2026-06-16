@@ -60,7 +60,7 @@ export function AuditLogPanel({ providers, onClose }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px]"
+            className="w-[28px] h-[28px] rounded-sm flex items-center justify-center text-[var(--text-faint)] hover:bg-[var(--surface)] hover:text-[var(--text)] transition-colors text-[13px]"
           >
             ✕
           </button>
@@ -130,7 +130,7 @@ export function AuditLogPanel({ providers, onClose }: Props) {
                       {/* Provider tag + timestamp */}
                       <div className="flex items-center gap-2 mt-0.5">
                         {provider && (
-                          <span className="inline-flex items-center gap-1 text-[10.5px] font-mono text-[var(--text-dim)] bg-[var(--surface)] border border-[var(--border-faint)] px-2 py-0.5 rounded-[4px]">
+                          <span className="inline-flex items-center gap-1 text-[10.5px] font-mono text-[var(--text-dim)] bg-[var(--surface)] border border-[var(--border-faint)] px-2 py-0.5 rounded-sm">
                             {provider.icon_url && (
                               <img src={provider.icon_url} alt="" className="w-[10px] h-[10px] object-contain" />
                             )}

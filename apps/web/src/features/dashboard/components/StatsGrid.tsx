@@ -15,7 +15,7 @@ interface Props { items: DashboardStat[] }
 
 export function StatsGrid({ items }: Props) {
   return (
-    <div className="grid grid-cols-4 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[12px] overflow-hidden">
+    <div className="grid grid-cols-4 bg-[var(--bg)] border border-[var(--border-faint)] rounded-lg overflow-hidden">
       {items.map((s, i) => (
         <div key={i} className="pt-[16px] px-[18px] pb-[18px] border-r border-[var(--border-faint)] flex flex-col gap-[6px] relative last:border-r-0">
           <span className="text-[12px] text-[var(--text-mute)] flex items-center gap-[7px]">

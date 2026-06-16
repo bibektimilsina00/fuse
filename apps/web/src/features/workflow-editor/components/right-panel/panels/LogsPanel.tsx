@@ -204,7 +204,7 @@ function RunsList({
         <span className="text-[12px] font-medium text-[var(--text)]">Runs</span>
         <button
           onClick={onClear}
-          className="flex items-center gap-1 rounded-[6px] px-2 py-1 text-[11.5px] text-[var(--text-mute)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+          className="flex items-center gap-1 rounded-sm px-2 py-1 text-[11.5px] text-[var(--text-mute)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
           title="Clear runs"
         >
           <Trash2 className="h-3 w-3" /> Clear
@@ -318,14 +318,14 @@ function WaitingRow({ nodeInfo, waitingFor, selected, onClick }: WaitingRowProps
       type="button"
       onClick={onClick}
       className={cn(
-        'flex w-full items-center gap-2 rounded-[8px] px-2 py-1.5 text-left text-[12px] transition-colors',
+        'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] transition-colors',
         selected
           ? 'bg-[var(--surface-2)] text-[var(--text)]'
           : 'text-[var(--text-mute)] hover:bg-[var(--surface)] hover:text-[var(--text)]',
       )}
     >
       <div
-        className="flex size-[20px] shrink-0 items-center justify-center rounded-[5px]"
+        className="flex size-[20px] shrink-0 items-center justify-center rounded-sm"
         style={{ background: nodeInfo.color ?? 'var(--surface-3)' }}
       >
         {React.cloneElement(

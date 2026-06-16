@@ -204,7 +204,7 @@ export function SkillSelectorRenderer({ value, onChange }: RendererProps) {
   // Workspace has no skills at all — point users to creation.
   if (skills.length === 0) {
     return (
-      <div className="flex flex-col items-start gap-2 rounded-[8px] border border-dashed border-border-faint bg-bg p-4">
+      <div className="flex flex-col items-start gap-2 rounded-md border border-dashed border-border-faint bg-bg p-4">
         <div className="flex items-center gap-2 text-[12px] text-text-mute">
           <Sparkles size={13} className="text-text-faint" />
           No skills yet.
@@ -217,7 +217,7 @@ export function SkillSelectorRenderer({ value, onChange }: RendererProps) {
           href={APP_ROUTES.SKILL_NEW}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-[6px] border border-border-faint bg-bg2 px-2.5 py-1 text-[11.5px] text-text hover:bg-surface"
+          className="inline-flex items-center gap-1.5 rounded-sm border border-border-faint bg-bg2 px-2.5 py-1 text-[11.5px] text-text hover:bg-surface"
         >
           <Plus size={12} />
           Create your first skill
@@ -233,7 +233,7 @@ export function SkillSelectorRenderer({ value, onChange }: RendererProps) {
           closed — they're actionable even when the user isn't editing the
           selection. */}
       {staleIds.length > 0 && (
-        <div className="flex items-start gap-2 rounded-[7px] border border-warn/30 bg-warn/10 px-2.5 py-1.5 text-[11px] text-warn">
+        <div className="flex items-start gap-2 rounded-sm border border-warn/30 bg-warn/10 px-2.5 py-1.5 text-[11px] text-warn">
           <AlertTriangle size={12} className="mt-0.5 shrink-0" />
           <div className="flex-1">
             {staleIds.length} selected {staleIds.length === 1 ? 'skill no longer exists' : 'skills no longer exist'}.
@@ -241,14 +241,14 @@ export function SkillSelectorRenderer({ value, onChange }: RendererProps) {
           <button
             type="button"
             onClick={pruneStale}
-            className="rounded-[5px] border border-warn/40 bg-bg px-1.5 py-0.5 text-[10.5px] text-warn hover:bg-surface"
+            className="rounded-sm border border-warn/40 bg-bg px-1.5 py-0.5 text-[10.5px] text-warn hover:bg-surface"
           >
             Remove
           </button>
         </div>
       )}
       {driftIds.length > 0 && (
-        <div className="flex items-start gap-2 rounded-[7px] border border-[var(--accent-line)]/40 bg-[var(--accent-line)]/10 px-2.5 py-1.5 text-[11px] text-text-mute">
+        <div className="flex items-start gap-2 rounded-sm border border-[var(--accent-line)]/40 bg-[var(--accent-line)]/10 px-2.5 py-1.5 text-[11px] text-text-mute">
           <RefreshCw size={12} className="mt-0.5 shrink-0 text-[var(--accent)]" />
           <div className="flex-1">
             {driftIds.length} selected {driftIds.length === 1 ? 'skill has' : 'skills have'} been edited since this snapshot was taken.
@@ -256,7 +256,7 @@ export function SkillSelectorRenderer({ value, onChange }: RendererProps) {
           <button
             type="button"
             onClick={refreshDrift}
-            className="rounded-[5px] border border-[var(--accent-line)]/40 bg-bg px-1.5 py-0.5 text-[10.5px] text-[var(--accent)] hover:bg-surface"
+            className="rounded-sm border border-[var(--accent-line)]/40 bg-bg px-1.5 py-0.5 text-[10.5px] text-[var(--accent)] hover:bg-surface"
           >
             Refresh
           </button>
@@ -268,7 +268,7 @@ export function SkillSelectorRenderer({ value, onChange }: RendererProps) {
         type="button"
         onClick={() => setOpen(v => !v)}
         className={cn(
-          'flex h-9 items-center gap-2 rounded-[7px] border px-2.5 transition-colors',
+          'flex h-9 items-center gap-2 rounded-sm border px-2.5 transition-colors',
           open
             ? 'border-border bg-surface'
             : 'border-border-faint bg-bg hover:border-border-soft hover:bg-surface',
@@ -296,7 +296,7 @@ export function SkillSelectorRenderer({ value, onChange }: RendererProps) {
           {selectedRows.map(skill => (
             <div
               key={skill.id}
-              className="flex items-center gap-2 rounded-[7px] border border-border-faint bg-bg px-2 py-1.5"
+              className="flex items-center gap-2 rounded-sm border border-border-faint bg-bg px-2 py-1.5"
             >
               <SkillIconBadge iconName={skill.icon} size="sm" />
               <div className="min-w-0 flex-1">
@@ -320,7 +320,7 @@ export function SkillSelectorRenderer({ value, onChange }: RendererProps) {
 
       {/* Dropdown popover */}
       {open && (
-        <div className="absolute left-0 right-0 top-11 z-30 flex flex-col overflow-hidden rounded-[10px] border border-border-faint bg-bg2 shadow-[0_12px_32px_-8px_oklch(0_0_0/0.55)]">
+        <div className="absolute left-0 right-0 top-11 z-30 flex flex-col overflow-hidden rounded-md border border-border-faint bg-bg2 shadow-[0_12px_32px_-8px_oklch(0_0_0/0.55)]">
           {/* Search + count + clear */}
           <div className="flex items-center gap-2 border-b border-border-faint px-2.5 py-2">
             <Search size={12} className="shrink-0 text-text-faint" />
@@ -345,7 +345,7 @@ export function SkillSelectorRenderer({ value, onChange }: RendererProps) {
               <button
                 type="button"
                 onClick={clearAll}
-                className="rounded-[5px] border border-border-faint bg-bg px-1.5 py-0.5 text-[10.5px] text-text-mute hover:text-text"
+                className="rounded-sm border border-border-faint bg-bg px-1.5 py-0.5 text-[10.5px] text-text-mute hover:text-text"
               >
                 Clear ({selectedIds.length})
               </button>
@@ -412,7 +412,7 @@ function SkillRow({ skill, active, stale, onToggle }: SkillRowProps) {
       type="button"
       onClick={() => onToggle(skill.id)}
       className={cn(
-        'group flex items-center gap-2.5 rounded-[7px] border px-2 py-1.5 text-left transition-colors',
+        'group flex items-center gap-2.5 rounded-sm border px-2 py-1.5 text-left transition-colors',
         active
           ? 'border-[var(--accent-line)]/40 bg-[var(--accent-line)]/10'
           : 'border-transparent bg-transparent hover:bg-surface',
@@ -440,7 +440,7 @@ function SkillRow({ skill, active, stale, onToggle }: SkillRowProps) {
       </div>
       <div
         className={cn(
-          'flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors',
+          'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors',
           active ? 'border-[var(--accent)] bg-[var(--accent)] text-bg' : 'border-border-faint',
         )}
       >
