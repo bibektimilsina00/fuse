@@ -503,23 +503,35 @@ def _next_poll_at(interval_seconds: int) -> datetime:
 
 def _classify_change(change: dict[str, Any], file: dict[str, Any]) -> str:
     """Drive's `changes.list` doesn't tag adds vs modifies. Combine:
+
     - `removed: true` OR `file.trashed: true` → trashed
-    - `createdTime == modifiedTime` (within 1s) → added
-    - else → modified
+    - Otherwise, compare `change.time` (when Drive recorded the
+      change) against `file.createdTime`. A brand-new upload arrives
+      as a change at almost exactly its createdTime — within ~5 min
+      covers OCR / thumbnail / virus-scan write-backs. Anything older
+      than that is a real modification of an existing file.
+    - Fallback: `createdTime ≈ modifiedTime` (within 60 s). The two
+      Drive bumps after upload usually keep them close.
+
+    Files where neither heuristic applies default to "modified".
     """
     if change.get("removed") or (file.get("trashed") is True):
         return "trashed"
     created = file.get("createdTime")
+    change_time = change.get("time")
+    if created and change_time:
+        try:
+            c = datetime.fromisoformat(created.replace("Z", "+00:00"))
+            t = datetime.fromisoformat(change_time.replace("Z", "+00:00"))
+            if abs((t - c).total_seconds()) <= 300:
+                return "added"
+        except ValueError:
+            pass
     modified = file.get("modifiedTime")
     if created and modified:
         try:
             c = datetime.fromisoformat(created.replace("Z", "+00:00"))
             m = datetime.fromisoformat(modified.replace("Z", "+00:00"))
-            # 60 s tolerance — Drive routinely bumps modifiedTime by a
-            # few seconds after upload (background metadata writes,
-            # thumbnail generation, virus scan, OCR). A 1-second window
-            # mis-classified real uploads as "modified" and they got
-            # dropped by users with `event_filter='added'`.
             if abs((m - c).total_seconds()) <= 60:
                 return "added"
         except ValueError:
