@@ -4,3 +4,6 @@ make migrate
 
 ## Kill Port
 fuser -k 3001/tcp
+
+## Create Pull Request
+gh pr create --base main --title "type(scope): short description" --body "PR description"
