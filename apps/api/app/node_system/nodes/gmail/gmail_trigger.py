@@ -223,6 +223,10 @@ class GmailTriggerNode(BaseNode[GmailTriggerProperties]):
                             "cursor_initialised": True,
                             "history_id": history_id,
                         },
+                        # Cursor initialised, nothing to emit yet — halt the
+                        # downstream chain so action nodes don't fire with
+                        # null fields. Real messages arrive via the scheduler.
+                        handled_successors=True,
                     )
 
                 messages, new_history_id = await self._poll_history(client, headers, state)
@@ -257,6 +261,9 @@ class GmailTriggerNode(BaseNode[GmailTriggerProperties]):
                     "messages": [],
                     "history_id": new_history_id,
                 },
+                # Nothing matched this poll — halt downstream so the
+                # action chain only fires when there is real message data.
+                handled_successors=True,
             )
 
         return NodeResult(success=True, output_data=messages[0])
@@ -387,6 +394,7 @@ class GmailTriggerNode(BaseNode[GmailTriggerProperties]):
                     return NodeResult(
                         success=True,
                         output_data={"matched": 0, "messages": []},
+                        handled_successors=True,
                     )
                 detail = await client.get(
                     f"{GMAIL_API}/users/me/messages/{hits[0]['id']}", headers=headers

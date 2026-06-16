@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { RendererProps } from '../types'
-import { Input } from '@/shared/components'
+import { Input, Toggle } from '@/shared/components'
 import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '@/shared/components/Dropdown'
 import { ExpressionEditor } from '../expression/ExpressionEditor'
 import { cn } from '@/lib/cn'
@@ -320,14 +320,15 @@ function ModeToggle({ mode, setMode, disabled }: {
   disabled?: boolean
 }) {
   return (
-    <button
-      type="button"
-      onClick={() => setMode(mode === 'visual' ? 'raw' : 'visual')}
-      disabled={disabled}
-      className="text-[11px] text-text-muted hover:text-text"
-    >
-      {mode === 'visual' ? 'Edit raw query →' : '← Visual builder'}
-    </button>
+    <label className="inline-flex items-center gap-2 text-[11px] text-text-muted cursor-pointer select-none">
+      <span>Raw query</span>
+      <Toggle
+        checked={mode === 'raw'}
+        onChange={(e) => setMode(e.target.checked ? 'raw' : 'visual')}
+        disabled={disabled}
+        aria-label="Toggle raw query mode"
+      />
+    </label>
   )
 }
 

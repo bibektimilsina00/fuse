@@ -256,6 +256,7 @@ def expected_event_label(object_type: str, field: str) -> str:
 
 __all__ = [
     "ListenSlot",
+    "PollingListenSlot",
     "DEFAULT_TTL_SECONDS",
     "open_slot",
     "close_slot",
@@ -264,4 +265,148 @@ __all__ = [
     "claim_slot",
     "find_slot",
     "expected_event_label",
+    "open_polling_slot",
+    "close_polling_slot",
+    "find_polling_slot",
+    "is_polling_cancelled",
+    "is_polling_listen_active",
+    "polling_expected_event_label",
 ]
+
+
+# ── polling-trigger listen slots ─────────────────────────────────────────
+
+# Polling listen slots live in a separate keyspace from Meta listen
+# slots because the routing model is different — webhook slots are
+# indexed by `(object_type, target_id, field)` so the receiver can
+# match O(1) on inbound events, whereas polling slots are claimed by
+# a deadline-bounded Celery loop and just need a per-(workflow, node)
+# key. Sharing one namespace would force a fake routing tuple onto
+# polling slots and break the Meta atomic-claim contract.
+_POLLING_SLOT_PREFIX = "polling:listen:slot"
+_POLLING_CANCEL_PREFIX = "polling:listen:cancel"
+
+
+@dataclass(frozen=True)
+class PollingListenSlot:
+    workflow_id: str
+    node_id: str
+    execution_id: str
+    provider: str  # e.g. "gmail", "gcalendar" — picks the poller adapter
+    credential_id: str
+    workspace_id: str
+    # ISO 8601 UTC of when the slot stops listening. Stored on the slot
+    # so the Celery loop can compute its own deadline without re-reading
+    # config — also surfaced to the UI for the countdown.
+    deadline_iso: str
+
+    def slot_key(self) -> str:
+        return f"{_POLLING_SLOT_PREFIX}:{self.workflow_id}:{self.node_id}"
+
+    @staticmethod
+    def cancel_key(workflow_id: str, node_id: str) -> str:
+        return f"{_POLLING_CANCEL_PREFIX}:{workflow_id}:{node_id}"
+
+    def as_dict(self) -> dict[str, str]:
+        return {
+            "workflow_id": self.workflow_id,
+            "node_id": self.node_id,
+            "execution_id": self.execution_id,
+            "provider": self.provider,
+            "credential_id": self.credential_id,
+            "workspace_id": self.workspace_id,
+            "deadline_iso": self.deadline_iso,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> PollingListenSlot:
+        return cls(
+            workflow_id=data["workflow_id"],
+            node_id=data["node_id"],
+            execution_id=data["execution_id"],
+            provider=data["provider"],
+            credential_id=str(data.get("credential_id") or ""),
+            workspace_id=str(data.get("workspace_id") or ""),
+            deadline_iso=data["deadline_iso"],
+        )
+
+
+async def open_polling_slot(slot: PollingListenSlot, ttl: int = DEFAULT_TTL_SECONDS) -> None:
+    """Register a polling-trigger listen slot. Overwrites any prior slot
+    for the same (workflow, node) and clears any leftover cancel flag —
+    a fresh Listen click should always start clean."""
+    redis = await get_redis()
+    await redis.set(slot.slot_key(), json.dumps(slot.as_dict()), ex=ttl)
+    # Clear any stale cancel flag from a previous Listen on this node so
+    # the new poll loop doesn't exit immediately.
+    await redis.delete(PollingListenSlot.cancel_key(slot.workflow_id, slot.node_id))
+
+
+async def close_polling_slot(workflow_id: str, node_id: str) -> PollingListenSlot | None:
+    """Cancel an open polling slot. Sets the cancel flag so the running
+    Celery loop exits on its next tick check, deletes the slot row, and
+    returns the closed slot so the caller can mark the execution
+    cancelled."""
+    redis = await get_redis()
+    key = f"{_POLLING_SLOT_PREFIX}:{workflow_id}:{node_id}"
+    raw = await redis.get(key)
+    # The cancel flag is set unconditionally — even if the slot already
+    # expired we want any in-flight tick to short-circuit before it
+    # dispatches a now-stale execution.
+    await redis.set(
+        PollingListenSlot.cancel_key(workflow_id, node_id),
+        "1",
+        ex=DEFAULT_TTL_SECONDS,
+    )
+    if not raw:
+        return None
+    try:
+        data = json.loads(raw)
+    except Exception:  # noqa: BLE001
+        await redis.delete(key)
+        return None
+    await redis.delete(key)
+    try:
+        return PollingListenSlot.from_dict(data)
+    except KeyError:
+        return None
+
+
+async def find_polling_slot(workflow_id: str, node_id: str) -> PollingListenSlot | None:
+    redis = await get_redis()
+    raw = await redis.get(f"{_POLLING_SLOT_PREFIX}:{workflow_id}:{node_id}")
+    if not raw:
+        return None
+    try:
+        data = json.loads(raw)
+    except Exception:  # noqa: BLE001
+        return None
+    try:
+        return PollingListenSlot.from_dict(data)
+    except KeyError:
+        return None
+
+
+async def is_polling_cancelled(workflow_id: str, node_id: str) -> bool:
+    """The poll loop checks this before each tick so a cancel click
+    short-circuits before the next provider HTTP call."""
+    redis = await get_redis()
+    return bool(await redis.get(PollingListenSlot.cancel_key(workflow_id, node_id)))
+
+
+async def is_polling_listen_active(workflow_id: str, node_id: str) -> bool:
+    """True iff a listen slot is currently open for this trigger.
+
+    The production scheduler checks this and skips polling rows whose
+    listen is active — otherwise both loops race for the same cursor
+    and the scheduler can grab the event the user is testing, leaving
+    the listen UI hanging."""
+    redis = await get_redis()
+    return bool(await redis.exists(f"{_POLLING_SLOT_PREFIX}:{workflow_id}:{node_id}"))
+
+
+def polling_expected_event_label(provider: str) -> str:
+    return {
+        "gmail": "Gmail message",
+        "gcalendar": "Calendar event",
+    }.get(provider, provider)

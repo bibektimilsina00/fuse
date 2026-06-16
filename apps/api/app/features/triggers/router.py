@@ -14,10 +14,15 @@ from apps.api.app.features.executions.repository import ExecutionRepository
 from apps.api.app.features.triggers.listen_service import (
     DEFAULT_TTL_SECONDS,
     ListenSlot,
+    PollingListenSlot,
+    close_polling_slot,
     close_slot,
     expected_event_label,
+    find_polling_slot,
     find_slot,
+    open_polling_slot,
     open_slot,
+    polling_expected_event_label,
 )
 from apps.api.app.features.triggers.repository import TriggerFixtureRepository
 from apps.api.app.features.triggers.schemas import (
@@ -41,6 +46,79 @@ from apps.api.app.shared.dependencies import get_current_user, get_current_works
 
 router = APIRouter()
 logger = get_logger(__name__)
+
+
+# Node-type → provider for polling triggers. The scheduler's registry
+# is the source of truth at runtime; we only mirror the small subset
+# the editor exposes a Listen button for so this file doesn't import
+# the heavyweight trigger nodes.
+_POLLING_TRIGGER_PROVIDERS: dict[str, str] = {
+    "trigger.gmail": "gmail",
+    "trigger.gcal_event": "gcalendar",
+}
+
+
+def _resolve_polling_trigger_slot(
+    graph: dict | None,
+    requested_node_id: str | None,
+) -> dict[str, Any] | None:
+    """Pick a polling trigger node (Gmail / Calendar / etc) from the
+    graph. Returns the routing dict on a hit, `None` when no polling
+    trigger lives in the graph (caller falls back to Meta resolution).
+    Raises HTTPException only when the user explicitly named a node
+    that doesn't exist or is missing required props.
+    """
+    nodes = (graph or {}).get("nodes") or []
+    candidates: list[dict[str, Any]] = []
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        node_type = str(node.get("type") or "")
+        provider = _POLLING_TRIGGER_PROVIDERS.get(node_type)
+        if provider is None:
+            continue
+        candidates.append({"node": node, "node_type": node_type, "provider": provider})
+
+    if not candidates:
+        return None
+
+    picked: dict[str, Any] | None = None
+    if requested_node_id:
+        for c in candidates:
+            if str(c["node"].get("id") or "") == requested_node_id:
+                picked = c
+                break
+        if picked is None:
+            # The user pointed at a node id that wasn't one of our
+            # polling triggers — let the Meta resolver have a go before
+            # we 400.
+            return None
+    else:
+        if len(candidates) > 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Workflow has multiple polling triggers — pass node_id in the body.",
+            )
+        picked = candidates[0]
+
+    node = picked["node"]
+    props = (node.get("data") or {}).get("properties") or {}
+    credential_id = str(props.get("credential") or "").strip()
+    if not credential_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Trigger node is missing 'credential'. Pick a Google "
+                "account before clicking Listen."
+            ),
+        )
+    return {
+        "node_id": str(node.get("id") or ""),
+        "node_type": picked["node_type"],
+        "provider": picked["provider"],
+        "credential_id": credential_id,
+        "props": props,
+    }
 
 
 def _resolve_meta_trigger_slot(
@@ -137,6 +215,151 @@ def _resolve_meta_trigger_slot(
     }
 
 
+async def _open_polling_listen(
+    *,
+    workflow_id: uuid.UUID,
+    workspace_id: uuid.UUID,
+    wf_graph: dict | None,
+    db: AsyncSession,
+    routing: dict[str, Any],
+) -> TriggerListenResponse:
+    """Polling-trigger Listen path. Mirrors n8n's "Listen for test event"
+    UX for non-webhook providers: snapshot the cursor right now (so we
+    only surface events that arrive *after* the click), create a
+    waiting Execution row, enqueue the poll-loop Celery task, and let
+    the editor's WS hear `execution_waiting` immediately."""
+    from datetime import timedelta
+
+    from apps.api.app.execution_engine.scheduler.integration_polling import (
+        get_entry_for_provider,
+    )
+    from apps.api.app.features.credentials.service import CredentialService
+    from apps.api.app.features.triggers.polling_listener import poll_listen_slot
+    from apps.api.app.features.triggers.repository import (
+        IntegrationTriggerStateRepository,
+    )
+
+    provider = routing["provider"]
+    entry = get_entry_for_provider(provider)
+    if entry is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"No poller registered for provider {provider!r}.",
+        )
+
+    try:
+        credential_uuid = uuid.UUID(routing["credential_id"])
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Trigger node has an invalid credential id.",
+        ) from exc
+
+    cred_service = CredentialService(db)
+    cred = await cred_service.repo.get_by_id_and_workspace(credential_uuid, workspace_id)
+    if cred is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Credential not found on this workspace.",
+        )
+    cred_data = await cred_service.get_decrypted_credential(cred)
+    token = (cred_data or {}).get("access_token") if isinstance(cred_data, dict) else None
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Credential is missing an access_token. Re-connect the account.",
+        )
+
+    # Snapshot the cursor synchronously so the poll loop only surfaces
+    # events that arrive AFTER this point — that's what makes the Listen
+    # UX intuitive ("click, then send something").
+    try:
+        _, fresh_cursor = await entry.poller(token, None, routing["props"])
+    except Exception as exc:  # noqa: BLE001
+        logger.exception(f"Listen snapshot failed for workflow={workflow_id}: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                f"Could not snapshot the cursor for {provider}. The integration "
+                "may be temporarily unreachable — try again in a moment."
+            ),
+        ) from exc
+
+    repo = IntegrationTriggerStateRepository(db)
+    await repo.upsert(
+        workflow_id=workflow_id,
+        workspace_id=workspace_id,
+        node_id=routing["node_id"],
+        provider=provider,
+        cursor=fresh_cursor or {},
+        next_poll_at=datetime.now(UTC) + timedelta(seconds=DEFAULT_TTL_SECONDS + 60),
+        last_error=None,
+    )
+
+    execution = Execution(
+        workflow_id=workflow_id,
+        trigger_type="listen",
+        status="waiting",
+        input_data={},
+    )
+    db.add(execution)
+    await db.commit()
+    await db.refresh(execution)
+    execution_id = execution.id
+
+    deadline = datetime.now(UTC) + timedelta(seconds=DEFAULT_TTL_SECONDS)
+    slot = PollingListenSlot(
+        workflow_id=str(workflow_id),
+        node_id=routing["node_id"],
+        execution_id=str(execution_id),
+        provider=provider,
+        credential_id=routing["credential_id"],
+        workspace_id=str(workspace_id),
+        deadline_iso=deadline.isoformat().replace("+00:00", "Z"),
+    )
+    await open_polling_slot(slot)
+
+    # Enqueue the poll loop. Celery owns retries / restart resilience;
+    # if the worker dies mid-listen the Execution row stays `waiting`
+    # until the next sweeper (TODO) cleans it up.
+    poll_listen_slot.delay(
+        str(execution_id),
+        str(workflow_id),
+        routing["node_id"],
+        slot.deadline_iso,
+    )
+
+    label = polling_expected_event_label(provider)
+
+    try:
+        redis = await get_redis()
+        await redis.publish(
+            f"execution:{execution_id}",
+            json.dumps(
+                {
+                    "type": "execution_waiting",
+                    "execution_id": str(execution_id),
+                    "node_id": routing["node_id"],
+                    "waiting_for": label,
+                    "target_id": "",
+                    "ttl_seconds": DEFAULT_TTL_SECONDS,
+                    "deadline": slot.deadline_iso,
+                    "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                }
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001 — pubsub is best-effort
+        logger.warning(f"Failed to publish execution_waiting for {execution_id}: {exc}")
+
+    return TriggerListenResponse(
+        execution_id=str(execution_id),
+        node_id=routing["node_id"],
+        waiting_for=label,
+        target_id="",
+        ttl_seconds=DEFAULT_TTL_SECONDS,
+    )
+
+
 @router.post(
     "/workflows/{workflow_id}/listen",
     tags=["triggers"],
@@ -170,6 +393,20 @@ async def listen_workflow(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workflow not found")
 
     requested_node_id = body.node_id if body else None
+
+    # Polling triggers (Gmail / Calendar / …) take a different path —
+    # there's no webhook to subscribe to, so we pre-snapshot the cursor
+    # synchronously and hand the wait off to a Celery loop.
+    polling_routing = _resolve_polling_trigger_slot(wf.graph, requested_node_id)
+    if polling_routing is not None:
+        return await _open_polling_listen(
+            workflow_id=workflow_id,
+            workspace_id=workspace.id,
+            wf_graph=wf.graph,
+            db=db,
+            routing=polling_routing,
+        )
+
     routing = _resolve_meta_trigger_slot(wf.graph, requested_node_id)
 
     # Make sure Meta is registered to deliver webhooks for this target —
@@ -307,6 +544,38 @@ async def cancel_listen(
     if wf is None or wf.workspace_id != workspace.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workflow not found")
 
+    # Polling-trigger listen slots live in a separate keyspace from
+    # Meta slots — try that first; only fall through to the Meta path
+    # when there's no polling slot for this node.
+    polling_slot = await close_polling_slot(str(workflow_id), node_id)
+    if polling_slot is not None:
+        try:
+            await ExecutionRepository(db).update_status(
+                uuid.UUID(polling_slot.execution_id), "cancelled"
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                f"Failed to mark polling execution {polling_slot.execution_id} cancelled: {exc}"
+            )
+        try:
+            redis = await get_redis()
+            await redis.publish(
+                f"execution:{polling_slot.execution_id}",
+                json.dumps(
+                    {
+                        "type": "execution_cancelled",
+                        "execution_id": polling_slot.execution_id,
+                        "status": "cancelled",
+                        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                    }
+                ),
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                f"Failed to publish execution_cancelled for {polling_slot.execution_id}: {exc}"
+            )
+        return {"cancelled": True, "execution_id": polling_slot.execution_id}
+
     slot = await close_slot(str(workflow_id), node_id)
     if slot is None:
         return {"cancelled": False}
@@ -350,6 +619,14 @@ async def listen_status(
     wf = await WorkflowRepository(db).get_by_id(workflow_id)
     if wf is None or wf.workspace_id != workspace.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workflow not found")
+    polling_slot = await find_polling_slot(str(workflow_id), node_id)
+    if polling_slot is not None:
+        return TriggerListenStatusResponse(
+            active=True,
+            execution_id=polling_slot.execution_id,
+            waiting_for=polling_expected_event_label(polling_slot.provider),
+            target_id="",
+        )
     slot = await find_slot(str(workflow_id), node_id)
     if slot is None:
         return TriggerListenStatusResponse(

@@ -86,13 +86,15 @@ async def _poll_due_rows() -> None:
     from apps.api.app.core.database import AsyncSessionLocal
     from apps.api.app.execution_engine.engine import execution_engine
     from apps.api.app.features.credentials.service import CredentialService
+
+    # Register the providers we ship with. Each module's `register_poller`
+    # call is idempotent so reloading the worker doesn't double-fire.
+    from apps.api.app.features.triggers.listen_service import is_polling_listen_active
     from apps.api.app.features.triggers.repository import (
         IntegrationTriggerStateRepository,
     )
     from apps.api.app.features.workflows.repository import WorkflowRepository
-
-    # Register the providers we ship with. Each module's `register_poller`
-    # call is idempotent so reloading the worker doesn't double-fire.
+    from apps.api.app.node_system.nodes.gcalendar import gcal_trigger as _gcal_trigger  # noqa: F401
     from apps.api.app.node_system.nodes.gmail import gmail_trigger as _gmail_trigger  # noqa: F401
 
     if not _BY_PROVIDER:
@@ -110,6 +112,17 @@ async def _poll_due_rows() -> None:
         cred_service = CredentialService(db)
 
         for state in due_rows:
+            # Skip rows whose user is actively listening — the listen
+            # loop owns the cursor for its window. Otherwise both loops
+            # race for the same delta and the scheduler can grab the
+            # event the user is testing, leaving the listen UI hanging.
+            if await is_polling_listen_active(str(state.workflow_id), state.node_id):
+                # Push the row's next_poll_at past the listen TTL so we
+                # don't spin on it every tick during the wait.
+                state.next_poll_at = datetime.now(UTC) + timedelta(minutes=6)
+                await db.commit()
+                continue
+
             provider = state.provider
             entry = _BY_PROVIDER.get(provider)
             if entry is None:
