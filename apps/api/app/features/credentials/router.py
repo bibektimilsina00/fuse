@@ -275,6 +275,184 @@ async def list_drive_folders(
     }
 
 
+async def _resolve_google_token(
+    credential_id: uuid.UUID,
+    workspace: Workspace,
+    service: CredentialService,
+) -> str:
+    """Shared helper — fetch decrypted Google OAuth token for an endpoint.
+
+    Raises 404 if cred not found, 400 if cred has no access_token (e.g. the
+    OAuth callback hasn't completed or the row was a stub created during
+    install)."""
+    cred = await service.repo.get_by_id_and_workspace(credential_id, workspace.id)
+    if cred is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Credential not found")
+    data = await service.get_decrypted_credential(cred)
+    access_token = (data or {}).get("access_token") if isinstance(data, dict) else None
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Credential has no access_token. Re-connect the account.",
+        )
+    return str(access_token)
+
+
+# ── Sheets pickers ──────────────────────────────────────────────────────
+
+
+@router.get("/{credential_id}/sheets/spreadsheets")
+async def list_sheets_spreadsheets(
+    credential_id: uuid.UUID,
+    query: str = "",
+    page_size: int = 50,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """List Google Sheets the credential can see, via Drive `files.list`
+    filtered to the spreadsheet MIME type. Supports a name-substring
+    search and a page-size cap."""
+    import httpx
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+
+    safe_query = (query or "").strip().replace("'", "\\'")
+    q_parts = [
+        "mimeType = 'application/vnd.google-apps.spreadsheet'",
+        "trashed = false",
+    ]
+    if safe_query:
+        q_parts.append(f"name contains '{safe_query}'")
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                "https://www.googleapis.com/drive/v3/files",
+                headers={"Authorization": f"Bearer {token}"},
+                params={
+                    "q": " and ".join(q_parts),
+                    "orderBy": "modifiedTime desc",
+                    "pageSize": max(1, min(int(page_size or 50), 200)),
+                    "fields": "files(id,name,modifiedTime,webViewLink,iconLink)",
+                    "supportsAllDrives": "true",
+                    "includeItemsFromAllDrives": "true",
+                },
+            )
+            resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(f"Sheets list failed ({exc.response.status_code}): {exc.response.text[:200]}"),
+        ) from exc
+
+    return {"spreadsheets": resp.json().get("files") or []}
+
+
+@router.post("/{credential_id}/sheets/spreadsheets", status_code=status.HTTP_201_CREATED)
+async def create_sheets_spreadsheet(
+    credential_id: uuid.UUID,
+    payload: dict,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """Create a new spreadsheet from inside the picker — title plus an
+    optional list of initial sheet titles. Returns the new spreadsheet's
+    id + name so the picker can auto-select it."""
+    import httpx
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+
+    title = str((payload or {}).get("title") or "").strip()
+    if not title:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="`title` is required.",
+        )
+    raw_sheets = (payload or {}).get("sheet_titles") or []
+    sheet_titles: list[str] = []
+    if isinstance(raw_sheets, list):
+        sheet_titles = [str(t) for t in raw_sheets if str(t).strip()]
+
+    body: dict = {"properties": {"title": title}}
+    if sheet_titles:
+        body["sheets"] = [{"properties": {"title": t}} for t in sheet_titles]
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                "https://sheets.googleapis.com/v4/spreadsheets",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                },
+                json=body,
+            )
+            resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                f"Sheets create failed ({exc.response.status_code}): {exc.response.text[:200]}"
+            ),
+        ) from exc
+
+    data = resp.json()
+    return {
+        "id": data.get("spreadsheetId"),
+        "name": ((data.get("properties") or {}).get("title")) or title,
+        "webViewLink": data.get("spreadsheetUrl"),
+    }
+
+
+@router.get("/{credential_id}/sheets/spreadsheets/{spreadsheet_id}/tabs")
+async def list_sheets_tabs(
+    credential_id: uuid.UUID,
+    spreadsheet_id: str,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """List the sheets (tabs) inside a spreadsheet — id, title, and
+    zero-based index — for the tab-picker dropdown."""
+    import httpx
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                f"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}",
+                headers={"Authorization": f"Bearer {token}"},
+                params={"fields": "sheets.properties(sheetId,title,index)"},
+            )
+            resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                f"Sheets tab list failed ({exc.response.status_code}): {exc.response.text[:200]}"
+            ),
+        ) from exc
+
+    tabs = []
+    for sheet in resp.json().get("sheets") or []:
+        props = (sheet or {}).get("properties") or {}
+        tabs.append(
+            {
+                "sheet_id": int(props.get("sheetId") or 0),
+                "title": str(props.get("title") or ""),
+                "index": int(props.get("index") or 0),
+            }
+        )
+    tabs.sort(key=lambda t: t["index"])
+    return {"tabs": tabs}
+
+
 @router.post("/{credential_id}/picker-token")
 async def get_picker_token(
     credential_id: uuid.UUID,
