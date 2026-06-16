@@ -180,14 +180,6 @@ class GDriveTriggerNode(BaseNode[GDriveTriggerProperties]):
                     "label": "Folder to watch",
                     "type": "gdrive-folder",
                     "default": "",
-                    "description": (
-                        "Pick a Drive folder via Google's Picker. Drive's "
-                        "`drive.file` scope only surfaces files Fuse created "
-                        "OR files inside a folder the user explicitly picked "
-                        "here — that's how Fuse stays inside the non-sensitive "
-                        "scope that doesn't need Google's security review. "
-                        "Leave blank to fall back to whatever Fuse created."
-                    ),
                 },
                 {
                     "name": "name_contains",
