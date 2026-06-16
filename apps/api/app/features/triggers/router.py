@@ -56,6 +56,7 @@ _POLLING_TRIGGER_PROVIDERS: dict[str, str] = {
     "trigger.gmail": "gmail",
     "trigger.gcal_event": "gcalendar",
     "trigger.gdrive_change": "gdrive",
+    "trigger.google_sheets": "google_sheets",
 }
 
 

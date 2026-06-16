@@ -409,4 +409,6 @@ def polling_expected_event_label(provider: str) -> str:
     return {
         "gmail": "Gmail message",
         "gcalendar": "Calendar event",
+        "gdrive": "Drive change",
+        "google_sheets": "Sheet row",
     }.get(provider, provider)
