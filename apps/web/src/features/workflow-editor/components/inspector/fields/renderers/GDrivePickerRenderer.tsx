@@ -1,30 +1,29 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { ChevronRight, Folder, FolderOpen, Loader2 } from 'lucide-react'
 import type { RendererProps } from '../types'
+import { Modal, Button } from '@/shared/components'
 import { cn } from '@/lib/cn'
 import apiClient from '@/shared/utils/apiClient'
 
 /**
- * Google Picker-driven folder selector for Drive trigger / action nodes.
+ * Google Drive folder selector — server-proxied, no SDK.
  *
- * `drive.file` is the only non-restricted Drive scope that lets a
- * production app reach Drive at all without going through Google's
- * CASA security assessment. The catch: `drive.file` only exposes
- * files the app itself created OR files the user explicitly granted
- * via the Google Picker. That's why a plain text field for
- * `parent_folder_id` doesn't actually grant Fuse access to the
- * folder — it just stores the id; nothing tells Drive to share it.
+ * The earlier version used Google's Picker SDK from `apis.google.com`,
+ * which uBlock / AdGuard / Brave shields silently block for a chunk of
+ * users. Adblockers operate at the network layer below the page —
+ * unfixable from app code.
  *
- * This renderer fixes the gap: the user clicks a button, Picker opens
- * with the credential's own OAuth token, the user navigates and
- * selects a folder. Picker writes a per-file grant against the OAuth
- * client, and the field stores `{ id, name }` so the runtime cursor
- * can poll the now-visible folder. No CASA, no restricted scope,
- * matches Google's documented production path.
+ * This implementation skips the SDK entirely. The browser asks Fuse's
+ * backend (`/credentials/{id}/drive/folders?parent_id=…`) for folders
+ * under a given parent; backend calls Drive's `files.list` server-side
+ * and returns just `{ id, name, has_children }`. UI renders a finder-
+ * style browser with breadcrumbs. No `apis.google.com`, no third-party
+ * JS, invisible to adblockers.
  *
- * The renderer reads the field's *sibling* `credential` property off
- * the inspector graph to fetch a picker token tied to the right
- * Drive account — picking a folder under a different OAuth client
- * would grant access the runtime can't use.
+ * Scope-wise this is purely a UX device — Drive access still flows
+ * through OAuth (`drive.file` default, `drive.readonly` when
+ * GOOGLE_DRIVE_WATCH_EXTERNAL is on). The browser doesn't grant
+ * anything; it just lists what the credential can already see.
  */
 
 interface PickerValue {
@@ -32,80 +31,15 @@ interface PickerValue {
   name: string
 }
 
-interface PickerTokenResponse {
-  access_token: string
-  developer_key: string
-  app_id: string
+interface FolderEntry {
+  id: string
+  name: string
+  has_children: boolean
 }
 
-declare global {
-  interface Window {
-    gapi?: {
-      load: (api: string, cb: () => void) => void
-    }
-    google?: {
-      picker: GooglePickerNamespace
-    }
-  }
-}
-
-interface GooglePickerNamespace {
-  ViewId: { FOLDERS: string }
-  DocsView: new () => GoogleDocsView
-  PickerBuilder: new () => GooglePickerBuilder
-  Action: { PICKED: string; CANCEL: string }
-  Feature: { SUPPORT_DRIVES: string }
-}
-
-interface GoogleDocsView {
-  setIncludeFolders(b: boolean): GoogleDocsView
-  setSelectFolderEnabled(b: boolean): GoogleDocsView
-  setMimeTypes(t: string): GoogleDocsView
-}
-
-interface GooglePickerBuilder {
-  addView(v: GoogleDocsView): GooglePickerBuilder
-  setOAuthToken(t: string): GooglePickerBuilder
-  setDeveloperKey(k: string): GooglePickerBuilder
-  setAppId(a: string): GooglePickerBuilder
-  enableFeature(f: string): GooglePickerBuilder
-  setCallback(cb: (data: PickerCallbackData) => void): GooglePickerBuilder
-  setTitle(s: string): GooglePickerBuilder
-  build(): { setVisible: (v: boolean) => void }
-}
-
-interface PickerCallbackData {
-  action: string
-  docs?: Array<{ id: string; name: string; mimeType: string }>
-}
-
-const PICKER_API_URL = 'https://apis.google.com/js/api.js'
-
-// Tiny cache so the SDK script is requested once per page load even
-// when several Drive nodes appear in the same workflow.
-let _pickerLoadPromise: Promise<void> | null = null
-
-function loadPicker(): Promise<void> {
-  if (window.google?.picker) return Promise.resolve()
-  if (_pickerLoadPromise) return _pickerLoadPromise
-  _pickerLoadPromise = new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${PICKER_API_URL}"]`)
-    const finish = () => {
-      window.gapi?.load('picker', () => resolve())
-    }
-    if (existing) {
-      existing.addEventListener('load', finish, { once: true })
-      return
-    }
-    const script = document.createElement('script')
-    script.src = PICKER_API_URL
-    script.async = true
-    script.defer = true
-    script.onload = finish
-    script.onerror = () => reject(new Error('Failed to load Google Picker SDK'))
-    document.head.appendChild(script)
-  })
-  return _pickerLoadPromise
+interface FolderListResponse {
+  parent: { id: string; name: string }
+  folders: FolderEntry[]
 }
 
 function parseValue(v: unknown): PickerValue | null {
@@ -122,84 +56,30 @@ function parseValue(v: unknown): PickerValue | null {
   return null
 }
 
-export function GDrivePickerRenderer({ prop, value, onChange, disabled, properties }: RendererProps) {
+export function GDrivePickerRenderer({ value, onChange, disabled, properties }: RendererProps) {
   const selected = parseValue(value)
-  const [opening, setOpening] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const cancelRef = useRef(false)
+  const [open, setOpen] = useState(false)
 
-  useEffect(() => () => {
-    cancelRef.current = true
-  }, [])
-
-  // The credential the picker needs to authenticate against lives on a
-  // sibling property — the inspector hands us the full props bag via
-  // `properties` so we can look it up without hard-coding "credential".
   const credentialId =
     typeof properties?.credential === 'string' ? properties.credential : ''
-
-  const openPicker = async () => {
-    setError(null)
-    if (!credentialId) {
-      setError('Pick a Google account on this node first.')
-      return
-    }
-    setOpening(true)
-    try {
-      const { data } = await apiClient.post<PickerTokenResponse>(
-        `/credentials/${credentialId}/picker-token`,
-      )
-      await loadPicker()
-      if (cancelRef.current) return
-      const picker = window.google?.picker
-      if (!picker) throw new Error('Google Picker SDK not available')
-
-      const docsView = new picker.DocsView()
-        .setIncludeFolders(true)
-        .setSelectFolderEnabled(true)
-        .setMimeTypes('application/vnd.google-apps.folder')
-
-      const builder = new picker.PickerBuilder()
-        .addView(docsView)
-        .setOAuthToken(data.access_token)
-        .setDeveloperKey(data.developer_key)
-        .setAppId(data.app_id)
-        .enableFeature(picker.Feature.SUPPORT_DRIVES)
-        .setTitle('Pick a Google Drive folder to watch')
-        .setCallback((evt) => {
-          if (evt.action === picker.Action.PICKED && evt.docs && evt.docs[0]) {
-            const doc = evt.docs[0]
-            onChange({ id: doc.id, name: doc.name })
-          }
-        })
-
-      builder.build().setVisible(true)
-    } catch (err) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        (err as Error)?.message ||
-        'Failed to open Google Picker'
-      setError(String(msg))
-    } finally {
-      if (!cancelRef.current) setOpening(false)
-    }
-  }
 
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={openPicker}
-          disabled={disabled || opening}
+          onClick={() => setOpen(true)}
+          disabled={disabled || !credentialId}
+          title={!credentialId ? 'Pick a Google account on this node first.' : undefined}
           className={cn(
             'inline-flex items-center gap-1.5 h-8 px-3 rounded-[5px] text-xs font-medium',
             'border border-border bg-surface hover:bg-surface-2 text-text',
             'transition-colors',
-            (disabled || opening) && 'opacity-50 cursor-not-allowed',
+            (disabled || !credentialId) && 'opacity-50 cursor-not-allowed',
           )}
         >
-          {opening ? 'Opening…' : selected ? 'Change folder' : 'Pick folder'}
+          <Folder className="h-3.5 w-3.5" />
+          {selected ? 'Change folder' : 'Pick folder'}
         </button>
         {selected && (
           <div className="min-w-0 flex-1 truncate text-xs">
@@ -221,12 +101,205 @@ export function GDrivePickerRenderer({ prop, value, onChange, disabled, properti
           </button>
         )}
       </div>
-      {error && (
-        <p className="text-[11px] text-[var(--danger,#dc2626)]">{error}</p>
-      )}
-      {prop.description && !error && (
-        <p className="text-[11px] text-text-muted">{prop.description}</p>
+
+      {open && credentialId && (
+        <FolderBrowser
+          credentialId={credentialId}
+          onSelect={(picked) => {
+            onChange({ id: picked.id, name: picked.name })
+            setOpen(false)
+          }}
+          onClose={() => setOpen(false)}
+        />
       )}
     </div>
+  )
+}
+
+// ── modal ────────────────────────────────────────────────────────────────
+
+interface BreadcrumbEntry {
+  id: string
+  name: string
+}
+
+function FolderBrowser({
+  credentialId,
+  onSelect,
+  onClose,
+}: {
+  credentialId: string
+  onSelect: (folder: BreadcrumbEntry) => void
+  onClose: () => void
+}) {
+  const [stack, setStack] = useState<BreadcrumbEntry[]>([
+    { id: 'root', name: 'My Drive' },
+  ])
+  const current = stack[stack.length - 1]
+  const [folders, setFolders] = useState<FolderEntry[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    setLoading(true)
+    setError(null)
+    setFolders(null)
+    apiClient
+      .get<FolderListResponse>(
+        `/credentials/${credentialId}/drive/folders`,
+        { params: { parent_id: current.id } },
+      )
+      .then(({ data }) => {
+        if (!alive) return
+        if (data.parent?.name && data.parent.name !== current.name) {
+          setStack((s) =>
+            s.map((e, i) => (i === s.length - 1 ? { ...e, name: data.parent.name } : e)),
+          )
+        }
+        setFolders(data.folders)
+      })
+      .catch((err) => {
+        if (!alive) return
+        const msg =
+          (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+          (err as Error)?.message ||
+          'Could not load folders'
+        setError(String(msg))
+      })
+      .finally(() => {
+        if (alive) setLoading(false)
+      })
+    return () => {
+      alive = false
+    }
+  }, [credentialId, current.id, current.name])
+
+  const goTo = (idx: number) => {
+    setStack((s) => s.slice(0, idx + 1))
+  }
+  const open = (folder: FolderEntry) => {
+    if (!folder.has_children) return
+    setStack((s) => [...s, { id: folder.id, name: folder.name }])
+  }
+
+  const footer = (
+    <>
+      <Button variant="ghost" onClick={onClose}>
+        Cancel
+      </Button>
+      <Button
+        onClick={() => onSelect(current)}
+        disabled={current.id === 'root'}
+        title={
+          current.id === 'root'
+            ? 'Navigate into a folder before selecting it.'
+            : `Select ${current.name}`
+        }
+      >
+        Select this folder
+      </Button>
+    </>
+  )
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title="Pick a Google Drive folder"
+      description="Navigate to the folder you want to watch and click Select."
+      width="540px"
+      footer={footer}
+    >
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-1 text-[12px]">
+          {stack.map((entry, idx) => (
+            <span key={`${entry.id}-${idx}`} className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => goTo(idx)}
+                className={cn(
+                  'truncate max-w-[160px] px-1 rounded',
+                  idx === stack.length - 1
+                    ? 'text-text font-medium'
+                    : 'text-text-muted hover:text-text hover:bg-surface-2',
+                )}
+              >
+                {entry.name}
+              </button>
+              {idx < stack.length - 1 && (
+                <ChevronRight className="h-3 w-3 text-text-faint shrink-0" />
+              )}
+            </span>
+          ))}
+        </div>
+
+        <div className="min-h-[260px] max-h-[360px] overflow-y-auto rounded-[6px] border border-border-faint bg-bg">
+          {loading && (
+            <div className="flex h-full items-center justify-center gap-2 py-12 text-[12px] text-text-muted">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Loading folders…
+            </div>
+          )}
+          {error && !loading && (
+            <div className="px-3 py-4 text-[12px] text-[var(--danger,#dc2626)]">
+              {error}
+            </div>
+          )}
+          {!loading && !error && folders && folders.length === 0 && (
+            <div className="px-3 py-8 text-center text-[12px] text-text-muted">
+              No folders inside <span className="font-medium">{current.name}</span>.
+              You can still select this folder.
+            </div>
+          )}
+          {!loading && !error && folders && folders.length > 0 && (
+            <ul className="divide-y divide-border-faint">
+              {folders.map((folder) => (
+                <li
+                  key={folder.id}
+                  className={cn(
+                    'group flex items-center gap-2.5 px-3 py-2 text-[12.5px]',
+                    'hover:bg-surface-2',
+                  )}
+                >
+                  {folder.has_children ? (
+                    <FolderOpen className="h-4 w-4 text-text-muted shrink-0" />
+                  ) : (
+                    <Folder className="h-4 w-4 text-text-faint shrink-0" />
+                  )}
+                  <span className="truncate flex-1 text-text">{folder.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => onSelect({ id: folder.id, name: folder.name })}
+                    className={cn(
+                      'rounded-[4px] px-2 py-0.5 text-[10.5px] font-medium',
+                      'border border-border-faint text-text-muted',
+                      'opacity-0 group-hover:opacity-100',
+                      'hover:bg-accent hover:border-accent hover:text-bg',
+                      'transition-opacity',
+                    )}
+                  >
+                    Select
+                  </button>
+                  {folder.has_children && (
+                    <button
+                      type="button"
+                      onClick={() => open(folder)}
+                      className={cn(
+                        'flex h-6 w-6 items-center justify-center rounded-[4px]',
+                        'text-text-faint hover:bg-surface hover:text-text',
+                      )}
+                      title="Open"
+                    >
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </Modal>
   )
 }

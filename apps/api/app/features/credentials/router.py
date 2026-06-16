@@ -174,6 +174,110 @@ async def rename_credential(
     return credential
 
 
+@router.get("/{credential_id}/drive/folders")
+async def list_drive_folders(
+    credential_id: uuid.UUID,
+    parent_id: str = "root",
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """Server-proxied Drive folder browser. Avoids the Picker SDK so
+    adblockers (which block apis.google.com) don't kill the UX."""
+    import asyncio
+
+    import httpx
+
+    cred = await service.repo.get_by_id_and_workspace(credential_id, workspace.id)
+    if cred is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Credential not found")
+    data = await service.get_decrypted_credential(cred)
+    access_token = (data or {}).get("access_token") if isinstance(data, dict) else None
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Credential has no access_token. Re-connect the account.",
+        )
+
+    parent = parent_id or "root"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    folder_mime = "application/vnd.google-apps.folder"
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            list_resp = await client.get(
+                "https://www.googleapis.com/drive/v3/files",
+                headers=headers,
+                params={
+                    "q": (
+                        f"'{parent}' in parents and "
+                        f"mimeType = '{folder_mime}' and "
+                        "trashed = false"
+                    ),
+                    "orderBy": "name",
+                    "pageSize": 1000,
+                    "fields": "files(id,name)",
+                    "supportsAllDrives": "true",
+                    "includeItemsFromAllDrives": "true",
+                },
+            )
+            list_resp.raise_for_status()
+            folders = list_resp.json().get("files") or []
+
+            parent_meta: dict[str, str] = {"id": parent, "name": "My Drive"}
+            if parent != "root":
+                meta_resp = await client.get(
+                    f"https://www.googleapis.com/drive/v3/files/{parent}",
+                    headers=headers,
+                    params={"fields": "id,name", "supportsAllDrives": "true"},
+                )
+                if meta_resp.status_code == 200:
+                    body = meta_resp.json()
+                    parent_meta = {
+                        "id": body.get("id", parent),
+                        "name": body.get("name", parent),
+                    }
+
+            async def has_kids(folder_id: str) -> bool:
+                resp = await client.get(
+                    "https://www.googleapis.com/drive/v3/files",
+                    headers=headers,
+                    params={
+                        "q": (
+                            f"'{folder_id}' in parents and "
+                            f"mimeType = '{folder_mime}' and "
+                            "trashed = false"
+                        ),
+                        "pageSize": 1,
+                        "fields": "files(id)",
+                        "supportsAllDrives": "true",
+                        "includeItemsFromAllDrives": "true",
+                    },
+                )
+                if resp.status_code != 200:
+                    return False
+                return bool(resp.json().get("files"))
+
+            children_flags = await asyncio.gather(*[has_kids(f.get("id", "")) for f in folders])
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                f"Drive folder list failed ({exc.response.status_code}): "
+                f"{exc.response.text[:200]}"
+            ),
+        ) from exc
+
+    return {
+        "parent": parent_meta,
+        "folders": [
+            {"id": f.get("id"), "name": f.get("name"), "has_children": flag}
+            for f, flag in zip(folders, children_flags, strict=False)
+        ],
+    }
+
+
 @router.post("/{credential_id}/picker-token")
 async def get_picker_token(
     credential_id: uuid.UUID,
