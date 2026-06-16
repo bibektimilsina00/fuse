@@ -269,6 +269,7 @@ __all__ = [
     "close_polling_slot",
     "find_polling_slot",
     "is_polling_cancelled",
+    "is_polling_listen_active",
     "polling_expected_event_label",
 ]
 
@@ -391,6 +392,17 @@ async def is_polling_cancelled(workflow_id: str, node_id: str) -> bool:
     short-circuits before the next provider HTTP call."""
     redis = await get_redis()
     return bool(await redis.get(PollingListenSlot.cancel_key(workflow_id, node_id)))
+
+
+async def is_polling_listen_active(workflow_id: str, node_id: str) -> bool:
+    """True iff a listen slot is currently open for this trigger.
+
+    The production scheduler checks this and skips polling rows whose
+    listen is active — otherwise both loops race for the same cursor
+    and the scheduler can grab the event the user is testing, leaving
+    the listen UI hanging."""
+    redis = await get_redis()
+    return bool(await redis.exists(f"{_POLLING_SLOT_PREFIX}:{workflow_id}:{node_id}"))
 
 
 def polling_expected_event_label(provider: str) -> str:

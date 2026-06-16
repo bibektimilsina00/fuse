@@ -34,11 +34,17 @@ from datetime import UTC, datetime
 
 from apps.api.app.core.celery import celery_app
 from apps.api.app.core.logger import get_logger
+from apps.api.app.features.triggers.listen_service import close_polling_slot
 
 logger = get_logger(__name__)
 
 
 LISTEN_POLL_INTERVAL_SECONDS = 5
+# Upper bound for exponential backoff between failing ticks. 60 s keeps
+# us politely under provider rate-limit reset windows (Gmail 250 quota
+# units / user / sec, Calendar 500 / minute) while still giving the
+# listen 4–5 retry attempts inside the 5-minute window.
+LISTEN_BACKOFF_CAP_SECONDS = 60
 
 
 @celery_app.task(name="poll_listen_slot")
@@ -83,6 +89,19 @@ async def _run(
     except ValueError:
         deadline = datetime.now(UTC)
 
+    log_ctx = {
+        "execution_id": execution_id,
+        "workflow_id": workflow_id,
+        "node_id": node_id,
+    }
+    logger.info(f"poll_listen_slot: started {log_ctx}")
+
+    # Consecutive failing ticks — drives exponential backoff so a
+    # provider-side outage doesn't burn through the listen window with
+    # 60 wasted retries at 5 s each.
+    consecutive_failures = 0
+    matched_provider: str | None = None
+
     while True:
         if datetime.now(UTC) >= deadline:
             await _expire(execution_id)
@@ -104,6 +123,7 @@ async def _run(
 
         # One poll iteration — fully self-contained DB session so a
         # transient failure doesn't poison the next tick.
+        tick_succeeded = False
         try:
             async with AsyncSessionLocal() as db:
                 wf = await WorkflowRepository(db).get_by_id(uuid.UUID(workflow_id))
@@ -137,6 +157,8 @@ async def _run(
                 cursor = state.cursor if state else {}
 
                 matches, new_cursor = await entry.poller(token, cursor, props)
+                tick_succeeded = True
+                matched_provider = slot.provider
 
                 # Always advance the cursor — even on a no-match tick —
                 # so the production scheduler resumes from the same
@@ -159,10 +181,6 @@ async def _run(
                     node_type = str(node.get("type") or "")
                     # Close the slot before dispatching so a retry in
                     # dispatch_existing can't re-fire it.
-                    from apps.api.app.features.triggers.listen_service import (
-                        close_polling_slot,
-                    )
-
                     await close_polling_slot(workflow_id, node_id)
                     await execution_engine.dispatch_existing(
                         execution_id=uuid.UUID(execution_id),
@@ -180,25 +198,84 @@ async def _run(
                             "timestamp": _iso_now(),
                         },
                     )
+                    logger.info(f"poll_listen_slot: matched provider={slot.provider} {log_ctx}")
+                    await _cleanup_post_listen(
+                        workflow_id=workflow_id,
+                        node_id=node_id,
+                        keep_state=True,  # match dispatched — keep cursor for the run
+                    )
                     return
         except Exception as exc:  # noqa: BLE001
             # Don't kill the listen loop on a transient API hiccup;
             # surface to logs and keep polling until deadline.
-            logger.warning(f"poll_listen_slot tick failed: {exc}")
+            logger.warning(f"poll_listen_slot tick failed: {exc} {log_ctx}")
+
+        if tick_succeeded:
+            consecutive_failures = 0
+        else:
+            consecutive_failures += 1
 
         # Sleep is capped by the remaining deadline so the last tick
-        # doesn't oversleep past the timeout window.
+        # doesn't oversleep past the timeout window. Exponential backoff
+        # kicks in only when the previous tick raised — successful ticks
+        # always sleep `LISTEN_POLL_INTERVAL_SECONDS` so a healthy listen
+        # stays responsive.
         remaining = (deadline - datetime.now(UTC)).total_seconds()
         if remaining <= 0:
             await _expire(execution_id)
+            await _cleanup_post_listen(workflow_id, node_id, keep_state=False)
             return
-        await asyncio.sleep(min(LISTEN_POLL_INTERVAL_SECONDS, max(1.0, remaining)))
+        base = LISTEN_POLL_INTERVAL_SECONDS * (2 ** min(consecutive_failures, 4))
+        sleep_secs = min(LISTEN_BACKOFF_CAP_SECONDS, max(1.0, min(base, remaining)))
+        await asyncio.sleep(sleep_secs)
 
         # Bail if the row was cancelled out from under us between ticks.
         async with AsyncSessionLocal() as db:
             row = await ExecutionRepository(db).get_by_id(uuid.UUID(execution_id))
             if row is None or row.status not in ("waiting",):
+                # Either cancelled, timed out by sweeper, or matched by
+                # a sibling worker. Either way our work here is done.
+                logger.info(
+                    f"poll_listen_slot: exit, row status={(row.status if row else None)!r} {log_ctx}"
+                )
+                # `matched_provider` only sticks when we actually ran a
+                # poll in this loop — use it to decide whether the state
+                # row is ours to clean up.
+                await _cleanup_post_listen(workflow_id, node_id, keep_state=bool(matched_provider))
                 return
+
+
+async def _cleanup_post_listen(
+    workflow_id: str,
+    node_id: str,
+    *,
+    keep_state: bool,
+) -> None:
+    """Drop the `integration_trigger_state` row if the workflow isn't
+    active. Keep it when the listen matched (so the workflow's
+    just-dispatched execution sees a consistent cursor) and when the
+    workflow IS active (the scheduler needs it). Otherwise the user
+    listened once and didn't activate — the row would sit idle
+    forever, eventually drifting from Google's `historyId` retention
+    window."""
+    from apps.api.app.core.database import AsyncSessionLocal
+    from apps.api.app.features.triggers.repository import (
+        IntegrationTriggerStateRepository,
+    )
+    from apps.api.app.features.workflows.repository import WorkflowRepository
+
+    if keep_state:
+        return
+    try:
+        async with AsyncSessionLocal() as db:
+            wf = await WorkflowRepository(db).get_by_id(uuid.UUID(workflow_id))
+            if wf is None or wf.is_active:
+                return
+            repo = IntegrationTriggerStateRepository(db)
+            await repo.delete(wf.id, node_id)
+            await db.commit()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"poll_listen_slot post-listen cleanup failed: {exc}")
 
 
 async def _expire(execution_id: str, status: str = "timeout") -> None:

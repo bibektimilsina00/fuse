@@ -24,6 +24,7 @@ celery_app = Celery(
         "apps.api.app.execution_engine.scheduler.cron",
         "apps.api.app.execution_engine.scheduler.integration_polling",
         "apps.api.app.features.triggers.polling_listener",
+        "apps.api.app.features.triggers.listen_sweeper",
     ],
 )
 
@@ -44,6 +45,10 @@ celery_app.conf.update(
         "poll-integration-triggers": {
             "task": "poll_integration_triggers",
             "schedule": 30.0,
+        },
+        "sweep-polling-listens": {
+            "task": "sweep_polling_listens",
+            "schedule": 60.0,
         },
     },
 )

@@ -202,10 +202,19 @@ export function useWorkflowEditor(workflowId: string) {
   //
   // The choice is made at click-time off the live graph so a user
   // doesn't need to know which mode they're in.
+  // Trigger node types that need the `/listen` endpoint instead of the
+  // fire-once `/run` endpoint. Meta triggers wait on real webhooks;
+  // polling triggers (Gmail / Calendar / …) wait on a Celery-driven
+  // snapshot-then-poll loop. Either way the editor should open the
+  // listen slot when the user clicks Run on a graph containing one.
+  const POLLING_LISTEN_TYPES = new Set(['trigger.gmail', 'trigger.gcal_event'])
+
   const hasMetaTrigger = useCallback(() => {
     const { nodes } = useWorkflowEditorStore.getState()
     return nodes.some(
-      (n) => typeof n.type === 'string' && n.type.startsWith('trigger.meta.'),
+      (n) =>
+        typeof n.type === 'string' &&
+        (n.type.startsWith('trigger.meta.') || POLLING_LISTEN_TYPES.has(n.type)),
     )
   }, [])
 
