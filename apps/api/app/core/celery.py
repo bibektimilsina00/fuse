@@ -23,6 +23,7 @@ celery_app = Celery(
         "apps.worker.app.jobs.tasks",
         "apps.api.app.execution_engine.scheduler.cron",
         "apps.api.app.execution_engine.scheduler.integration_polling",
+        "apps.api.app.features.triggers.polling_listener",
     ],
 )
 
