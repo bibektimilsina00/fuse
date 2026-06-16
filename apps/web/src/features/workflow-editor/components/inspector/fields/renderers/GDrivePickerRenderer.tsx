@@ -89,21 +89,80 @@ function loadPicker(): Promise<void> {
   if (window.google?.picker) return Promise.resolve()
   if (_pickerLoadPromise) return _pickerLoadPromise
   _pickerLoadPromise = new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${PICKER_API_URL}"]`)
-    const finish = () => {
-      window.gapi?.load('picker', () => resolve())
+    // Hard timeout — if the SDK or `gapi.load('picker', ...)` never
+    // calls back the button would otherwise spin forever. 15s is well
+    // past any reasonable network latency.
+    const timer = window.setTimeout(() => {
+      reject(
+        new Error(
+          'Google Picker SDK never loaded — check that the Picker API ' +
+            'is enabled on your Google Cloud project and that nothing ' +
+            '(ad blocker, CSP) is blocking apis.google.com.',
+        ),
+      )
+    }, 15000)
+
+    const onReady = () => {
+      window.clearTimeout(timer)
+      resolve()
     }
+
+    const loadPickerModule = () => {
+      if (!window.gapi) {
+        window.clearTimeout(timer)
+        reject(new Error('apis.google.com loaded but `gapi` is undefined'))
+        return
+      }
+      window.gapi.load('picker', () => {
+        if (!window.google?.picker) {
+          window.clearTimeout(timer)
+          reject(
+            new Error(
+              'gapi.load returned but window.google.picker is missing — ' +
+                'the Picker API is probably not enabled on this Google Cloud project.',
+            ),
+          )
+          return
+        }
+        onReady()
+      })
+    }
+
+    const existing = document.querySelector(`script[src="${PICKER_API_URL}"]`)
     if (existing) {
-      existing.addEventListener('load', finish, { once: true })
+      // Script tag already in the DOM. If gapi already loaded we can
+      // jump straight to loading the picker module; otherwise wait for
+      // the load event the existing tag will fire.
+      if (window.gapi) {
+        loadPickerModule()
+      } else {
+        existing.addEventListener('load', loadPickerModule, { once: true })
+        existing.addEventListener(
+          'error',
+          () => {
+            window.clearTimeout(timer)
+            reject(new Error('Existing apis.google.com script tag errored'))
+          },
+          { once: true },
+        )
+      }
       return
     }
+
     const script = document.createElement('script')
     script.src = PICKER_API_URL
     script.async = true
     script.defer = true
-    script.onload = finish
-    script.onerror = () => reject(new Error('Failed to load Google Picker SDK'))
+    script.onload = loadPickerModule
+    script.onerror = () => {
+      window.clearTimeout(timer)
+      reject(new Error('Failed to load Google Picker SDK from apis.google.com'))
+    }
     document.head.appendChild(script)
+  })
+  // On failure, clear the cached promise so the next click retries.
+  _pickerLoadPromise.catch(() => {
+    _pickerLoadPromise = null
   })
   return _pickerLoadPromise
 }
