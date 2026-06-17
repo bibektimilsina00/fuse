@@ -4,22 +4,94 @@ Mirrors the shape of the Meta build: one consolidated OAuth provider per
 surface family, per-surface trigger + action nodes, end-to-end test
 matrix scored 🔒 / ⚠️ / ✅ per cell. This doc is the plan + the tracker.
 
+## Status snapshot (2026-06-17)
+
+- **Phase 1 (Gmail + Calendar)** — ✅ shipped
+- **Phase 2 (Sheets + Drive + Docs)** — ✅ shipped
+- **Phase 3 (Tasks + Forms + Contacts + YouTube)** — ✅ shipped
+  (originally only Tasks/Forms/Contacts/YouTube; we promoted YouTube
+  out of Phase 3 in the original draft and ended up shipping it here)
+- **Phase 4 (Slides / Meet / Chat / Photos / Keep)** — ⏳ pending
+- **Phase 5+** — ⏳ pending
+
+Cross-cutting infrastructure (also shipped this cycle):
+
+- ✅ Generic **`google-file` picker** (Sheets / Docs / Slides / Forms
+  mimes — one renderer, picks any Google-native file by mime, with
+  inline “Create new” CTA wired to `/credentials/{id}/google-files`).
+- ✅ `gsheet-tab`, `gtasks-tasklist`, `gpeople-group`, `youtube-video`,
+  `youtube-playlist`, `youtube-channel` pickers (resource-specific
+  dropdowns w/ search + optional inline create).
+- ✅ Generic **`datetime` field type** — text input + native picker;
+  `granularity: "date" | "datetime"` typeOption. Used by Tasks `due`,
+  Sheets list filters, Forms `submitted_after`, Contacts birthday,
+  YouTube `publishedAfter` / `publishedBefore`.
+- ✅ **MediaRenderer overhaul** — one unified bar (URL / Upload /
+  Library) with autofill `nameField` typeOption. Used by Drive upload,
+  Docs `insert_image`, YouTube `upload_video` + thumbnail, Forms
+  (future), etc.
+- ✅ **Integration polling scheduler** with provider registry,
+  listen-mode slot driver, exponential backoff, and listen-then-poll
+  hand-off. Eight providers registered so far.
+- ✅ **YouTube RSS feed parser** — zero-quota new-video detection on
+  any public channel via the Atom feed at
+  `https://www.youtube.com/feeds/videos.xml?channel_id=…`.
+
 ## Inventory — what exists today
 
-- **`GoogleOAuthProvider`** in `apps/api/app/credential_manager/oauth/flow.py`
-  - id: `google_oauth`
-  - scopes (current): `gmail.send`, `gmail.readonly`, `openid`, `email`, `profile`
-  - no Calendar / Drive / Sheets / Docs / Tasks scopes yet
-- **Nodes registered:**
-  - `action.gmail` — send_email, search, get_email, list_labels, get_profile
-  - `action.google_sheets` — get_spreadsheet, get_values, update_values, append_values, clear_values
-  - `trigger.google_sheets` — TBD shape (polling? push?)
-- **Missing:**
-  - Gmail trigger (new email arrived)
-  - Calendar surface entirely
-  - Drive surface entirely
-  - Docs surface entirely
-  - Tasks, Forms, YouTube, Contacts (People), Meet — phase 2+
+OAuth provider: **`GoogleOAuthProvider`** in
+`apps/api/app/credential_manager/oauth/flow.py`. Scope set (single
+incremental consent):
+
+```
+gmail.modify, calendar, drive.file, spreadsheets, documents, tasks,
+forms.body, forms.responses.readonly, contacts,
+youtube.force-ssl, youtube.upload,
+openid, email, profile
+```
+
+`GOOGLE_DRIVE_WATCH_EXTERNAL=true` swaps `drive.file` → `drive`
+(Restricted scope; needs CASA).
+
+### Nodes registered
+
+Triggers ✅
+
+- `trigger.gmail` (gmail)
+- `trigger.gcal_event` (gcalendar)
+- `trigger.gdrive_change` (gdrive) — `changes.list?pageToken` real-time
+- `trigger.google_sheets` (google_sheets) — `row_added` + `row_updated`
+- `trigger.gtasks_change` (google_tasks) — `task_added` + `task_completed`
+- `trigger.gforms_response` (google_forms) — `new_response`
+- `trigger.gpeople_change` (google_people) — `contact_added` +
+  `contact_updated` (etag-based)
+- `trigger.gyt_change` (google_youtube) — `new_comment`, `new_subscriber`,
+  `new_video` (Data API **or RSS**), `new_video_search_match`,
+  `new_reply_to_my_comment`
+
+Actions ✅
+
+- `action.gmail` (Gmail)
+- `action.gcal` (Calendar)
+- `action.gdrive` (Drive — 7 ops + folder picker + custom server-proxied browser)
+- `action.google_sheets` (Sheets — 21 ops incl. row CRUD, find/replace,
+  sort/format/auto-resize, share, export)
+- `action.gdocs` (Docs — 19 ops)
+- `action.gtasks` (Tasks — 12 ops; date-padding fix for bare YYYY-MM-DD)
+- `action.gforms` (Forms — 16 ops; responses already mapped to
+  `{question_title: value}`)
+- `action.gpeople` (Contacts — 12 ops; emails/phones/addresses accept
+  bare-string OR `{value, type}` dict shapes)
+- `action.gyt` (YouTube — 28 ops incl. multipart **video upload**,
+  thumbnail upload, comment moderation)
+
+Still **missing**
+
+- Phase 4: Slides, Meet, Chat, Photos, Keep
+- Phase 5+: Business Profile, Analytics 4, Search Console, Ads, AdSense,
+  BigQuery, Cloud Storage, Pub/Sub
+- Phase 6+: Translate, Vision, Speech, Document AI, Dialogflow, Maps,
+  reCAPTCHA, Identity, Admin SDK, Vault
 
 ## Auth model
 
@@ -55,109 +127,195 @@ In Google Cloud Console → **OAuth Consent Screen**:
 In Google Cloud Console → **APIs & Services → Library**: enable the
 APIs we call. Each Fuse surface gates on one or more APIs:
 
-| Surface              | API to enable                              |
-|----------------------|--------------------------------------------|
-| Gmail                | Gmail API                                  |
-| Calendar             | Google Calendar API                        |
-| Drive                | Google Drive API                           |
-| Sheets               | Google Sheets API                          |
-| Docs                 | Google Docs API                            |
-| Slides               | Google Slides API                          |
-| Tasks                | Google Tasks API                           |
-| YouTube              | YouTube Data API v3                        |
-| Contacts             | People API                                 |
-| Forms                | Google Forms API                           |
-| Meet                 | Google Meet API (limited program)          |
-| Chat                 | Google Chat API                            |
-| Photos               | Photos Library API                         |
-| Business Profile     | Google Business Profile API                |
-| Analytics 4          | Google Analytics Data API                  |
-| Search Console       | Search Console API                         |
-| Ads                  | Google Ads API                             |
-| AdSense              | AdSense Management API                     |
-| BigQuery             | BigQuery API                               |
-| Cloud Storage        | Cloud Storage JSON API                     |
-| Pub/Sub              | Pub/Sub API                                |
-| Translate            | Cloud Translation API                      |
-| Vision               | Cloud Vision API                           |
-| Speech               | Cloud Speech-to-Text + Text-to-Speech      |
-| Document AI          | Document AI API                            |
-| Dialogflow           | Dialogflow CX API                          |
-| Maps / Places        | Maps JavaScript / Places API / Geocoding   |
-| reCAPTCHA            | reCAPTCHA Enterprise API                   |
-| Firebase / Identity  | Identity Toolkit + Firebase Admin          |
-| Admin SDK            | Admin SDK API                              |
-| Vault                | Vault API                                  |
+| Surface              | API to enable                              | Status |
+|----------------------|--------------------------------------------|--------|
+| Gmail                | Gmail API                                  | ✅ |
+| Calendar             | Google Calendar API                        | ✅ |
+| Drive                | Google Drive API                           | ✅ |
+| Sheets               | Google Sheets API                          | ✅ |
+| Docs                 | Google Docs API                            | ✅ |
+| Tasks                | Google Tasks API                           | ✅ |
+| Forms                | Google Forms API                           | ✅ |
+| Contacts             | People API                                 | ✅ |
+| YouTube              | YouTube Data API v3                        | ✅ |
+| Slides               | Google Slides API                          | ⏳ |
+| Meet                 | Google Meet API (limited program)          | ⏳ |
+| Chat                 | Google Chat API                            | ⏳ |
+| Photos               | Photos Library API                         | ⏳ |
+| Business Profile     | Google Business Profile API                | ⏳ |
+| Analytics 4          | Google Analytics Data API                  | ⏳ |
+| Search Console       | Search Console API                         | ⏳ |
+| Ads                  | Google Ads API                             | ⏳ |
+| AdSense              | AdSense Management API                     | ⏳ |
+| BigQuery             | BigQuery API                               | ⏳ |
+| Cloud Storage        | Cloud Storage JSON API                     | ⏳ |
+| Pub/Sub              | Pub/Sub API                                | ⏳ |
+| Translate            | Cloud Translation API                      | ⏳ |
+| Vision               | Cloud Vision API                           | ⏳ |
+| Speech               | Cloud Speech-to-Text + Text-to-Speech      | ⏳ |
+| Document AI          | Document AI API                            | ⏳ |
+| Dialogflow           | Dialogflow CX API                          | ⏳ |
+| Maps / Places        | Maps JavaScript / Places API / Geocoding   | ⏳ |
+| reCAPTCHA            | reCAPTCHA Enterprise API                   | ⏳ |
+| Firebase / Identity  | Identity Toolkit + Firebase Admin          | ⏳ |
+| Admin SDK            | Admin SDK API                              | ⏳ |
+| Vault                | Vault API                                  | ⏳ |
 
 Per-API scopes table is below.
 
 ## Phased rollout
 
-### Phase 1 — Email + Calendar (highest-frequency automations)
+### ✅ Phase 1 — Email + Calendar (shipped)
 
-- Gmail trigger: **new message in inbox** (matching query)
-- Gmail action: send, reply, search, get, list_labels, get_profile, add_label, remove_label, mark_read, delete, trash
-- Calendar trigger: **new event created** / **upcoming event** / **event updated**
-- Calendar action: create_event, update_event, delete_event, list_events, find_free_slots, send_response
+- ✅ Gmail trigger: **new message in inbox** (matching query)
+- ✅ Gmail action: send, reply, search, get, list_labels, add_label,
+  remove_label, mark_read, trash, plus standard CRUD
+- ✅ Calendar trigger: **event_created** / **event_starting_soon** /
+  **event_updated**
+- ✅ Calendar action: create_event, update_event, delete_event,
+  list_events, find_free_slots, respond
 
-### Phase 2 — Data ops (Sheets + Drive + Docs)
+### ✅ Phase 2 — Data ops (Sheets + Drive + Docs) (shipped)
 
-- Sheets trigger: **new row appended** (polling) / **row updated** (polling)
-- Sheets action: extend existing — add `clear_range`, `create_sheet`, `find_replace`, `batch_update`
-- Drive trigger: **new file in folder** (polling) / **file shared with me**
-- Drive action: upload, download, list, share, move, delete, create_folder, search
-- Docs trigger: comment_added (push via Drive Activity API)
-- Docs action: create, append_text, find_replace, insert_image
+Sheets — 21 ops, two triggers:
 
-### Phase 3 — Social / CRM / Tasks
+- ✅ Sheets trigger: `row_added` (count cursor) and `row_updated`
+  (per-row SHA-1 hash cursor)
+- ✅ Sheets actions: get_spreadsheet, get_values, update_values,
+  append_values, clear_values, create_spreadsheet, create_sheet,
+  duplicate_sheet, delete_sheet, find_replace, batch_update,
+  lookup_row (header-aware), add_row (`{header: value}` dict),
+  update_row, delete_row, rename_sheet, share, export (PDF/XLSX/
+  CSV/ODS/HTML), sort_range, format_range (bold/italic/colour/number),
+  auto_resize_columns
 
-- YouTube trigger: new comment on video, new subscriber
-- YouTube action: post comment, reply, update video metadata, upload
-- Contacts (People) action: create_contact, search, update, list
-- Tasks action: create_task, list, complete, update
-- Forms trigger: new response
+Drive — full action set + real-time change feed:
 
-### Phase 4 — Specialised / SaaS-ops
+- ✅ Drive trigger: `gdrive_change` via `changes.list?pageToken=…` —
+  no search-index lag; classifier handles added / modified / trashed
+- ✅ Drive actions: upload (`media` field), download, list, share,
+  rename, delete, create_folder, search, plus the custom server-proxied
+  folder browser that sidesteps adblockers
 
-- Slides (create deck, append slide, find/replace text, export pdf)
-- Meet (create meeting, list participants)
-- Chat (send DM / send to space, threaded reply)
-- Photos (list album, upload photo, search by date)
-- Google Tasks (already in Phase 3, double-listed for clarity)
+Docs — 19 ops (no trigger yet):
+
+- ✅ create / get_text / get_with_structure / copy / rename / delete /
+  share / export (PDF/DOCX/HTML/TXT/EPUB/ODT/RTF)
+- ✅ append_text / insert_text / find_replace / delete_range /
+  format_text (bold/italic/underline/strikethrough/font/colour) /
+  set_paragraph_style (heading + alignment + indent)
+- ✅ insert_image (media field) / insert_table / insert_page_break
+- ✅ set_header / set_footer
+- ⏳ Docs trigger (comment_added via Drive Activity API) — deferred
+
+### ✅ Phase 3 — Tasks + Forms + Contacts + YouTube (shipped)
+
+Tasks — 12 ops + 2 trigger events:
+
+- ✅ Tasks trigger: `task_added` (id-set cursor) + `task_completed`
+  (per-id boolean state cursor)
+- ✅ Tasks actions: list_tasklists / create / rename / delete tasklist;
+  list_tasks / get_task / create_task / update_task / complete_task /
+  delete_task / move_task / clear_completed
+
+Forms — 16 ops + new_response trigger:
+
+- ✅ Forms trigger: `new_response` — cursor `{last_submitted_at}`,
+  response answers auto-mapped to `{question_title: value}` via the
+  form structure
+- ✅ Forms actions: create / get_form / update_form_info /
+  update_settings (quiz mode + email collection) / delete / share /
+  add_text_question / add_choice_question (RADIO/CHECKBOX/DROP_DOWN
+  + shuffle) / add_date_question / add_scale_question /
+  add_file_upload_question (max files + size + types) /
+  add_section_break / delete_item / move_item /
+  list_responses (datetime-picker filter) / get_response
+
+Contacts (People API) — 12 ops + 2 trigger events:
+
+- ✅ Contacts trigger: `contact_added` (resource-name set) +
+  `contact_updated` (etag map — People API bumps etag on every change)
+- ✅ Contacts actions: list_contacts (sortable, paginated, configurable
+  personFields) / search_contacts (substring) / get / create /
+  update (auto-fetches current etag before PATCH) / delete /
+  list_other_contacts; list_groups / create_group / delete_group /
+  add_to_group / remove_from_group (batched)
+
+YouTube — 28 action ops + 5 trigger events:
+
+- ✅ YouTube trigger:
+  - `new_comment` (cursor `{known_thread_ids}`; per-video or
+    channel-wide)
+  - `new_subscriber` (cursor `{known_subscriber_ids}`)
+  - `new_video` — **two backends**: own channel via Data API uploads
+    playlist, OR any public channel via the **RSS feed** (zero quota)
+  - `new_video_search_match` (cursor `{last_published_at}`; description
+    advises ≥5 min poll interval — 100 quota units per call)
+  - `new_reply_to_my_comment`
+- ✅ YouTube actions:
+  - Videos (9): list_my_videos, get_video, get_video_rating,
+    **upload_video** (media field, single-chunk multipart), update_video,
+    delete_video, rate_video, set_video_thumbnail (media field),
+    search_videos (query + publishedAfter/Before via datetime renderer
+    + region + duration + sort)
+  - Playlists (7): list / create / update / delete /
+    add_video_to_playlist (with optional position) /
+    remove_video_from_playlist / list_playlist_items
+  - Comments (7): list_comments, post_top_comment, reply_to_comment,
+    update_comment, delete_comment, mark_comment_as_spam,
+    set_comment_moderation_status (held/published/rejected + optional
+    ban author)
+  - Channels (2): get_my_channel, get_channel_by_id
+  - Subscriptions (3): list / subscribe / unsubscribe
+
+### ⏳ Phase 4 — Specialised / SaaS-ops (next)
+
+- Slides (create deck, append slide, find/replace text, export pdf,
+  set speaker notes, duplicate slide, delete slide)
+- Meet (create meeting, list participants, end meeting) — limited API
+- Chat (send message to space/DM, threaded reply, list spaces, list
+  members, reactions) — needs `chat.bot` scope / app install flow
+- Photos (list album, upload photo, search by date, create album,
+  list_in_album)
 - Keep (list notes, create note) — limited API
 
-### Phase 5 — Marketing / Analytics / Cloud
+### ⏳ Phase 5 — Marketing / Analytics / Cloud
 
-- **Business Profile (Google My Business)** — list locations, reply to reviews, post updates, fetch insights
-- **Analytics 4** — run report (event counts, sessions, conversions by dimension), list properties
-- **Search Console** — fetch search analytics, submit sitemap, list URL inspection
-- **Ads** — list campaigns, pause/enable, fetch metrics, create campaign (heavyweight API)
+- **Business Profile (GMB)** — list locations, reply to reviews, post
+  updates, fetch insights
+- **Analytics 4** — run report (event counts, sessions, conversions by
+  dimension), list properties
+- **Search Console** — fetch search analytics, submit sitemap, list
+  URL inspection
+- **Ads** — list campaigns, pause/enable, fetch metrics, create
+  campaign (heavyweight API)
 - **AdSense / AdMob** — earnings reports
-- **BigQuery** — run SQL, list datasets, insert rows (for data-pipeline workflows)
-- **Cloud Storage** — upload/download object, list bucket (distinct from Drive; used by code/data folks)
-- **Pub/Sub** — publish message (also used internally as a trigger transport)
+- **BigQuery** — run SQL, list datasets, insert rows
+- **Cloud Storage** — upload/download object, list bucket
+- **Pub/Sub** — publish message (also internally as a trigger transport)
 
-### Phase 6 — AI / Maps / Auth
+### ⏳ Phase 6 — AI / Maps / Auth
 
 - **Translate** — translate text, detect language
 - **Vision** — OCR, label detection, safe-search, face detect
 - **Speech** — speech-to-text, text-to-speech
 - **Document AI** — extract structured fields from invoices, forms, IDs
 - **Dialogflow CX** — agent intent detection
-- **Maps / Places** — geocoding, place lookup, distance matrix, directions
-- **reCAPTCHA Enterprise** — verify token (for workflows guarding form input)
-- **Identity Platform / Firebase Auth** — user mgmt for embedded auth flows
+- **Maps / Places** — geocoding, place lookup, distance matrix,
+  directions
+- **reCAPTCHA Enterprise** — verify token
+- **Identity Platform / Firebase Auth** — user mgmt for embedded
+  auth flows
 
-### Phase 7 — Workspace Admin (B2B)
+### ⏳ Phase 7 — Workspace Admin (B2B)
 
-- **Admin SDK Directory** — create/suspend user, list groups, add member, reset password
+- **Admin SDK Directory** — create/suspend user, list groups, add
+  member, reset password
 - **Admin SDK Reports** — audit logs, usage reports
 - **Vault** — eDiscovery (legal hold), exports
 - **Cloud Identity** — group/membership mgmt across orgs
 
 ### Out of scope
-
-These exist but aren't useful enough for our user base to prioritise:
 
 - Classroom (education-specific)
 - AdMob (mobile-ads-specific)
@@ -166,180 +324,146 @@ These exist but aren't useful enough for our user base to prioritise:
 
 ## Scopes per surface
 
-| Surface | Scopes |
-|---|---|
-| Gmail (read + send + labels) | `gmail.modify` (covers read+send+labels+threads) — or fine-grained: `gmail.readonly` + `gmail.send` + `gmail.labels` + `gmail.modify` |
-| Calendar | `calendar` (read+write) or `calendar.events` (events only) |
-| Drive | `drive.file` (only files the user creates via the app) is safer; `drive` is full access (requires verification) |
-| Sheets | `spreadsheets` (read+write) |
-| Docs | `documents` (read+write) |
-| Slides | `presentations` |
-| Tasks | `tasks` |
-| YouTube | `youtube.readonly` + `youtube.force-ssl` (post + comment) |
-| Contacts | `contacts` or `contacts.readonly` |
-| Forms | `forms.body.readonly` + `forms.responses.readonly` |
-| Profile | `openid` + `email` + `profile` |
-| Chat | `chat.messages` + `chat.spaces` |
-| Photos | `photoslibrary.readonly` / `photoslibrary.appendonly` |
-| Business Profile | `business.manage` |
-| Analytics 4 | `analytics.readonly` |
-| Search Console | `webmasters.readonly` (or `webmasters` for sitemap submit) |
-| Ads | `adwords` (note: separate developer token required) |
-| AdSense | `adsense.readonly` |
-| BigQuery | `bigquery` (or `bigquery.readonly`) |
-| Cloud Storage | `devstorage.read_write` (or `devstorage.read_only`) |
-| Pub/Sub | `pubsub` |
-| Cloud APIs (Translate / Vision / Speech / Doc AI / Dialogflow) | `cloud-platform` (single broad scope; per-API enable governs access) |
-| Maps / Places / Geocoding | API key (no OAuth) — separate `GOOGLE_MAPS_API_KEY` env |
-| reCAPTCHA Enterprise | `cloud-platform` |
-| Admin SDK | `admin.directory.user` + `admin.directory.group` (+ `.member` for membership) |
-| Vault | `ediscovery` |
+| Surface | Scopes | Status |
+|---|---|---|
+| Gmail (read + send + labels) | `gmail.modify` | ✅ in OAuth scope set |
+| Calendar | `calendar` | ✅ |
+| Drive | `drive.file` (default); `drive` behind `GOOGLE_DRIVE_WATCH_EXTERNAL` | ✅ |
+| Sheets | `spreadsheets` | ✅ |
+| Docs | `documents` | ✅ |
+| Tasks | `tasks` | ✅ |
+| Forms | `forms.body` + `forms.responses.readonly` | ✅ |
+| Contacts | `contacts` | ✅ |
+| YouTube | `youtube.force-ssl` + `youtube.upload` | ✅ |
+| Profile | `openid` + `email` + `profile` | ✅ |
+| Slides | `presentations` | ⏳ |
+| Chat | `chat.messages` + `chat.spaces` | ⏳ |
+| Photos | `photoslibrary.readonly` / `photoslibrary.appendonly` | ⏳ |
+| Business Profile | `business.manage` | ⏳ |
+| Analytics 4 | `analytics.readonly` | ⏳ |
+| Search Console | `webmasters.readonly` (or `webmasters` for sitemap submit) | ⏳ |
+| Ads | `adwords` (separate developer token required) | ⏳ |
+| AdSense | `adsense.readonly` | ⏳ |
+| BigQuery | `bigquery` (or `bigquery.readonly`) | ⏳ |
+| Cloud Storage | `devstorage.read_write` (or `devstorage.read_only`) | ⏳ |
+| Pub/Sub | `pubsub` | ⏳ |
+| Cloud APIs (Translate / Vision / Speech / Doc AI / Dialogflow) | `cloud-platform` (single broad scope; per-API enable governs access) | ⏳ |
+| Maps / Places / Geocoding | API key (no OAuth) — separate `GOOGLE_MAPS_API_KEY` env | ⏳ |
+| reCAPTCHA Enterprise | `cloud-platform` | ⏳ |
+| Admin SDK | `admin.directory.user` + `admin.directory.group` (+ `.member` for membership) | ⏳ |
+| Vault | `ediscovery` | ⏳ |
 
 Restricted scopes (Drive full, Gmail modify) trigger Google's
-**Restricted Scope Verification** (CASA / security review). Plan to
-ship with non-restricted scopes by default and gate the full-access
+**Restricted Scope Verification** (CASA / security review). We ship
+with non-restricted scopes by default and gate the full-access
 operations behind opt-in.
 
 ## Trigger delivery options
 
 Google has three patterns:
 
-1. **Polling** — Fuse hits the API on a schedule. Cheap, no setup,
-   works for Sheets row appends, Drive folder changes, Calendar
-   upcoming events. Higher latency.
-2. **Push notifications** (Drive, Calendar, Gmail watch) — Fuse calls
-   `watch` API which registers a webhook URL + channel id; Google
-   POSTs on change with a header indicating the resource. Lower
-   latency, needs renewal every ~7 days, needs a webhook callback
-   endpoint same shape as our Meta one.
-3. **Pub/Sub** (Gmail, Drive) — Google publishes to a Pub/Sub topic
-   we subscribe to. Most reliable, requires GCP project + topic +
-   subscription. Heavy setup.
+1. **Polling** — Fuse hits the API on a schedule. Cheap, no setup. ✅
+   This is what every shipped Google trigger uses. Provider registry +
+   listen-mode driver covered in
+   `apps/api/app/execution_engine/scheduler/integration_polling.py` and
+   `apps/api/app/features/triggers/polling_listener.py`.
+2. **Push notifications** (Drive, Calendar, Gmail watch) — Google POSTs
+   on change. Lower latency, ~7-day channel TTL, needs a webhook
+   endpoint same shape as the Meta one. ⏳ Deferred until a user asks
+   for sub-minute latency.
+3. **Pub/Sub** (Gmail, Drive) — heaviest setup, most reliable. ⏳
+   Deferred.
 
-**Phase 1 plan:** polling for everything. Add push/Pub/Sub once a
-real user asks for sub-minute latency. Keeps initial implementation
-contained.
+**`new_video` over RSS** counts as a fourth path — uses YouTube's
+public Atom feed for zero quota. Not generalisable to other surfaces
+(only YouTube exposes feeds like this).
 
 ## Per-surface node design
 
-Mirror the Meta pattern:
+Pattern that all shipped Google surfaces follow:
 
-- One **trigger node** per surface (`trigger.google.{gmail,calendar,drive,sheets,docs,...}`) with `event_type` dropdown
-- One **action node** per surface (`action.google.{gmail,calendar,...}`) with `operation` dropdown
+- One **trigger node** per surface (`trigger.google.{gmail,gcal_event,
+  gdrive_change,google_sheets,gtasks_change,gforms_response,
+  gpeople_change,gyt_change}`) with `event_type` dropdown when there
+  are ≥2 events
+- One **action node** per surface (`action.{gmail,gcal,gdrive,
+  google_sheets,gdocs,gtasks,gforms,gpeople,gyt}`) with `operation`
+  dropdown
 - Condition-driven field visibility
+- Pickers reused: `google-file` (Sheets/Docs/Slides/Forms via mime
+  typeOption), `gsheet-tab`, `gtasks-tasklist`, `gpeople-group`,
+  `youtube-video`, `youtube-playlist`, `youtube-channel`
+- `datetime` field for any RFC3339 input, with `granularity` typeOption
+- `media` field for any binary attachment (Drive upload, Docs
+  insert_image, YouTube upload + thumbnail)
 
-### Gmail node sketch
-
-Triggers (`event_type`):
-- new_message — query string filter (`from:` / `subject:` / `label:`)
-- new_thread — same query
-- new_label — when a label gets attached to anything
-
-Actions (`operation`):
-- send_email — to, cc, bcc, subject, body, body_type (plain/html), attachments (media field — reuses our `MediaRenderer`)
-- reply — thread_id, body
-- forward — message_id, to, body
-- search — query, max_results
-- get_message — id, format (full / metadata / minimal)
-- list_labels
-- add_label — message_id, label_id
-- remove_label — message_id, label_id
-- mark_read / mark_unread — message_id
-- trash / untrash — message_id
-- create_label — name, color
-- get_profile
-
-### Calendar node sketch
-
-Triggers:
-- event_created — calendar_id (default: primary)
-- event_updated — calendar_id
-- event_starting_soon — calendar_id, lead_time_minutes (10 / 30 / 60)
-- event_cancelled — calendar_id
-
-Actions:
-- create_event — calendar_id, summary, description, start, end, attendees, location, conference_create
-- update_event — event_id + fields
-- delete_event — event_id
-- list_events — calendar_id, time_min, time_max, q
-- find_free_slots — calendars[], duration_minutes, time_min, time_max
-- respond — event_id, response_status (accepted / declined / tentative)
-
-### Drive node sketch
-
-Triggers:
-- new_file_in_folder — folder_id, mime_type filter
-- file_modified — folder_id
-- file_shared_with_me
-
-Actions:
-- upload — name, parent_folder_id, mime_type, source (media field), make_public
-- download — file_id
-- list — folder_id, query
-- share — file_id, email, role (reader/commenter/writer)
-- move — file_id, target_folder_id
-- delete — file_id
-- create_folder — name, parent_folder_id
-- search — query
-
-### Sheets node sketch (extend existing)
-
-Triggers (new):
-- new_row — spreadsheet_id, sheet_name (polling interval setting)
-- row_updated — spreadsheet_id, sheet_name (polling, compares snapshots)
-
-Actions (extend existing):
-- get_spreadsheet, get_values, update_values, append_values, clear_values (have these)
-- create_spreadsheet — title, sheets[]
-- create_sheet — spreadsheet_id, title
-- duplicate_sheet — spreadsheet_id, source_sheet_id, new_title
-- find_replace — spreadsheet_id, find, replace, sheet_name (optional), match_case
-- batch_update — spreadsheet_id, requests[] (raw API request list)
-
-### Docs node sketch
-
-Actions:
-- create — title, content (plain text)
-- append_text — document_id, text
-- insert_image — document_id, image_url (media field), index
-- find_replace — document_id, find, replace, match_case
-- get — document_id (returns parsed text)
-- export — document_id, format (pdf / docx / html / txt)
-
-## Test matrix (will fill as we build)
+## Test matrix
 
 | # | Surface | Trigger / Action | Status | Notes |
 |---|---------|------------------|--------|-------|
-| 1 | gmail | trigger: new_message (polling) | ⏳ | |
-| 2 | gmail | action: send_email | ⏳ | text body |
-| 3 | gmail | action: send_email + attachment | ⏳ | media field reuse |
-| 4 | gmail | action: reply | ⏳ | |
-| 5 | gmail | action: search | ⏳ | |
-| 6 | gmail | action: add_label | ⏳ | |
-| 7 | gmail | action: mark_read | ⏳ | |
-| 8 | gmail | action: trash | ⏳ | |
-| 9 | calendar | trigger: event_created | ⏳ | polling |
-| 10 | calendar | trigger: event_starting_soon | ⏳ | |
-| 11 | calendar | action: create_event | ⏳ | with attendees |
-| 12 | calendar | action: update_event | ⏳ | |
-| 13 | calendar | action: delete_event | ⏳ | |
-| 14 | calendar | action: list_events | ⏳ | |
-| 15 | calendar | action: find_free_slots | ⏳ | |
-| 16 | drive | trigger: new_file_in_folder | ⏳ | polling |
-| 17 | drive | action: upload | ⏳ | media field |
-| 18 | drive | action: download | ⏳ | returns signed url |
-| 19 | drive | action: list | ⏳ | |
-| 20 | drive | action: share | ⏳ | |
-| 21 | drive | action: create_folder | ⏳ | |
-| 22 | sheets | trigger: new_row | ⏳ | polling |
-| 23 | sheets | action: get_values | ✅ | already exists — re-verify |
-| 24 | sheets | action: append_values | ✅ | already exists — re-verify |
-| 25 | sheets | action: create_spreadsheet | ⏳ | |
-| 26 | sheets | action: find_replace | ⏳ | |
-| 27 | docs | action: create | ⏳ | |
-| 28 | docs | action: append_text | ⏳ | |
-| 29 | docs | action: find_replace | ⏳ | |
-| 30 | docs | action: export pdf | ⏳ | |
+| 1 | gmail | trigger: new_message (polling) | ✅ | |
+| 2 | gmail | action: send_email | ✅ | |
+| 3 | gmail | action: send_email + attachment | ✅ | media field reuse |
+| 4 | gmail | action: reply | ✅ | |
+| 5 | gmail | action: search | ✅ | |
+| 6 | gmail | action: add_label | ✅ | |
+| 7 | gmail | action: mark_read | ✅ | |
+| 8 | gmail | action: trash | ✅ | |
+| 9 | calendar | trigger: event_created | ✅ | polling |
+| 10 | calendar | trigger: event_starting_soon | ✅ | |
+| 11 | calendar | action: create_event | ✅ | with attendees |
+| 12 | calendar | action: update_event | ✅ | |
+| 13 | calendar | action: delete_event | ✅ | |
+| 14 | calendar | action: list_events | ✅ | |
+| 15 | calendar | action: find_free_slots | ✅ | |
+| 16 | drive | trigger: gdrive_change | ✅ | `changes.list` real-time |
+| 17 | drive | action: upload | ✅ | media field |
+| 18 | drive | action: list | ✅ | |
+| 19 | drive | action: share | ✅ | |
+| 20 | drive | action: create_folder | ✅ | |
+| 21 | sheets | trigger: row_added | ✅ | populated row count cursor |
+| 22 | sheets | trigger: row_updated | ✅ | per-row SHA-1 hash cursor |
+| 23 | sheets | action: get_values / append_values | ✅ | |
+| 24 | sheets | action: create_spreadsheet | ✅ | |
+| 25 | sheets | action: find_replace / sort_range / format_range | ✅ | |
+| 26 | sheets | action: lookup_row / add_row / update_row | ✅ | header-aware |
+| 27 | sheets | action: share / export PDF | ✅ | |
+| 28 | docs | action: create / append_text | ✅ | |
+| 29 | docs | action: find_replace | ✅ | |
+| 30 | docs | action: insert_image (media field) | ✅ | |
+| 31 | docs | action: format_text + set_paragraph_style | ✅ | |
+| 32 | docs | action: set_header / set_footer | ✅ | two-step batchUpdate |
+| 33 | docs | action: export PDF / DOCX | ✅ | |
+| 34 | tasks | action: list / create_task | ✅ | |
+| 35 | tasks | action: update_task / complete_task | ✅ | date padding fix |
+| 36 | tasks | trigger: task_added / task_completed | ✅ | |
+| 37 | forms | trigger: new_response | ✅ | answers auto-mapped to titles |
+| 38 | forms | action: create + add_*_question | ✅ | all 6 question kinds |
+| 39 | forms | action: list_responses (datetime filter) | ✅ | |
+| 40 | contacts | action: list / search / create / update | ✅ | |
+| 41 | contacts | action: list_groups + add_to_group | ✅ | |
+| 42 | contacts | trigger: contact_added / contact_updated | ✅ | etag cursor |
+| 43 | youtube | action: list_my_videos / get_video | ✅ | |
+| 44 | youtube | action: upload_video + set_thumbnail | ✅ | multipart upload |
+| 45 | youtube | action: post_top_comment / reply / moderate | ✅ | full comment surface |
+| 46 | youtube | action: playlists CRUD + items | ✅ | |
+| 47 | youtube | action: subscribe / unsubscribe | ✅ | |
+| 48 | youtube | trigger: new_comment | ✅ | |
+| 49 | youtube | trigger: new_subscriber | ✅ | |
+| 50 | youtube | trigger: new_video (Data API + RSS) | ✅ | RSS = zero quota |
+| 51 | youtube | trigger: new_video_search_match | ✅ | quota-aware |
+| 52 | youtube | trigger: new_reply_to_my_comment | ✅ | |
+| 53 | slides | action: create + append slide | ⏳ | |
+| 54 | slides | action: find_replace_text | ⏳ | |
+| 55 | slides | action: export PDF | ⏳ | |
+| 56 | meet | action: create_meeting | ⏳ | limited API |
+| 57 | chat | action: send_message | ⏳ | needs chat.bot scope |
+| 58 | chat | trigger: new_message_in_space | ⏳ | |
+| 59 | photos | action: upload_photo | ⏳ | |
+| 60 | photos | trigger: new_photo | ⏳ | |
+| 61 | analytics4 | action: run_report | ⏳ | |
+| 62 | search_console | action: get_search_analytics | ⏳ | |
+| 63 | business_profile | trigger: new_review | ⏳ | |
 
 Statuses: ⏳ not started · 🔄 in progress · ✅ proven end-to-end ·
 🔒 blocked by external (verification, API enable, scope review) · ⚠️
@@ -363,47 +487,37 @@ Before any of this code runs:
 6. **Verification** — for restricted scopes only (Drive full, Gmail
    modify). Skip until needed.
 
-## Open questions
+## Open questions (still open)
 
-- Polling cadence: per-trigger setting, or global cron interval? Lean
-  per-trigger so noisy triggers can be slower.
-- Cursor storage: where do we keep "last seen message id" for the
-  Gmail trigger? Probably MetaSubscription-equivalent table —
-  `IntegrationTriggerState(workflow_id, node_id, cursor: jsonb)`.
-- Sheets trigger: snapshot whole sheet on first run, then diff each
-  poll, or rely on the spreadsheet's revision history? Diff is
-  expensive on large sheets; revision is cheaper but only tells
-  modified vs not.
-- Attachment download for Gmail trigger: do we eagerly fetch + store
-  as Assets, or pass a fetch URL for the action to consume?
-  Lean **eager-as-Assets** for parity with the Meta media model.
+- Push-notification migration for Drive / Gmail / Calendar — desired
+  before or after Phase 4 wraps?
+- Per-trigger poll-interval defaults: we set 60s baseline + bumped
+  search-heavy events to 300+. Do we expose a workspace-wide minimum?
+- Cursor migration when we add new event types to existing triggers
+  (e.g. adding `comment_deleted` to YouTube later) — the
+  `event_type` mismatch already resnapshots cleanly, so we're fine
+  on the engine side; UI might want a toast.
+- Workspace-shared `GOOGLE_MAPS_API_KEY` lifecycle — auto-rotate or
+  expose to admins?
 
-## What to build first
-
-1. Extend `GoogleOAuthProvider` to request all Phase-1 scopes
-   (`gmail.modify` + `calendar` + `drive.file` + `spreadsheets` +
-   `documents` + `tasks` + `openid email profile`) under a single
-   incremental dialog.
-2. Add `IntegrationTriggerState` table for polling-based triggers.
-3. Add a polling scheduler that drives Google triggers on a per-node
-   interval. Reuse Celery beat.
-4. Build the **Gmail surface** first — most-asked node category in
-   automation tools. Trigger + actions + attachment reuse of our
-   MediaRenderer.
-5. Then Calendar — second-most.
-6. Sheets extensions + Drive + Docs after.
-
-## Notes from the Meta build that apply here
+## Notes from the build (apply forward)
 
 - Lock the `media` field reuse early — it's the right primitive for
-  both Gmail attachments and Drive upload.
-- Listen-mode for triggers: same `/listen` endpoint pattern works
-  for polling triggers too, just runs a single poll against Google
-  the moment the user clicks Run.
-- Auto-config pieces (like our Get Started button install): for
-  Google watch-channel triggers, auto-call `watch()` and store the
-  channel id + resource id for renewal.
+  Gmail attachments, Drive upload, Docs `insert_image`, YouTube
+  upload + thumbnail, Slides insert (Phase 4).
+- The `google-file` picker is the right primitive for any
+  Drive-resident Google-native file (set the mime via typeOption).
+- The `datetime` field with `granularity` typeOption is reusable
+  anywhere we touch RFC3339.
+- Listen-mode for triggers: same `/listen` endpoint pattern works for
+  polling triggers; the editor's Run button auto-routes to `/listen`
+  when the graph contains any registered polling trigger.
+- Auto-config pieces (like the Get Started button install): for
+  webhook-based Google triggers (Phase 5+), auto-call `watch()` and
+  store the channel id + resource id for renewal.
 - Per-surface webhook callback: when we move to push notifications,
   add `/webhooks/google/{kind}` endpoints. Match the Meta `app_id`
   pattern with `kind ∈ {drive, gmail, calendar}` so each Google
   resource type routes to its own signature/verification path.
+- YouTube's RSS approach (no auth, no quota) is unique to YouTube —
+  don't try to generalise it.
