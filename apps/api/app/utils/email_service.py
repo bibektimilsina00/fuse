@@ -21,8 +21,16 @@ class InviteEmail:
     role: str
 
 
+@dataclass(frozen=True)
+class PasswordResetEmail:
+    to_email: str
+    reset_url: str
+    expires_minutes: int
+
+
 class EmailProvider(Protocol):
     async def send_workspace_invite(self, email: InviteEmail) -> None: ...
+    async def send_password_reset(self, email: PasswordResetEmail) -> None: ...
 
 
 # ── Dev provider — logs only, no real email ───────────────────────────────────
@@ -36,6 +44,14 @@ class DevEmailProvider:
             email.workspace_name,
             email.role,
             email.invite_url,
+        )
+
+    async def send_password_reset(self, email: PasswordResetEmail) -> None:
+        logger.info(
+            "[DEV EMAIL] Password reset for %s (expires in %dm) — URL: %s",
+            email.to_email,
+            email.expires_minutes,
+            email.reset_url,
         )
 
 
@@ -59,6 +75,15 @@ class SmtpEmailProvider:
             subject=subject,
             html=_invite_html(email),
             text=_invite_text(email),
+        )
+
+    async def send_password_reset(self, email: PasswordResetEmail) -> None:
+        subject = "Reset your Fuse password"
+        await self._send(
+            to=email.to_email,
+            subject=subject,
+            html=_password_reset_html(email),
+            text=_password_reset_text(email),
         )
 
     async def _send(self, to: str, subject: str, html: str, text: str) -> None:
@@ -107,6 +132,13 @@ class EmailService:
             # Never crash the invite flow because of an email failure
             logger.error("Failed to send invite email to %s: %s", email.to_email, exc)
 
+    async def send_password_reset(self, email: PasswordResetEmail) -> None:
+        try:
+            await self._provider.send_password_reset(email)
+        except Exception as exc:
+            # Never crash the password-reset flow because of an email failure
+            logger.error("Failed to send password-reset email to %s: %s", email.to_email, exc)
+
 
 # ── Templates ─────────────────────────────────────────────────────────────────
 
@@ -147,6 +179,43 @@ def _invite_html(e: InviteEmail) -> str:
         This invite expires in 7 days.<br>
         If you don't have a Fuse account you'll be prompted to create one.<br>
         If you weren't expecting this you can safely ignore it.
+      </p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+
+def _password_reset_text(e: PasswordResetEmail) -> str:
+    return (
+        "You requested a password reset for your Fuse account.\n\n"
+        f"Reset your password (expires in {e.expires_minutes} minutes):\n{e.reset_url}\n\n"
+        "If you didn't request this you can safely ignore this email — your password won't change."
+    )
+
+
+def _password_reset_html(e: PasswordResetEmail) -> str:
+    return f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#fff;margin:0;padding:40px 20px">
+  <div style="max-width:520px;margin:0 auto;background:#1a1a1a;border-radius:12px;border:1px solid #2a2a2a;overflow:hidden">
+    <div style="padding:32px 32px 24px;border-bottom:1px solid #2a2a2a">
+      <p style="font-size:13px;color:#666;margin:0 0 8px;letter-spacing:.05em;text-transform:uppercase">Fuse</p>
+      <h1 style="font-size:22px;font-weight:700;margin:0;color:#fff">Reset your password</h1>
+    </div>
+    <div style="padding:32px">
+      <p style="color:#aaa;line-height:1.6;margin:0 0 24px">
+        You requested a password reset for your Fuse account. Click below to set a new password.
+      </p>
+      <a href="{e.reset_url}"
+         style="display:inline-block;background:#fff;color:#000;font-weight:600;font-size:14px;
+                padding:13px 32px;border-radius:8px;text-decoration:none;letter-spacing:.01em">
+        Reset Password →
+      </a>
+      <p style="color:#444;font-size:12px;margin:28px 0 0;line-height:1.6">
+        This link expires in {e.expires_minutes} minutes.<br>
+        If you didn't request this you can safely ignore this email — your password won't change.
       </p>
     </div>
   </div>
