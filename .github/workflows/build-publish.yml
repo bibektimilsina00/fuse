@@ -158,7 +158,9 @@ jobs:
 
     steps:
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.28.0
+        # `@master` floats with upstream — fine for a scanning tool we
+        # treat as best-effort. Pin to a SHA if you want immutable CI.
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: ghcr.io/${{ github.repository_owner }}/fuse-${{ matrix.service }}@${{ needs.build.outputs[format('digest-{0}', matrix.service)] }}
           format: sarif
