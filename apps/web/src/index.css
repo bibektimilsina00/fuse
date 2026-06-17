@@ -164,11 +164,35 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ══════════════════════════════════════════════════════════════════════════════
    SCROLLBARS
+   Hidden globally — scrolling still works (wheel, trackpad, keyboard,
+   touch), the visual track + thumb are just suppressed. Mirrors the
+   thinly-styled approach we had before but completes the hide so the
+   chrome doesn't bleed through inside dropdowns, inspector panes, or
+   modal scroll regions.
+
+   Override `.show-scrollbar` on a specific element if a particular
+   surface genuinely needs the indicator.
 ══════════════════════════════════════════════════════════════════════════════ */
-::-webkit-scrollbar        { width: 5px; height: 5px; }
-::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: var(--border-soft); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: var(--border); }
+*,
+*::before,
+*::after {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* legacy IE / Edge */
+}
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-thumb {
+  display: none;               /* Chromium / WebKit */
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+.show-scrollbar { scrollbar-width: thin; -ms-overflow-style: auto; }
+.show-scrollbar::-webkit-scrollbar        { display: block; width: 5px; height: 5px; }
+.show-scrollbar::-webkit-scrollbar-track  { background: transparent; }
+.show-scrollbar::-webkit-scrollbar-thumb  { background: var(--border-soft); border-radius: 999px; }
+.show-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--border); }
 
 /* ══════════════════════════════════════════════════════════════════════════════
    DOT GRID
@@ -430,8 +454,9 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .logs-panel { padding: 0; }
 .log-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border-faint); }
 .log-stream { font-family: var(--font-mono); font-size: 12px; line-height: 1.65; padding: 8px 0; background: oklch(0.205 0.003 250); border-radius: 0 0 12px 12px; max-height: 560px; overflow-y: auto; }
-.log-stream::-webkit-scrollbar { width: 6px; }
-.log-stream::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+/* `.log-stream` used to opt back into a visible scrollbar — the global
+   hide-everywhere policy supersedes that. Restore visibility by adding
+   `class="log-stream show-scrollbar"` if a future surface needs it. */
 .log-line { display: grid; grid-template-columns: 110px 56px 160px minmax(0, 1fr); gap: 12px; padding: 3px 16px; align-items: baseline; }
 .log-line:hover { background: var(--surface); }
 .log-time { color: var(--text-dim); }
