@@ -7,20 +7,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.app.core.config import settings
 from apps.api.app.core.database import get_db
-from apps.api.app.core.logger import logger
 from apps.api.app.core.service import BaseService
 from apps.api.app.features.auth.schemas import UserLogin, UserRegister
 from apps.api.app.features.users.models import User
 from apps.api.app.features.users.repository import UserRepository
 from apps.api.app.features.workspaces.service import WorkspaceService
+from apps.api.app.utils.email_service import EmailService, PasswordResetEmail
 
 ph = PasswordHasher()
+
+
+RESET_TOKEN_EXPIRES_MINUTES = 15
 
 
 class AuthService(BaseService):
     def __init__(self, db: AsyncSession):
         super().__init__(db)
         self.user_repo = UserRepository(db)
+        # Auto-selects DevEmailProvider when SMTP_HOST is unset, so
+        # local dev keeps logging the reset link instead of sending.
+        self.email_service = EmailService()
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         try:
@@ -72,20 +78,28 @@ class AuthService(BaseService):
         user = await self.user_repo.get_by_email(email)
         if not user:
             # For security, we return True even if user doesn't exist
-            # to prevent email enumeration
+            # to prevent email enumeration.
             return True
 
-        # Generate a password reset token (15 mins expiry)
+        # 15-minute single-use reset token. The `type` claim is asserted
+        # in reset_password() so a regular login JWT can't impersonate
+        # a reset link.
         reset_token = self.create_access_token(
-            data={"sub": user.email, "type": "password_reset"}, expires_delta=timedelta(minutes=15)
+            data={"sub": user.email, "type": "password_reset"},
+            expires_delta=timedelta(minutes=RESET_TOKEN_EXPIRES_MINUTES),
         )
 
-        # MOCK EMAIL SENDING
-        # In a real app, you would use an email service (SendGrid, Mailgun, etc.)
-        logger.info(
-            f"PASSWORD RESET LINK for {email}: http://localhost:5173/reset-password?token={reset_token}"
-        )
+        # Build the absolute URL from settings.FRONTEND_URL so prod
+        # emails point at the production frontend, not localhost.
+        reset_url = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password?token={reset_token}"
 
+        await self.email_service.send_password_reset(
+            PasswordResetEmail(
+                to_email=user.email,
+                reset_url=reset_url,
+                expires_minutes=RESET_TOKEN_EXPIRES_MINUTES,
+            )
+        )
         return True
 
     async def reset_password(self, token: str, new_password: str) -> bool:
