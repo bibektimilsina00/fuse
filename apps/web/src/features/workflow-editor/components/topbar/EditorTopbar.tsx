@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ChevronDown, Pencil, Activity, Check, MoreHorizontal, MessageCircle, Send, Play, Loader2,
+  ChevronDown, Pencil, Activity, Check, MoreHorizontal, MessageCircle, Loader2,
   LayoutDashboard, Lock, Download, Copy, Trash2, PanelRightClose
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem, Button } from '@/shared/components'
+import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '@/shared/components'
 import { APP_ROUTES } from '@/shared/constants/routes'
 import { AppTopBarActions } from '@/shared/layouts/app-layout/app-top-bar-actions'
 import type { AppLayoutController } from '@/shared/layouts/app-layout/use-app-layout-controller'
@@ -197,28 +197,31 @@ export function EditorTopbar({
           </div>
 
           <div className="flex items-center gap-2 ml-1">
-            <Button
-              variant="outline"
-              size="sm"
-              leftIcon={<Send className="w-[14px] h-[14px]" strokeWidth={1.8} />}
-              className="h-[30px] gap-[7px] px-[13px] rounded-[8px] text-[13px] font-medium border-[var(--border-soft)] text-[var(--text)] bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] hover:border-[var(--border)] [&_svg]:text-[var(--text-mute)]"
+            <button
+              type="button"
+              className="inline-flex items-center gap-[7px] py-[7px] px-[13px] rounded-[8px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] text-[13px] font-medium text-[#dcdee2] cursor-pointer transition-colors hover:bg-[rgba(255,255,255,0.06)]"
             >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
               Deploy
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
+            </button>
+            <button
+              type="button"
               onClick={onRun}
               disabled={isRunning}
-              leftIcon={
-                isRunning
-                  ? <Loader2 className="w-[14px] h-[14px] animate-spin" />
-                  : <Play className="w-[14px] h-[14px] fill-current" strokeWidth={0} />
-              }
-              className="h-[30px] gap-[7px] px-[14px] rounded-[8px] text-[13px] font-semibold border-none bg-[var(--accent)] text-white [&_svg]:text-white hover:brightness-110 hover:bg-[var(--accent)] active:scale-[0.97]"
+              className="inline-flex items-center gap-[7px] py-[7px] px-[14px] rounded-[8px] border-none bg-[var(--accent)] text-[13px] font-semibold text-white cursor-pointer transition-[filter] hover:brightness-110 active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed"
             >
+              {isRunning ? (
+                <Loader2 className="w-[14px] h-[14px] animate-spin" />
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                  <polygon points="6 4 20 12 6 20 6 4" />
+                </svg>
+              )}
               {isRunning ? 'Running' : 'Run'}
-            </Button>
+            </button>
           </div>
         </div>
 
