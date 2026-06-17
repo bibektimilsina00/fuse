@@ -200,8 +200,8 @@ export function EditorTopbar({
             <Button
               variant="outline"
               size="sm"
-              leftIcon={<Send />}
-              className="h-8 px-3 rounded-[8px] border-[var(--border-soft)] text-[var(--text)] bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] hover:border-[var(--border)]"
+              leftIcon={<Send className="w-[14px] h-[14px]" strokeWidth={1.8} />}
+              className="h-[30px] gap-[7px] px-[13px] rounded-[8px] text-[13px] font-medium border-[var(--border-soft)] text-[var(--text)] bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] hover:border-[var(--border)] [&_svg]:text-[var(--text-mute)]"
             >
               Deploy
             </Button>
@@ -210,8 +210,12 @@ export function EditorTopbar({
               size="sm"
               onClick={onRun}
               disabled={isRunning}
-              leftIcon={isRunning ? <Loader2 className="animate-spin" /> : <Play className="fill-current" />}
-              className="h-8 px-4 rounded-[8px] bg-[var(--accent)] text-white border-none hover:brightness-110 active:scale-[0.97]"
+              leftIcon={
+                isRunning
+                  ? <Loader2 className="w-[14px] h-[14px] animate-spin" />
+                  : <Play className="w-[14px] h-[14px] fill-current" strokeWidth={0} />
+              }
+              className="h-[30px] gap-[7px] px-[14px] rounded-[8px] text-[13px] font-semibold border-none bg-[var(--accent)] text-white [&_svg]:text-white hover:brightness-110 hover:bg-[var(--accent)] active:scale-[0.97]"
             >
               {isRunning ? 'Running' : 'Run'}
             </Button>
