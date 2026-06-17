@@ -3,57 +3,69 @@
 @tailwind utilities;
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   DESIGN TOKENS — dark (default)
+   DESIGN TOKENS — dark (default) · Linear-style palette
+   ─────────────────────────────────────────────────────────────────────────────
+   Near-pure-black canvas, muted indigo accent, almost-invisible hairlines,
+   flat surfaces with no glows. Direct translation of the Claude Design /
+   Fuse.dc.html "Linear" scheme.
 ══════════════════════════════════════════════════════════════════════════════ */
 :root {
-  --bg:         oklch(0.195 0.003 250);
-  --bg-2:       oklch(0.225 0.003 250);
+  /* Surfaces — Linear's stack: app → surface → panel → node */
+  --bg:         #08090a;  /* app canvas, dot-grid background */
+  --bg-2:       #0c0d0f;  /* sidebar / secondary chrome */
 
-  --surface:    oklch(0.255 0.004 250);
-  --surface-2:  oklch(0.295 0.004 250);
-  --surface-3:  oklch(0.330 0.005 250);
+  --surface:    #0f1011;  /* cards, panels, inspector */
+  --surface-2:  #161719;  /* nodes, raised tiles */
+  --surface-3:  #1c1d1f;  /* hovered surface-2 */
 
-  --border:       oklch(0.355 0.004 250);
-  --border-soft:  oklch(0.310 0.003 250);
-  --border-faint: oklch(0.275 0.003 250);
+  /* Hairlines — almost invisible */
+  --border:       rgba(255, 255, 255, 0.11);
+  --border-soft:  rgba(255, 255, 255, 0.07);
+  --border-faint: rgba(255, 255, 255, 0.04);
 
-  --text:       oklch(0.980 0.002 250);
-  --text-mute:  oklch(0.740 0.005 250);
-  --text-faint: oklch(0.560 0.005 250);
-  --text-dim:   oklch(0.460 0.005 250);
+  /* Text ramp — neutral whites tilted slightly cool */
+  --text:       #edeef0;  /* body */
+  --text-mute:  #8a8f98;  /* meta, captions */
+  --text-faint: #62666d;  /* faint hints */
+  --text-dim:   #52565d;  /* dim labels */
 
-  --accent:       oklch(0.780 0.130 245);
-  --accent-soft:  oklch(0.780 0.130 245 / 0.14);
-  --accent-line:  oklch(0.780 0.130 245 / 0.45);
+  /* Accent — muted indigo (the real Linear blue, NOT bright) */
+  --accent:       #5e6ad2;
+  --accent-soft:  rgba(94, 106, 210, 0.14);
+  --accent-line:  rgba(94, 106, 210, 0.45);
 
-  --ok:   oklch(0.78 0.14 145);
-  --warn: oklch(0.82 0.14 80);
-  --err:  oklch(0.70 0.18 22);
+  /* Semantic — calmer than the previous bright greens / reds */
+  --ok:   #4cc38a;
+  --warn: #e7b766;
+  --err:  #e5675f;
 
-  --badge-ok-bg:   oklch(0.240 0.040 145);
-  --badge-warn-bg: oklch(0.250 0.040 80);
-  --badge-err-bg:  oklch(0.230 0.050 22);
-  --badge-acc-bg:  oklch(0.230 0.050 250);
+  --badge-ok-bg:   rgba(76, 195, 138, 0.12);
+  --badge-warn-bg: rgba(231, 183, 102, 0.12);
+  --badge-err-bg:  rgba(229, 103, 95, 0.12);
+  --badge-acc-bg:  rgba(94, 106, 210, 0.14);
 
-  --danger-bg:       oklch(0.70 0.18 22);
-  --danger-bg-hover: oklch(0.65 0.17 22);
-  --danger-border:   oklch(0.70 0.18 22);
+  --danger-bg:       #e5675f;
+  --danger-bg-hover: #d65b54;
+  --danger-border:   #e5675f;
 
   --btn-shadow: none;
   --card-shadow: none;
-  --dot-color: oklch(0.320 0.004 250);
+  --dot-color: rgba(255, 255, 255, 0.05);
 
-  --font-ui:   "Inter Tight", "Geist", "Helvetica Neue", system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Typography */
+  --font-ui:   "Inter", "Inter Tight", "Geist", "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
+  /* Radii — Linear-tight (was 8/12/16, now 6/8/10) */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 10px;
 
-  --shadow-float:    0 4px 16px -4px oklch(0 0 0 / 0.55);
-  --shadow-panel:    0 8px 32px -8px oklch(0 0 0 / 0.65);
-  --shadow-modal:    0 24px 64px -16px oklch(0 0 0 / 0.80);
-  --shadow-dropdown: 0 12px 40px -8px oklch(0 0 0 / 0.65);
+  /* Shadows — softer than before, no glow */
+  --shadow-float:    0 4px 16px rgba(0, 0, 0, 0.40);
+  --shadow-panel:    0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-modal:    0 24px 64px rgba(0, 0, 0, 0.70);
+  --shadow-dropdown: 0 12px 40px rgba(0, 0, 0, 0.55);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
