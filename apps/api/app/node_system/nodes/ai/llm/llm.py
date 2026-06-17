@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import httpx
@@ -13,6 +14,21 @@ from apps.api.app.node_system.base.node_metadata import NodeMetadata
 from apps.api.app.node_system.base.node_result import NodeResult
 
 logger = get_logger(__name__)
+
+
+# Anything that looks like an API key inside a URL query string
+# (Google appends `?key=…`; some providers `?api_key=…`). Replace with
+# `***` so the error / log doesn't expose the credential. This runs in
+# user-visible error paths so don't be clever about it — just strip.
+_API_KEY_QUERY_RE = re.compile(
+    r"([?&](?:key|api[-_]?key|access[-_]?token|token)=)[^&\s]+",
+    re.IGNORECASE,
+)
+
+
+def _redact_secrets(url: str) -> str:
+    """Strip api-key-shaped query params from a URL so it's safe to log."""
+    return _API_KEY_QUERY_RE.sub(r"\1***", url)
 
 
 class LLMProperties(BaseModel):
@@ -177,11 +193,18 @@ class LLMNode(BaseNode[LLMProperties]):
                 )
             elif e.response.status_code in (401, 403):
                 hint = " — credential / API key is invalid or missing permission for this model."
+            elif e.response.status_code == 400 and "interactions api" in body.lower():
+                hint = (
+                    f" — the model {model!r} uses Google's Interactions API "
+                    "instead of generateContent. Pick a chat-completion model "
+                    "(e.g. gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash)."
+                )
+            safe_url = _redact_secrets(str(e.request.url))
             return NodeResult(
                 success=False,
                 error=(
-                    f"API error {e.response.status_code} on "
-                    f"{e.request.url}: {body or '(no response body)'}"
+                    f"API error {e.response.status_code} on {safe_url}: "
+                    f"{body or '(no response body)'}"
                     f"{hint}"
                 ),
             )
