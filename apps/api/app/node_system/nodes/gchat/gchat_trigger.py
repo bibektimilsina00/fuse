@@ -191,11 +191,11 @@ class GoogleChatTriggerNode(BaseNode[GoogleChatTriggerProperties]):
         try:
             matches, new_cursor = await self.poll(token, cursor)
         except httpx.HTTPStatusError as exc:
+            from apps.api.app.node_system.nodes.gchat.gchat_node import format_chat_error
+
             return NodeResult(
                 success=False,
-                error=(
-                    f"Google Chat API error {exc.response.status_code}: {exc.response.text[:200]}"
-                ),
+                error=format_chat_error(exc.response.status_code, exc.response.text),
             )
         except Exception as exc:  # noqa: BLE001
             logger.error("GoogleChatTriggerNode poll failed: %s", exc, exc_info=True)

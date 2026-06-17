@@ -10,6 +10,7 @@ from apps.api.app.node_system.nodes.gchat.gchat_node import (
     _normalise_message_name,
     _normalise_reaction_name,
     _to_space_name,
+    format_chat_error,
 )
 
 # ── _to_space_name ─────────────────────────────────────────────────────
@@ -138,3 +139,64 @@ def test_props_strip_message_name():
         message_name="  spaces/A/messages/B  ",
     )
     assert p.message_name == "spaces/A/messages/B"
+
+
+# ── format_chat_error ──────────────────────────────────────────────────
+
+
+def test_format_chat_error_product_off_400():
+    body = (
+        '{"error":{"code":400,"message":"Google Chat is turned off. '
+        'To use Chat API, turn on Google Chat.","status":"FAILED_PRECONDITION"}}'
+    )
+    msg = format_chat_error(400, body)
+    assert "Google Chat API error 400" in msg
+    assert "Google Chat is disabled" in msg
+    assert "Admin Console" in msg
+    assert "Gmail" in msg
+
+
+def test_format_chat_error_permission_denied_403():
+    body = '{"error":{"code":403,"status":"PERMISSION_DENIED"}}'
+    msg = format_chat_error(403, body)
+    assert "Google Chat API error 403" in msg
+    assert "Chat API isn't enabled" in msg
+    assert "disconnect + reconnect" in msg
+
+
+def test_format_chat_error_404_membership_hint():
+    msg = format_chat_error(404, '{"error":{"code":404}}')
+    assert "Google Chat API error 404" in msg
+    assert "member of" in msg
+
+
+def test_format_chat_error_401_token_hint():
+    msg = format_chat_error(401, "")
+    assert "Google Chat API error 401" in msg
+    assert "Reconnect" in msg
+
+
+def test_format_chat_error_429_quota_hint():
+    msg = format_chat_error(429, "")
+    assert "Google Chat API error 429" in msg
+    assert "quota" in msg
+
+
+def test_format_chat_error_unknown_status_no_hint():
+    msg = format_chat_error(418, "I'm a teapot")
+    assert "Google Chat API error 418" in msg
+    assert "I'm a teapot" in msg
+    # No specialised hint for unhandled statuses — we just surface body.
+    assert "—" not in msg
+
+
+def test_format_chat_error_empty_body_uses_placeholder():
+    msg = format_chat_error(500, "")
+    assert "(no body)" in msg
+
+
+def test_format_chat_error_truncates_long_body():
+    body = "x" * 1000
+    msg = format_chat_error(500, body)
+    # 300-char cap on snippet; status prefix + body fits well under 400.
+    assert len(msg) < 400

@@ -53,6 +53,61 @@ logger = get_logger(__name__)
 
 CHAT_API = "https://chat.googleapis.com/v1"
 
+
+def format_chat_error(status_code: int, body: str) -> str:
+    """Turn a Chat API HTTP error into a one-line message with a
+    fix hint when the underlying cause is a known setup gap.
+
+    Three common gaps the user has to fix outside the workflow:
+
+    1. **Google Chat is turned off** — the *product* is disabled on
+       the connected account (Workspace admin → Apps → Chat, or for
+       personal accounts Gmail → Settings → Chat and Meet).
+    2. **Chat API not enabled in GCP** — the *project* hasn't
+       enabled `chat.googleapis.com` in Console → APIs & Services.
+    3. **Scope not granted** — the Chat scopes were added after the
+       user last connected the account; they need to re-OAuth.
+
+    The Chat API differentiates 1 and 2 with FAILED_PRECONDITION vs
+    PERMISSION_DENIED, so we can give a targeted hint for each. Other
+    statuses fall through to the raw body so the user gets the same
+    diagnostic info as before.
+    """
+    snippet = (body or "").strip()[:300]
+    lower = snippet.lower()
+    hint = ""
+
+    if status_code == 400 and "google chat is turned off" in lower:
+        hint = (
+            " — Google Chat is disabled on the connected account. "
+            "Workspace: Admin Console → Apps → Google Workspace → "
+            "Google Chat → ON. Personal account: Gmail → ⚙️ Settings → "
+            "Chat and Meet → Chat = Google Chat."
+        )
+    elif status_code == 403 and "permission_denied" in lower:
+        hint = (
+            " — likely the Chat API isn't enabled for this GCP project "
+            "(Console → APIs & Services → Library → enable "
+            "`chat.googleapis.com`) or the chat.* scopes weren't "
+            "granted (disconnect + reconnect the Google credential)."
+        )
+    elif status_code == 404:
+        hint = (
+            " — the connected Google account may not be a member of "
+            "this space, or the resource name is stale. Re-pick the "
+            "space, or add the account to it in Chat first."
+        )
+    elif status_code == 401:
+        hint = (
+            " — credential expired or the chat.* scopes were revoked. "
+            "Reconnect the Google credential."
+        )
+    elif status_code == 429:
+        hint = " — Chat API quota exceeded; back off and retry."
+
+    return f"Google Chat API error {status_code}: {snippet or '(no body)'}{hint}"
+
+
 _SPACE_TYPE_FILTER_OPTIONS: list[dict[str, str]] = [
     {"label": "All", "value": ""},
     {"label": "Spaces (rooms)", "value": 'spaceType = "SPACE"'},
@@ -390,9 +445,7 @@ class GoogleChatNode(BaseNode[GoogleChatProperties]):
         except httpx.HTTPStatusError as exc:
             return NodeResult(
                 success=False,
-                error=(
-                    f"Google Chat API error {exc.response.status_code}: {exc.response.text[:300]}"
-                ),
+                error=format_chat_error(exc.response.status_code, exc.response.text),
             )
         except ValueError as exc:
             # Raised by _normalise_message_name / _normalise_reaction_name

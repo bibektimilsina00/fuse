@@ -1007,11 +1007,15 @@ async def list_gchat_spaces(
             )
             resp.raise_for_status()
     except httpx.HTTPStatusError as exc:
+        from apps.api.app.node_system.nodes.gchat.gchat_node import format_chat_error
+
+        # Reuse the same hint logic the action / trigger use so the
+        # picker dropdown shows the user *what to fix* (enable the
+        # product, enable the API in GCP, re-OAuth, etc) rather than
+        # just the raw API body.
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=(
-                f"Chat spaces list failed ({exc.response.status_code}): {exc.response.text[:200]}"
-            ),
+            detail=format_chat_error(exc.response.status_code, exc.response.text),
         ) from exc
 
     data = resp.json() or {}
