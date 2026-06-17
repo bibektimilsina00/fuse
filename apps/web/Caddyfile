@@ -12,18 +12,29 @@ fuse.bibektimilsina.tech {
 	# Compress everything Caddy serves and proxies.
 	encode zstd gzip
 
-	# ── Healthcheck ─────────────────────────────────────────────────
-	# Container-local healthcheck — does NOT touch the API, so the web
-	# container reports healthy independently of upstream state.
-	@healthz path /healthz
-	respond @healthz "ok" 200
-
-	# ── Backend routes ──────────────────────────────────────────────
-	# Anything the API owns: /api/*, websockets at /ws/*, plus the
-	# OpenAPI docs paths so dev tools work in production too.
-	@api {
-		path /api/* /ws/* /openapi.json /docs /docs/* /redoc /redoc/*
+	# Common response headers — global so api proxy responses get
+	# them too.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		-Server
 	}
+
+	# ── Container-local healthcheck ─────────────────────────────────
+	# Does NOT touch the API — the web container reports healthy
+	# independently of upstream state.
+	@healthz path /healthz
+	handle @healthz {
+		respond "ok" 200
+	}
+
+	# ── Backend routes (terminal) ───────────────────────────────────
+	# `/health` is the FastAPI root-level liveness probe — also rolled
+	# in so the smoke test can hit it via this hostname.
+	@api path /api/* /ws/* /openapi.json /docs /docs/* /redoc /redoc/* /health
 	handle @api {
 		reverse_proxy api:8000 {
 			# Caddy auto-passes X-Forwarded-{For,Proto,Host} — only set
@@ -39,35 +50,28 @@ fuse.bibektimilsina.tech {
 		}
 	}
 
-	# ── Static frontend ─────────────────────────────────────────────
-	root * /srv
+	# ── Static frontend (everything else, terminal) ─────────────────
+	# Wrapped in `handle` so `try_files` doesn't rewrite api paths
+	# back to /index.html before the @api matcher fires.
+	handle {
+		root * /srv
 
-	# Vite emits content-hashed filenames under /assets/* — safe to
-	# cache forever; the hash changes on rebuild.
-	@assets path /assets/*
-	header @assets Cache-Control "public, max-age=31536000, immutable"
+		# Long-cache for content-hashed Vite assets — safe to cache
+		# forever; the hash changes on rebuild.
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
 
-	# index.html must never get cached so users see the latest build
-	# the moment we ship.
-	@index path / /index.html
-	header @index Cache-Control "no-cache, no-store, must-revalidate"
+		# Never cache index.html so users see the latest build the
+		# moment we ship.
+		@index path / /index.html
+		header @index Cache-Control "no-cache, no-store, must-revalidate"
 
-	# ── Security headers ────────────────────────────────────────────
-	header {
-		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-		X-Content-Type-Options "nosniff"
-		X-Frame-Options "DENY"
-		Referrer-Policy "strict-origin-when-cross-origin"
-		Permissions-Policy "geolocation=(), microphone=(), camera=()"
-		-Server
+		# SPA fallback — any path that isn't a real file serves
+		# index.html so React Router owns the URL space.
+		try_files {path} /index.html
+		file_server
 	}
-
-	# SPA fallback — every other path serves index.html so React
-	# Router owns the URL space.
-	file_server
-	try_files {path} /index.html
 }
 
-# ── HTTP fallback (also redirected to HTTPS by Caddy by default) ───────
 # Caddy automatically issues a 308 redirect from :80 to :443 for the
 # managed site above, so no explicit `http://` block is needed.
