@@ -413,4 +413,7 @@ def polling_expected_event_label(provider: str) -> str:
         "google_sheets": "Sheet row",
         "google_tasks": "Google Task event",
         "google_forms": "Form response",
+        "google_people": "Contact event",
+        "google_youtube": "YouTube event",
+        "google_chat": "Chat message",
     }.get(provider, provider)

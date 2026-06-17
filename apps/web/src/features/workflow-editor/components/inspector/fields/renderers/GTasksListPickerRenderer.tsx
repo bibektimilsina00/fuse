@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import apiClient from '@/shared/utils/apiClient'
+import { ApiErrorMessage } from './ApiErrorMessage'
 import type { RendererProps } from '../types'
 
 /**
@@ -298,9 +299,7 @@ export function GTasksListPickerRenderer({
                 Loading…
               </div>
             )}
-            {error && !loading && (
-              <div className="px-3 py-3 text-[12px] text-[var(--err,#dc2626)]">{error}</div>
-            )}
+            {error && !loading && <ApiErrorMessage error={error} compact />}
             {!loading && !error && filtered && filtered.length === 0 && (
               <div className="px-3 py-6 text-center text-[11.5px] text-text-muted">
                 {q

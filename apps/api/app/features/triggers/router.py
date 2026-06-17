@@ -59,6 +59,9 @@ _POLLING_TRIGGER_PROVIDERS: dict[str, str] = {
     "trigger.google_sheets": "google_sheets",
     "trigger.gtasks_change": "google_tasks",
     "trigger.gforms_response": "google_forms",
+    "trigger.gpeople_change": "google_people",
+    "trigger.gyt_change": "google_youtube",
+    "trigger.gchat_change": "google_chat",
 }
 
 

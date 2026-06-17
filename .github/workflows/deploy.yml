@@ -1,0 +1,200 @@
+# ─── Auto-deploy Fuse to VPS over SSH ──────────────────────────────────
+#
+# Triggered automatically when the `build-publish` workflow finishes
+# successfully on main, OR manually from the Actions tab.
+#
+# What it does:
+#   1. Set up an SSH agent using the deploy key from secrets.
+#   2. scp the compose stack + scripts to the VPS.
+#   3. Write the production .env from a GitHub secret.
+#   4. (Optional) Log in to ghcr.io with a PAT if the packages stayed
+#      private.
+#   5. Pull images + recreate any changed service.
+#
+# ── Required GitHub Secrets (Settings → Secrets and variables → Actions
+#                              → Secrets) ────────────────────────────────
+#   VPS_SSH_PRIVATE_KEY  Full private key, e.g. contents of ~/.ssh/id_ed25519.
+#                        Generate locally:  ssh-keygen -t ed25519 -C "fuse-deploy" -f deploy_key -N ""
+#                        Add `cat deploy_key.pub` to /root/.ssh/authorized_keys on the VPS.
+#                        Paste `cat deploy_key` into this secret.
+#   ENV_PRODUCTION       Full contents of deploy/.env — every key=value line.
+#                        Copy from your local file:  cat deploy/.env | pbcopy
+#                        Paste into the secret.
+#
+# ── Optional GitHub Secrets ─────────────────────────────────────────────
+#   GHCR_PAT             Personal Access Token with `read:packages` scope.
+#                        Only needed if you kept the ghcr packages private.
+#                        Public packages don't need any auth.
+#
+# ── Required GitHub Variables (Settings → Variables → Actions) ──────────
+#   VPS_HOST             139.59.71.226
+#   VPS_USER             root
+#   VPS_DEPLOY_DIR       /opt/fuse/deploy
+#
+# ── Required Environment "production" ──────────────────────────────────
+# Settings → Environments → New environment → "production".
+# Optionally add required reviewers there to gate deploys on a click.
+# ───────────────────────────────────────────────────────────────────────
+
+name: deploy
+
+on:
+  workflow_run:
+    workflows: [build-publish]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to pin (default: latest)"
+        required: false
+        default: "latest"
+
+permissions:
+  contents: read
+
+concurrency:
+  # Never run two deploys at once — second one queues / cancels in-flight.
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy to fuse.bibektimilsina.tech
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://fuse.bibektimilsina.tech
+
+    # Skip when the build job that triggered us actually failed.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Pin the host key so MITM can't intercept the deploy session.
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Sync compose stack to VPS
+        env:
+          VPS_USER: ${{ vars.VPS_USER }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_DIR: ${{ vars.VPS_DEPLOY_DIR }}
+        run: |
+          set -euo pipefail
+          # Ensure target dirs exist on first run.
+          ssh -i ~/.ssh/deploy_key "${VPS_USER}@${VPS_HOST}" \
+            "mkdir -p ${VPS_DIR} ${VPS_DIR}/pg-init"
+
+          # Ship every file the VPS needs. Caddyfile + entrypoint.sh
+          # are baked into images and don't need to land here.
+          scp -i ~/.ssh/deploy_key \
+            deploy/docker-compose.production.yml \
+            deploy/deploy.sh \
+            deploy/backup.sh \
+            deploy/restore.sh \
+            "${VPS_USER}@${VPS_HOST}:${VPS_DIR}/"
+
+          scp -i ~/.ssh/deploy_key \
+            deploy/pg-init/01_extensions.sql \
+            "${VPS_USER}@${VPS_HOST}:${VPS_DIR}/pg-init/"
+
+          # Make the shell scripts executable on the VPS.
+          ssh -i ~/.ssh/deploy_key "${VPS_USER}@${VPS_HOST}" \
+            "chmod +x ${VPS_DIR}/deploy.sh ${VPS_DIR}/backup.sh ${VPS_DIR}/restore.sh"
+
+      - name: Write production .env on VPS
+        env:
+          VPS_USER: ${{ vars.VPS_USER }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_DIR: ${{ vars.VPS_DEPLOY_DIR }}
+          ENV_PRODUCTION: ${{ secrets.ENV_PRODUCTION }}
+        run: |
+          set -euo pipefail
+          # cat > path; chmod 600 — single round-trip. Use a heredoc on
+          # stdin so the file ends with a trailing newline and special
+          # chars in values aren't expanded by the local shell.
+          printf '%s' "$ENV_PRODUCTION" | ssh -i ~/.ssh/deploy_key \
+            "${VPS_USER}@${VPS_HOST}" \
+            "umask 077 && cat > ${VPS_DIR}/.env && chmod 600 ${VPS_DIR}/.env"
+
+      - name: Log in to ghcr.io on VPS (only if PAT provided)
+        # GitHub Actions doesn't allow `secrets.X` inside step-level
+        # `if:` expressions, so we branch at runtime against the env
+        # value instead.
+        env:
+          VPS_USER: ${{ vars.VPS_USER }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GHCR_PAT}" ]; then
+            echo "GHCR_PAT not set; skipping ghcr login (packages must be public)."
+            exit 0
+          fi
+          # printf so the token isn't echoed in plain text.
+          printf '%s' "$GHCR_PAT" | ssh -i ~/.ssh/deploy_key \
+            "${VPS_USER}@${VPS_HOST}" \
+            "docker login ghcr.io -u ${OWNER} --password-stdin"
+
+      - name: Deploy (pull + up + prune)
+        env:
+          VPS_USER: ${{ vars.VPS_USER }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_DIR: ${{ vars.VPS_DEPLOY_DIR }}
+          IMAGE_TAG: ${{ inputs.image_tag || 'latest' }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/deploy_key "${VPS_USER}@${VPS_HOST}" \
+            "set -euo pipefail; \
+             cd ${VPS_DIR}; \
+             export FUSE_IMAGE_TAG='${IMAGE_TAG}'; \
+             docker compose -f docker-compose.production.yml pull; \
+             docker compose -f docker-compose.production.yml up -d --remove-orphans; \
+             docker image prune -f"
+
+      - name: Smoke-test the deploy
+        env:
+          VPS_USER: ${{ vars.VPS_USER }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+        run: |
+          set -euo pipefail
+          # Give services a moment to settle, then hit the health
+          # endpoint over the public hostname so we exercise Caddy too.
+          sleep 15
+          # Retry health for up to ~60s; the api container may still be
+          # running alembic on the first deploy.
+          # FastAPI exposes the multi-component health probe at /health
+          # directly (not under /api/v1) — Caddy's @api matcher includes
+          # it explicitly. JSON response with per-component status.
+          for i in 1 2 3 4 5 6 7 8; do
+            if curl -fsS --max-time 8 \
+                https://fuse.bibektimilsina.tech/health > /tmp/health.json; then
+              echo "✓ /health responding."
+              cat /tmp/health.json
+              exit 0
+            fi
+            echo "Health check attempt ${i} failed; retrying in 8s…"
+            sleep 8
+          done
+          echo "✗ Health check never passed."
+          ssh -i ~/.ssh/deploy_key "${{ vars.VPS_USER }}@${{ vars.VPS_HOST }}" \
+            "cd ${{ vars.VPS_DEPLOY_DIR }} && \
+             docker compose -f docker-compose.production.yml ps && \
+             docker compose -f docker-compose.production.yml logs --tail=80 api web"
+          exit 1

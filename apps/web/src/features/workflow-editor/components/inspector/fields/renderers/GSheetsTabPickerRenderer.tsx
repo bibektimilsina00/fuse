@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Select } from '@/shared/components'
 import apiClient from '@/shared/utils/apiClient'
+import { ApiErrorMessage } from './ApiErrorMessage'
 import type { RendererProps } from '../types'
 
 /**
@@ -145,9 +146,7 @@ export function GSheetsTabPickerRenderer({
     )
   }
   if (error) {
-    return (
-      <div className="text-[11.5px] text-[var(--err,#dc2626)]">{error}</div>
-    )
+    return <ApiErrorMessage error={error} compact />
   }
   if (tabs && tabs.length === 0) {
     return (

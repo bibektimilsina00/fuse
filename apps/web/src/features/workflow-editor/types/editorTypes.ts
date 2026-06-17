@@ -34,7 +34,9 @@ export type KnownNodePropertyType =
   | 'credential' | 'key-value' | 'list' | 'messages' | 'schema' | 'file-list'
   | 'tool-selector' | 'skill-selector' | 'meta-resource' | 'wa-template'
   | 'code' | 'collection' | 'fixed-collection' | 'media' | 'gmail-query' | 'gdrive-folder'
-  | 'google-file' | 'gsheet-tab' | 'gtasks-tasklist' | 'datetime'
+  | 'google-file' | 'gsheet-tab' | 'gtasks-tasklist' | 'gpeople-group'
+  | 'youtube-video' | 'youtube-playlist' | 'youtube-channel'
+  | 'gchat-space' | 'ga4-property' | 'gsc-site' | 'gcs-bucket' | 'datetime'
 
 export type NodePropertyType = KnownNodePropertyType | (string & {})
 

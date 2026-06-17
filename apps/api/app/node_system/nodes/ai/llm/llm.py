@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import httpx
@@ -13,6 +14,21 @@ from apps.api.app.node_system.base.node_metadata import NodeMetadata
 from apps.api.app.node_system.base.node_result import NodeResult
 
 logger = get_logger(__name__)
+
+
+# Anything that looks like an API key inside a URL query string
+# (Google appends `?key=…`; some providers `?api_key=…`). Replace with
+# `***` so the error / log doesn't expose the credential. This runs in
+# user-visible error paths so don't be clever about it — just strip.
+_API_KEY_QUERY_RE = re.compile(
+    r"([?&](?:key|api[-_]?key|access[-_]?token|token)=)[^&\s]+",
+    re.IGNORECASE,
+)
+
+
+def _redact_secrets(url: str) -> str:
+    """Strip api-key-shaped query params from a URL so it's safe to log."""
+    return _API_KEY_QUERY_RE.sub(r"\1***", url)
 
 
 class LLMProperties(BaseModel):
@@ -163,8 +179,34 @@ class LLMNode(BaseNode[LLMProperties]):
             return NodeResult(success=True, output_data={"text": text, "tokens": tokens})
 
         except httpx.HTTPStatusError as e:
+            # Surface the URL + a hint for the common 404 case so the
+            # user isn't left with "API error 404:" and no body to
+            # diagnose against. Most provider 404s mean the model id
+            # is retired or unknown to the account.
+            body = (e.response.text or "").strip()[:300]
+            hint = ""
+            if e.response.status_code == 404:
+                hint = (
+                    f" — likely the model id ({model!r}) is unknown "
+                    "to this provider account or has been retired. "
+                    "Check the model dropdown on the LLM node."
+                )
+            elif e.response.status_code in (401, 403):
+                hint = " — credential / API key is invalid or missing permission for this model."
+            elif e.response.status_code == 400 and "interactions api" in body.lower():
+                hint = (
+                    f" — the model {model!r} uses Google's Interactions API "
+                    "instead of generateContent. Pick a chat-completion model "
+                    "(e.g. gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash)."
+                )
+            safe_url = _redact_secrets(str(e.request.url))
             return NodeResult(
-                success=False, error=f"API error {e.response.status_code}: {e.response.text[:300]}"
+                success=False,
+                error=(
+                    f"API error {e.response.status_code} on {safe_url}: "
+                    f"{body or '(no response body)'}"
+                    f"{hint}"
+                ),
             )
         except Exception as e:
             logger.error(f"LLMNode failed: {e}", exc_info=True)
@@ -276,9 +318,12 @@ class LLMNode(BaseNode[LLMProperties]):
         if system:
             payload["systemInstruction"] = {"parts": [{"text": system}]}
 
-        # Normalise model path (models/gemini-... or just gemini-...)
-        model_path = model if model.startswith("models/") else f"models/{model}"
-        url = url_template.format(model=model_path)
+        # Normalise model name — the URL template already contains the
+        # `/models/` segment, so the placeholder is just the bare model
+        # id (`gemini-1.5-flash`). Strip an accidental `models/` prefix
+        # so a user who pasted the full path still works.
+        bare_model = model[len("models/") :] if model.startswith("models/") else model
+        url = url_template.format(model=bare_model)
 
         resp = await client.post(
             url, params={"key": api_key}, headers={"Content-Type": "application/json"}, json=payload

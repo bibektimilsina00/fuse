@@ -31,8 +31,12 @@ from apps.api.app.node_system.nodes.db.mysql.mysql import MySQLNode
 from apps.api.app.node_system.nodes.db.neo4j.neo4j import Neo4jNode
 from apps.api.app.node_system.nodes.db.postgres.postgres import PostgresNode
 from apps.api.app.node_system.nodes.discord.discord_node import DiscordNode
+from apps.api.app.node_system.nodes.ga4.ga4_node import GoogleAnalyticsNode
 from apps.api.app.node_system.nodes.gcalendar.gcal_node import GCalNode
 from apps.api.app.node_system.nodes.gcalendar.gcal_trigger import GCalTriggerNode
+from apps.api.app.node_system.nodes.gchat.gchat_node import GoogleChatNode
+from apps.api.app.node_system.nodes.gchat.gchat_trigger import GoogleChatTriggerNode
+from apps.api.app.node_system.nodes.gcs.gcs_node import GoogleCloudStorageNode
 from apps.api.app.node_system.nodes.gdocs.gdocs_node import GoogleDocsNode
 from apps.api.app.node_system.nodes.gdrive.gdrive_node import GDriveNode
 from apps.api.app.node_system.nodes.gdrive.gdrive_trigger import GDriveTriggerNode
@@ -45,8 +49,14 @@ from apps.api.app.node_system.nodes.google_sheets.google_sheets import GoogleShe
 from apps.api.app.node_system.nodes.google_sheets.google_sheets_trigger import (
     GoogleSheetsTriggerNode,
 )
+from apps.api.app.node_system.nodes.gpeople.gpeople_node import GooglePeopleNode
+from apps.api.app.node_system.nodes.gpeople.gpeople_trigger import GooglePeopleTriggerNode
+from apps.api.app.node_system.nodes.gsc.gsc_node import GoogleSearchConsoleNode
+from apps.api.app.node_system.nodes.gslides.gslides_node import GoogleSlidesNode
 from apps.api.app.node_system.nodes.gtasks.gtasks_node import GoogleTasksNode
 from apps.api.app.node_system.nodes.gtasks.gtasks_trigger import GoogleTasksTriggerNode
+from apps.api.app.node_system.nodes.gyt.gyt_node import GoogleYouTubeNode
+from apps.api.app.node_system.nodes.gyt.gyt_trigger import GoogleYouTubeTriggerNode
 from apps.api.app.node_system.nodes.http.request.request import HttpRequestNode
 from apps.api.app.node_system.nodes.http.webhook.webhook import WebhookTriggerNode
 from apps.api.app.node_system.nodes.hubspot.hubspot_node import HubSpotNode
@@ -135,6 +145,16 @@ node_registry.register(GoogleTasksNode)
 node_registry.register(GoogleTasksTriggerNode)
 node_registry.register(GoogleFormsNode)
 node_registry.register(GoogleFormsTriggerNode)
+node_registry.register(GooglePeopleNode)
+node_registry.register(GooglePeopleTriggerNode)
+node_registry.register(GoogleYouTubeNode)
+node_registry.register(GoogleYouTubeTriggerNode)
+node_registry.register(GoogleSlidesNode)
+node_registry.register(GoogleChatNode)
+node_registry.register(GoogleChatTriggerNode)
+node_registry.register(GoogleAnalyticsNode)
+node_registry.register(GoogleSearchConsoleNode)
+node_registry.register(GoogleCloudStorageNode)
 node_registry.register(LinearNode)
 # Meta surfaces — one consolidated trigger + action per surface
 # (Instagram, Facebook/Messenger, WhatsApp, Lead Ads) carrying

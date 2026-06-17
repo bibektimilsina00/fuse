@@ -37,65 +37,39 @@ export function NodeLibraryPanel() {
         {grouped.length === 0 ? (
           <p className="py-8 text-center text-[12px] text-[var(--text-faint)]">No nodes found</p>
         ) : (
-          grouped.map(({ category, defs }) => {
-            const isCollapsed = collapsedCategories[category] ?? false
-            return (
-              <div key={category} className="mb-2">
-                <button
-                  type="button"
-                  onClick={() => toggleCategory(category)}
-                  className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left transition-colors hover:bg-[var(--surface)] group"
-                >
-                  <span className="text-[10.5px] font-semibold uppercase tracking-widest text-[var(--text-mute)] group-hover:text-[var(--text)] transition-colors">
-                    {CATEGORY_LABEL[category] ?? category}
-                    <span className="ml-1.5 font-mono text-[9px] font-normal text-[var(--text-dim)]">
-                      ({defs.length})
-                    </span>
-                  </span>
-                  <ChevronDown
+          grouped.map(({ category, defs }) => (
+            <div key={category} className="mb-3">
+              <p className="mb-1 px-2 text-[10.5px] font-semibold uppercase tracking-widest text-[var(--text-dim)]">
+                {CATEGORY_LABEL[category] ?? category}
+              </p>
+              {defs.map(def => {
+                const Icon = getIcon(def.icon)
+                return (
+                  <div
+                    key={def.type}
+                    draggable
+                    onClick={() => spawnNode(def)}
+                    onDragStart={e => onDragStart(e, def)}
                     className={cn(
-                      'h-3.5 w-3.5 text-[var(--text-faint)] transition-transform duration-200 group-hover:text-[var(--text-mute)]',
-                      isCollapsed && '-rotate-90',
+                      'flex cursor-pointer select-none items-center gap-2.5 rounded-[8px] px-2.5 py-2',
+                      'transition-colors hover:bg-[var(--surface)] active:bg-[var(--surface-2)] active:cursor-grabbing',
                     )}
-                  />
-                </button>
-                <div
-                  className={cn(
-                    'mt-0.5 overflow-hidden transition-all duration-200',
-                    isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[1000px] opacity-100',
-                  )}
-                >
-                  {defs.map(def => {
-                    const Icon = getIcon(def.icon)
-                    return (
-                      <div
-                        key={def.type}
-                        draggable
-                        onClick={() => spawnNode(def)}
-                        onDragStart={e => onDragStart(e, def)}
-                        className={cn(
-                          'flex cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 py-2',
-                          'transition-colors hover:bg-[var(--surface)] active:bg-[var(--surface-2)] active:cursor-grabbing',
-                        )}
-                        title="Click to add · Drag to position"
-                      >
-                        <div
-                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-white [&_svg]:h-3 [&_svg]:w-3"
-                          style={{ background: def.color ?? 'var(--surface-3)' }}
-                        >
-                          {Icon}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[12.5px] font-medium text-[var(--text)]">{def.name}</p>
-                          <p className="truncate text-[10.5px] text-[var(--text-faint)]">{def.description}</p>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })
+                    title="Click to add · Drag to position"
+                  >
+                    <div
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] text-white [&_svg]:h-3 [&_svg]:w-3"
+                      style={{ background: def.color ?? 'var(--surface-3)' }}
+                    >
+                      {Icon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[12.5px] font-medium text-[var(--text)]">{def.name}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ))
         )}
       </div>
     </div>

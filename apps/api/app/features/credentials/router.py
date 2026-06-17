@@ -1,5 +1,6 @@
 import secrets
 import uuid
+from typing import Any
 
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -600,6 +601,693 @@ async def create_gtasks_tasklist(
         "title": str(data.get("title") or title),
         "updated": str(data.get("updated") or ""),
     }
+
+
+# ── Google Contacts (People) group picker ──────────────────────────────
+
+
+@router.get("/{credential_id}/gpeople/groups")
+async def list_gpeople_groups(
+    credential_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """List the user's contact groups (labels). Backs the group picker
+    on the Contacts action node."""
+    import httpx
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                "https://people.googleapis.com/v1/contactGroups",
+                headers={"Authorization": f"Bearer {token}"},
+                params={
+                    "pageSize": 200,
+                    "groupFields": "name,memberCount,groupType",
+                },
+            )
+            resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                f"Contact groups list failed ({exc.response.status_code}): "
+                f"{exc.response.text[:200]}"
+            ),
+        ) from exc
+
+    groups = [
+        {
+            "resource_name": g.get("resourceName"),
+            "name": g.get("formattedName") or g.get("name") or "",
+            "member_count": int(g.get("memberCount") or 0),
+            "type": g.get("groupType") or "",
+        }
+        for g in (resp.json().get("contactGroups") or [])
+        if g.get("resourceName")
+    ]
+    return {"groups": groups}
+
+
+@router.post("/{credential_id}/gpeople/groups", status_code=status.HTTP_201_CREATED)
+async def create_gpeople_group(
+    credential_id: uuid.UUID,
+    payload: dict,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """Create a new contact group from inside the picker."""
+    import httpx
+
+    name = str((payload or {}).get("name") or "").strip()
+    if not name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="`name` is required.",
+        )
+    token = await _resolve_google_token(credential_id, workspace, service)
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                "https://people.googleapis.com/v1/contactGroups",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                },
+                json={"contactGroup": {"name": name}},
+            )
+            resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(f"Create group failed ({exc.response.status_code}): {exc.response.text[:200]}"),
+        ) from exc
+
+    data = resp.json()
+    return {
+        "resource_name": data.get("resourceName"),
+        "name": data.get("formattedName") or data.get("name") or name,
+        "member_count": int(data.get("memberCount") or 0),
+        "type": data.get("groupType") or "",
+    }
+
+
+# ── YouTube pickers ────────────────────────────────────────────────────
+
+
+@router.get("/{credential_id}/youtube/videos")
+async def list_youtube_videos(
+    credential_id: uuid.UUID,
+    query: str = "",
+    page_size: int = 50,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """List the signed-in account's own uploaded videos. Backs the
+    youtube-video picker on the YouTube action node."""
+    import httpx
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            ch_resp = await client.get(
+                "https://www.googleapis.com/youtube/v3/channels",
+                headers={"Authorization": f"Bearer {token}"},
+                params={"part": "contentDetails", "mine": "true"},
+            )
+            ch_resp.raise_for_status()
+            ch_items = ch_resp.json().get("items") or []
+            if not ch_items:
+                return {"videos": []}
+            uploads = ((ch_items[0].get("contentDetails") or {}).get("relatedPlaylists") or {}).get(
+                "uploads"
+            ) or ""
+            if not uploads:
+                return {"videos": []}
+
+            pl_resp = await client.get(
+                "https://www.googleapis.com/youtube/v3/playlistItems",
+                headers={"Authorization": f"Bearer {token}"},
+                params={
+                    "part": "contentDetails,snippet",
+                    "playlistId": uploads,
+                    "maxResults": max(1, min(int(page_size or 50), 50)),
+                },
+            )
+            pl_resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                f"YouTube videos list failed ({exc.response.status_code}): "
+                f"{exc.response.text[:200]}"
+            ),
+        ) from exc
+
+    q = (query or "").strip().lower()
+    items = pl_resp.json().get("items") or []
+    videos = []
+    for i in items:
+        snippet = i.get("snippet") or {}
+        vid = ((i.get("contentDetails") or {}).get("videoId")) or ""
+        title = snippet.get("title") or ""
+        if q and q not in title.lower():
+            continue
+        thumb = ((snippet.get("thumbnails") or {}).get("default") or {}).get("url") or ""
+        videos.append(
+            {
+                "id": vid,
+                "title": title,
+                "channel_title": snippet.get("channelTitle") or "",
+                "published_at": snippet.get("publishedAt") or "",
+                "thumbnail_url": thumb,
+            }
+        )
+    return {"videos": videos}
+
+
+@router.get("/{credential_id}/youtube/playlists")
+async def list_youtube_playlists(
+    credential_id: uuid.UUID,
+    query: str = "",
+    page_size: int = 50,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """List the user's playlists. Backs the youtube-playlist picker."""
+    import httpx
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                "https://www.googleapis.com/youtube/v3/playlists",
+                headers={"Authorization": f"Bearer {token}"},
+                params={
+                    "part": "snippet,contentDetails,status",
+                    "mine": "true",
+                    "maxResults": max(1, min(int(page_size or 50), 50)),
+                },
+            )
+            resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                f"YouTube playlists list failed ({exc.response.status_code}): "
+                f"{exc.response.text[:200]}"
+            ),
+        ) from exc
+
+    q = (query or "").strip().lower()
+    items = resp.json().get("items") or []
+    playlists = []
+    for p in items:
+        snippet = p.get("snippet") or {}
+        title = snippet.get("title") or ""
+        if q and q not in title.lower():
+            continue
+        playlists.append(
+            {
+                "id": p.get("id"),
+                "title": title,
+                "description": snippet.get("description") or "",
+                "item_count": int((p.get("contentDetails") or {}).get("itemCount") or 0),
+                "privacy": (p.get("status") or {}).get("privacyStatus") or "",
+            }
+        )
+    return {"playlists": playlists}
+
+
+@router.post("/{credential_id}/youtube/playlists", status_code=status.HTTP_201_CREATED)
+async def create_youtube_playlist(
+    credential_id: uuid.UUID,
+    payload: dict,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """Create a new playlist from inside the picker."""
+    import httpx
+
+    title = str((payload or {}).get("title") or "").strip()
+    if not title:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="`title` is required.",
+        )
+    privacy = str((payload or {}).get("privacy") or "private")
+    token = await _resolve_google_token(credential_id, workspace, service)
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                "https://www.googleapis.com/youtube/v3/playlists",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                },
+                params={"part": "snippet,status"},
+                json={
+                    "snippet": {"title": title},
+                    "status": {"privacyStatus": privacy},
+                },
+            )
+            resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                f"Create playlist failed ({exc.response.status_code}): {exc.response.text[:200]}"
+            ),
+        ) from exc
+
+    data = resp.json()
+    return {
+        "id": data.get("id"),
+        "title": ((data.get("snippet") or {}).get("title")) or title,
+        "description": (data.get("snippet") or {}).get("description") or "",
+        "item_count": 0,
+        "privacy": (data.get("status") or {}).get("privacyStatus") or privacy,
+    }
+
+
+@router.get("/{credential_id}/youtube/channels")
+async def search_youtube_channels(
+    credential_id: uuid.UUID,
+    query: str,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """Search channels by name or @handle. Backs the youtube-channel
+    picker on the YouTube action node + trigger."""
+    import httpx
+
+    q = (query or "").strip()
+    if not q:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="`query` is required.",
+        )
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+    # `@handle` lookups go through the channels endpoint directly;
+    # free-text searches use the search endpoint.
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            if q.startswith("@"):
+                ch_resp = await client.get(
+                    "https://www.googleapis.com/youtube/v3/channels",
+                    headers={"Authorization": f"Bearer {token}"},
+                    params={"part": "snippet,statistics", "forHandle": q},
+                )
+                ch_resp.raise_for_status()
+                items = ch_resp.json().get("items") or []
+                channels = [
+                    {
+                        "id": c.get("id"),
+                        "title": (c.get("snippet") or {}).get("title") or "",
+                        "handle": q,
+                        "subscriber_count": int(
+                            (c.get("statistics") or {}).get("subscriberCount") or 0
+                        ),
+                        "thumbnail_url": (
+                            ((c.get("snippet") or {}).get("thumbnails") or {}).get("default") or {}
+                        ).get("url")
+                        or "",
+                    }
+                    for c in items
+                ]
+                return {"channels": channels}
+
+            r = await client.get(
+                "https://www.googleapis.com/youtube/v3/search",
+                headers={"Authorization": f"Bearer {token}"},
+                params={
+                    "part": "snippet",
+                    "type": "channel",
+                    "q": q,
+                    "maxResults": 25,
+                },
+            )
+            r.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=(
+                f"YouTube channel search failed ({exc.response.status_code}): "
+                f"{exc.response.text[:200]}"
+            ),
+        ) from exc
+
+    items = r.json().get("items") or []
+    channels = [
+        {
+            "id": ((item.get("id") or {}).get("channelId") or item.get("id") or ""),
+            "title": (item.get("snippet") or {}).get("title") or "",
+            "description": (item.get("snippet") or {}).get("description") or "",
+            "thumbnail_url": (
+                ((item.get("snippet") or {}).get("thumbnails") or {}).get("default") or {}
+            ).get("url")
+            or "",
+        }
+        for item in items
+    ]
+    return {"channels": channels}
+
+
+# ── Google Chat space picker ────────────────────────────────────────────
+
+
+@router.get("/{credential_id}/gchat/spaces")
+async def list_gchat_spaces(
+    credential_id: uuid.UUID,
+    q: str | None = None,
+    space_type: str | None = None,
+    page_token: str | None = None,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """List the user's Google Chat spaces — backs the gchat-space picker
+    on the Chat action node + trigger.
+
+    ``q`` (optional) does a client-side substring match on display name
+    once the API returns. ``space_type`` (``SPACE`` / ``DIRECT_MESSAGE``
+    / ``GROUP_CHAT``) maps to the Chat API's CEL filter on space type.
+    """
+    import httpx
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+
+    params: dict[str, Any] = {"pageSize": 100}
+    if page_token:
+        params["pageToken"] = page_token
+    if space_type and space_type.upper() in {"SPACE", "DIRECT_MESSAGE", "GROUP_CHAT"}:
+        params["filter"] = f'spaceType = "{space_type.upper()}"'
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                "https://chat.googleapis.com/v1/spaces",
+                headers={"Authorization": f"Bearer {token}"},
+                params=params,
+            )
+            resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        from apps.api.app.node_system.nodes.gchat.gchat_node import format_chat_error
+
+        # Reuse the same hint logic the action / trigger use so the
+        # picker dropdown shows the user *what to fix* (enable the
+        # product, enable the API in GCP, re-OAuth, etc) rather than
+        # just the raw API body.
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=format_chat_error(exc.response.status_code, exc.response.text),
+        ) from exc
+
+    data = resp.json() or {}
+    needle = (q or "").strip().lower()
+    spaces = []
+    for item in data.get("spaces") or []:
+        # Resource name is `spaces/AAAA`; expose the bare id so the
+        # frontend can also show the human-readable display name. The
+        # node-side validator accepts both forms.
+        name = str(item.get("name") or "")
+        space_id = name.split("/", 1)[1] if name.startswith("spaces/") else name
+        display = str(item.get("displayName") or "")
+        if needle and needle not in display.lower() and needle not in space_id.lower():
+            continue
+        spaces.append(
+            {
+                "id": space_id,
+                "name": name,
+                "displayName": display,
+                "type": str(item.get("spaceType") or item.get("type") or ""),
+                "singleUserBotDm": bool(item.get("singleUserBotDm") or False),
+            }
+        )
+
+    return {
+        "spaces": spaces,
+        "nextPageToken": data.get("nextPageToken") or "",
+    }
+
+
+# ── Google Analytics 4 property picker ──────────────────────────────────
+
+
+@router.get("/{credential_id}/ga4/properties")
+async def list_ga4_properties(
+    credential_id: uuid.UUID,
+    q: str | None = None,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """List GA4 properties the connected account can see — backs the
+    ``ga4-property`` picker on the Analytics action node.
+
+    The Admin API lists properties one account at a time, so we first
+    fetch every visible account (paginating), then issue one parallel
+    ``properties.list`` per account. The result is flattened into
+    ``{id, name, displayName, account, accountDisplayName}`` so the
+    frontend can show a grouped, searchable list. ``q`` does a
+    client-side substring match across display name + property id.
+    """
+    import asyncio
+
+    import httpx
+
+    from apps.api.app.node_system.nodes.ga4.ga4_node import format_ga4_error
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+    admin = "https://analyticsadmin.googleapis.com/v1beta"
+    auth_headers = {"Authorization": f"Bearer {token}"}
+
+    async def _all_accounts(client: httpx.AsyncClient) -> list[dict[str, Any]]:
+        accounts: list[dict[str, Any]] = []
+        page_token: str | None = None
+        while True:
+            params: dict[str, Any] = {"pageSize": 200}
+            if page_token:
+                params["pageToken"] = page_token
+            resp = await client.get(f"{admin}/accounts", headers=auth_headers, params=params)
+            resp.raise_for_status()
+            data = resp.json() or {}
+            for acc in data.get("accounts") or []:
+                accounts.append(acc)
+            page_token = data.get("nextPageToken")
+            if not page_token:
+                break
+        return accounts
+
+    async def _props_for(client: httpx.AsyncClient, account_name: str) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        page_token: str | None = None
+        while True:
+            params: dict[str, Any] = {
+                "pageSize": 200,
+                "filter": f"parent:{account_name}",
+            }
+            if page_token:
+                params["pageToken"] = page_token
+            resp = await client.get(f"{admin}/properties", headers=auth_headers, params=params)
+            resp.raise_for_status()
+            data = resp.json() or {}
+            for p in data.get("properties") or []:
+                out.append(p)
+            page_token = data.get("nextPageToken")
+            if not page_token:
+                break
+        return out
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            accounts = await _all_accounts(client)
+            # Map account-name → displayName so we can label rows.
+            account_label = {
+                str(a.get("name") or ""): str(a.get("displayName") or "") for a in accounts
+            }
+            if not accounts:
+                return {"properties": []}
+            tasks = [_props_for(client, str(a.get("name") or "")) for a in accounts]
+            per_account = await asyncio.gather(*tasks)
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=format_ga4_error(exc.response.status_code, exc.response.text),
+        ) from exc
+
+    needle = (q or "").strip().lower()
+    properties: list[dict[str, Any]] = []
+    for batch in per_account:
+        for p in batch:
+            name = str(p.get("name") or "")  # e.g. "properties/123456789"
+            pid = name.split("/", 1)[1] if name.startswith("properties/") else name
+            display = str(p.get("displayName") or "")
+            parent = str(p.get("parent") or "")  # "accounts/..."
+            if needle and needle not in display.lower() and needle not in pid.lower():
+                continue
+            properties.append(
+                {
+                    "id": pid,
+                    "name": name,
+                    "displayName": display,
+                    "account": parent,
+                    "accountDisplayName": account_label.get(parent, ""),
+                    "currencyCode": str(p.get("currencyCode") or ""),
+                    "timeZone": str(p.get("timeZone") or ""),
+                }
+            )
+
+    return {"properties": properties}
+
+
+# ── Google Search Console site picker ──────────────────────────────────
+
+
+@router.get("/{credential_id}/gsc/sites")
+async def list_gsc_sites(
+    credential_id: uuid.UUID,
+    q: str | None = None,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """List Search Console properties the connected account has access
+    to — backs the ``gsc-site`` picker.
+
+    ``q`` does a case-insensitive substring match on the site URL so
+    users with dozens of verified properties can find one fast.
+    Returns rows like ``{siteUrl, permissionLevel, kind}`` — siteUrl
+    is the literal URL the API uses as an identifier (no transformation).
+    """
+    import httpx
+
+    from apps.api.app.node_system.nodes.gsc.gsc_node import format_gsc_error
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                "https://www.googleapis.com/webmasters/v3/sites",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=format_gsc_error(exc.response.status_code, exc.response.text),
+        ) from exc
+
+    data = resp.json() or {}
+    needle = (q or "").strip().lower()
+    sites: list[dict[str, Any]] = []
+    for entry in data.get("siteEntry") or []:
+        site_url = str(entry.get("siteUrl") or "")
+        if not site_url:
+            continue
+        if needle and needle not in site_url.lower():
+            continue
+        sites.append(
+            {
+                "siteUrl": site_url,
+                "permissionLevel": str(entry.get("permissionLevel") or ""),
+                # `sc-domain:` rows are domain properties; URL-prefix
+                # rows look like a real URL. Surface a hint so the
+                # frontend can icon them differently.
+                "isDomainProperty": site_url.startswith("sc-domain:"),
+            }
+        )
+
+    return {"sites": sites}
+
+
+# ── Google Cloud Storage bucket picker ─────────────────────────────────
+
+
+@router.get("/{credential_id}/gcs/buckets")
+async def list_gcs_buckets(
+    credential_id: uuid.UUID,
+    project_id: str,
+    q: str | None = None,
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_current_workspace),
+    db: AsyncSession = Depends(get_db),
+    service: CredentialService = Depends(get_credential_service),
+):
+    """List Cloud Storage buckets in a GCP project — backs the
+    ``gcs-bucket`` picker. ``project_id`` is required because the
+    Storage API scopes bucket lists to one project at a time.
+    """
+    import httpx
+
+    from apps.api.app.node_system.nodes.gcs.gcs_node import format_gcs_error
+
+    project = project_id.strip()
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="`project_id` is required.",
+        )
+
+    token = await _resolve_google_token(credential_id, workspace, service)
+    needle = (q or "").strip().lower()
+    buckets: list[dict[str, Any]] = []
+    page_token: str | None = None
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            while True:
+                params: dict[str, Any] = {"project": project, "maxResults": 200}
+                if page_token:
+                    params["pageToken"] = page_token
+                resp = await client.get(
+                    "https://storage.googleapis.com/storage/v1/b",
+                    headers={"Authorization": f"Bearer {token}"},
+                    params=params,
+                )
+                resp.raise_for_status()
+                data = resp.json() or {}
+                for entry in data.get("items") or []:
+                    name = str(entry.get("name") or "")
+                    if not name:
+                        continue
+                    if needle and needle not in name.lower():
+                        continue
+                    buckets.append(
+                        {
+                            "name": name,
+                            "location": str(entry.get("location") or ""),
+                            "storageClass": str(entry.get("storageClass") or ""),
+                            "created": str(entry.get("timeCreated") or ""),
+                        }
+                    )
+                page_token = data.get("nextPageToken")
+                if not page_token:
+                    break
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=format_gcs_error(exc.response.status_code, exc.response.text),
+        ) from exc
+
+    return {"buckets": buckets}
 
 
 @router.post("/{credential_id}/picker-token")

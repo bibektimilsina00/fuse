@@ -61,7 +61,7 @@ function Flow({
   const pushHistory = useWorkflowEditorStore(s => s.pushHistory)
   const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow()
   const [menu, setMenu] = useState<MenuState | null>(null)
-  
+
   // ── Add Node Modal ────────────────────────────────────────────────────────
   const [addNodeOpen, setAddNodeOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -298,7 +298,7 @@ function Flow({
             />
           </div>
 
-          <div className="max-h-[320px] overflow-y-auto pr-1 flex flex-col gap-1 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[var(--border-faint)] [&::-webkit-scrollbar-thumb]:rounded-full">
+          <div className="max-h-[320px] overflow-y-auto pr-1 flex flex-col gap-1">
             {filteredDefs.map((def, idx) => {
               const isSelected = idx === selectedIndex
               return (
