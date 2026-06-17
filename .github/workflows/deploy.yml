@@ -179,10 +179,13 @@ jobs:
           sleep 15
           # Retry health for up to ~60s; the api container may still be
           # running alembic on the first deploy.
+          # FastAPI exposes the multi-component health probe at /health
+          # directly (not under /api/v1) — Caddy's @api matcher includes
+          # it explicitly. JSON response with per-component status.
           for i in 1 2 3 4 5 6 7 8; do
             if curl -fsS --max-time 8 \
-                https://fuse.bibektimilsina.tech/api/v1/health > /tmp/health.json; then
-              echo "✓ /api/v1/health responding."
+                https://fuse.bibektimilsina.tech/health > /tmp/health.json; then
+              echo "✓ /health responding."
               cat /tmp/health.json
               exit 0
             fi
