@@ -55,7 +55,6 @@ export function NodeLibraryPanel() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[12.5px] font-medium text-[var(--text)]">{def.name}</p>
-                      <p className="truncate text-[10.5px] text-[var(--text-faint)]">{def.description}</p>
                     </div>
                   </div>
                 )
