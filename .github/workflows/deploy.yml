@@ -54,9 +54,13 @@ permissions:
   contents: read
 
 concurrency:
-  # Never run two deploys at once — second one queues / cancels in-flight.
+  # Never run two deploys at once. Cancel any running / queued deploy
+  # when a newer one shows up — every commit's state is a complete
+  # snapshot so the latest one supersedes earlier work in flight. This
+  # also matters when batch-merging PRs: we don't want 10 sequential
+  # deploys, only the final one.
   group: deploy-production
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
