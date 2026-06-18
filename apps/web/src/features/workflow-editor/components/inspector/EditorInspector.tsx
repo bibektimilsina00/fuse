@@ -1,4 +1,4 @@
-import { SlidersHorizontal, ChevronDown } from 'lucide-react'
+import { SlidersHorizontal } from 'lucide-react'
 import type { Node } from 'reactflow'
 import { Empty } from '@/shared/components'
 import { cn } from '@/lib/cn'
@@ -63,45 +63,57 @@ export function EditorInspector({ nodes, updateNodeData, className }: EditorInsp
                 className="h-full"
               />
             ) : (
-              <div className="flex flex-col gap-[15px] p-4 pb-6">
-                <div className="text-[10.5px] font-semibold tracking-[0.07em] text-[var(--text-dim)] uppercase">
-                  Configuration
-                </div>
-                <PropertyGroupList
-                  groups={basicGroups}
-                  definition={definition}
-                  properties={properties}
-                  onPropertyChange={updateProperty}
-                  onPropertiesChange={updateProperties}
-                />
-
-                {advancedGroups.length > 0 && (
-                  <div className="flex flex-col gap-[14px]">
-                    <button
-                      type="button"
-                      onClick={toggleAdvanced}
-                      className="flex items-center gap-[10px] group pt-[2px]"
-                    >
-                      <span className="h-px flex-1 bg-[var(--border-faint)]" />
-                      <span className="inline-flex items-center gap-[6px] text-[12px] font-semibold text-[var(--text-mute)] transition-colors group-hover:text-[var(--text)]">
-                        {showAdvanced ? 'Hide advanced' : 'Show advanced'}
-                        <ChevronDown
-                          className={cn('h-[13px] w-[13px] transition-transform duration-200', showAdvanced && 'rotate-180')}
-                        />
-                      </span>
-                      <span className="h-px flex-1 bg-[var(--border-faint)]" />
-                    </button>
-
-                    {showAdvanced && (
-                      <PropertyGroupList
-                        groups={advancedGroups}
-                        definition={definition}
-                        properties={properties}
-                        onPropertyChange={updateProperty}
-                        onPropertiesChange={updateProperties}
-                      />
-                    )}
+              <div className="flex flex-col gap-[16px] p-4 pb-6">
+                <div className="flex items-center justify-between gap-4 h-8">
+                  <div className="text-[10.5px] font-bold tracking-[0.08em] text-[var(--text-dim)] uppercase">
+                    Configuration
                   </div>
+                  {advancedGroups.length > 0 && (
+                    <div className="flex p-0.5 rounded-[7px] bg-[var(--bg)] border border-[var(--border-soft)]">
+                      <button
+                        type="button"
+                        onClick={() => { if (showAdvanced) toggleAdvanced() }}
+                        className={cn(
+                          "px-3 py-1 text-[11px] font-semibold rounded-[5px] transition-all duration-[120ms]",
+                          !showAdvanced
+                            ? "bg-[var(--surface)] text-[var(--text)] border border-[var(--border-soft)] shadow-[var(--shadow-float)]"
+                            : "text-[var(--text-mute)] hover:text-[var(--text)] border border-transparent"
+                        )}
+                      >
+                        Basic
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { if (!showAdvanced) toggleAdvanced() }}
+                        className={cn(
+                          "px-3 py-1 text-[11px] font-semibold rounded-[5px] transition-all duration-[120ms]",
+                          showAdvanced
+                            ? "bg-[var(--surface)] text-[var(--text)] border border-[var(--border-soft)] shadow-[var(--shadow-float)]"
+                            : "text-[var(--text-mute)] hover:text-[var(--text)] border border-transparent"
+                        )}
+                      >
+                        Advanced
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {!showAdvanced ? (
+                  <PropertyGroupList
+                    groups={basicGroups}
+                    definition={definition}
+                    properties={properties}
+                    onPropertyChange={updateProperty}
+                    onPropertiesChange={updateProperties}
+                  />
+                ) : (
+                  <PropertyGroupList
+                    groups={advancedGroups}
+                    definition={definition}
+                    properties={properties}
+                    onPropertyChange={updateProperty}
+                    onPropertiesChange={updateProperties}
+                  />
                 )}
               </div>
             )}

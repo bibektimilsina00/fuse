@@ -307,8 +307,7 @@ function AddFilterButton({ disabled, onPick }: { disabled?: boolean; onPick: (op
           type="button"
           variant="ghost"
           className={cn(
-            'inline-flex items-center gap-1 h-7 px-2 rounded-full text-xs hover:bg-surface hover:text-text',
-            'border border-dashed border-border text-text-muted',
+            'inline-flex items-center gap-1 h-6 px-2.5 rounded-[6px] text-[11px] font-semibold bg-surface-2 border border-solid border-border-soft text-text-mute hover:bg-surface-3 hover:text-text transition-colors duration-[120ms]',
             disabled && 'opacity-50 pointer-events-none',
           )}
         >
