@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { RendererProps } from '../types'
 import { Toggle } from '@/shared/components'
 import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { ExpressionEditor } from '../expression/ExpressionEditor'
 import { cn } from '@/lib/cn'
 
@@ -170,12 +172,12 @@ export function GmailQueryRenderer({ prop, value, onChange, disabled }: Renderer
             onRemove={() => removeChip(i)}
           />
         ))}
-        <input
+        <Input
           value={parsed.text}
           onChange={(e) => emit({ ...parsed, text: e.target.value })}
           placeholder={parsed.chips.length === 0 ? (prop.placeholder ?? 'Search words…') : 'more words…'}
           disabled={disabled}
-          className="h-7 py-0 px-2 text-xs flex-1 min-w-[120px] bg-transparent border-0 outline-none focus:ring-0 focus:shadow-none placeholder:text-text-faint text-text"
+          className="h-7 py-0 px-2 text-xs flex-1 min-w-[120px] bg-transparent border-0 outline-none focus:ring-0 focus:shadow-none focus-visible:ring-0 focus-visible:bg-transparent focus-visible:border-transparent hover:bg-transparent hover:border-transparent placeholder:text-text-faint text-text"
         />
         <AddFilterButton disabled={disabled} onPick={addChip} />
       </div>
@@ -214,28 +216,30 @@ function ChipEditor({
         ? 'border-[var(--danger,#dc2626)]/40 bg-[var(--danger,#dc2626)]/10'
         : 'border-border bg-surface-2',
     )}>
-      <button
+      <Button
         type="button"
+        variant="ghost"
         onClick={toggleNegate}
         disabled={disabled}
         title={chip.negated ? 'Match messages with this (remove −)' : 'Exclude messages with this (add −)'}
         className={cn(
-          'pl-2 pr-0.5 font-mono leading-none',
+          'pl-2 pr-0.5 font-mono h-auto p-0 hover:bg-transparent leading-none text-xs',
           chip.negated ? 'text-[var(--danger,#dc2626)]' : 'text-text-muted hover:text-text',
         )}
       >
         {chip.negated ? '−' : ''}
-      </button>
+      </Button>
       <span className="text-text-muted">{def.label}:</span>
       {def.kind === 'preset' ? (
         <Dropdown>
           <DropdownTrigger asChild disabled={disabled}>
-            <button
+            <Button
               type="button"
-              className="text-text px-1 hover:underline outline-none cursor-pointer"
+              variant="link"
+              className="text-text px-1 h-auto p-0 hover:underline outline-none cursor-pointer text-xs"
             >
               {chip.value || '—'}
-            </button>
+            </Button>
           </DropdownTrigger>
           <DropdownContent>
             {def.options!.map(o => (
@@ -246,7 +250,7 @@ function ChipEditor({
           </DropdownContent>
         </Dropdown>
       ) : editing ? (
-        <input
+        <Input
           ref={inputRef}
           type={def.kind === 'date' ? 'date' : 'text'}
           value={def.kind === 'date' ? toIsoDate(chip.value) : chip.value}
@@ -255,28 +259,30 @@ function ChipEditor({
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); commit() } }}
           placeholder={def.placeholder}
           disabled={disabled}
-          className="bg-transparent text-text text-xs outline-none border-0 py-0 px-1 min-w-[60px] w-[var(--w,auto)]"
+          className="bg-transparent text-text text-xs outline-none border-0 py-0 px-1 min-w-[60px] w-[var(--w,auto)] hover:bg-transparent focus-visible:bg-transparent focus-visible:border-transparent"
           style={{ width: `${Math.max((chip.value?.length ?? 0) + 1, def.placeholder?.length ?? 8)}ch` }}
         />
       ) : (
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={() => setEditing(true)}
           disabled={disabled}
-          className="text-text px-1 hover:underline"
+          className="text-text px-1 h-auto p-0 hover:underline text-xs font-normal"
         >
           {valueLabel}
-        </button>
+        </Button>
       )}
-      <button
+      <Button
         type="button"
+        variant="ghost"
         onClick={onRemove}
         disabled={disabled}
         title="Remove filter"
-        className="px-1.5 text-text-muted hover:text-text leading-none"
+        className="px-1.5 h-auto p-0 text-text-muted hover:text-text hover:bg-transparent leading-none text-xs"
       >
         ×
-      </button>
+      </Button>
     </div>
   )
 }
@@ -300,17 +306,17 @@ function AddFilterButton({ disabled, onPick }: { disabled?: boolean; onPick: (op
   return (
     <Dropdown open={open} onOpenChange={setOpen}>
       <DropdownTrigger asChild disabled={disabled}>
-        <button
+        <Button
           type="button"
+          variant="ghost"
           className={cn(
-            'inline-flex items-center gap-1 h-7 px-2 rounded-full text-xs',
+            'inline-flex items-center gap-1 h-7 px-2 rounded-full text-xs hover:bg-surface hover:text-text',
             'border border-dashed border-border text-text-muted',
-            'hover:bg-surface hover:text-text',
             disabled && 'opacity-50 pointer-events-none',
           )}
         >
           + Add filter
-        </button>
+        </Button>
       </DropdownTrigger>
       <DropdownContent className="max-h-[260px] overflow-auto">
         {OPERATORS.map(def => (

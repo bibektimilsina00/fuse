@@ -70,7 +70,13 @@ export function CredentialSelector({
     <>
       <Dropdown>
         <DropdownTrigger asChild disabled={disabled}>
-          <div className={cn("flex items-center justify-between w-full h-9 pl-3 pr-2.5 text-sm bg-bg2 border border-border-soft rounded-[8px] cursor-pointer hover:bg-surface hover:border-border transition-colors", className)}>
+          <div className={cn(
+            "flex items-center justify-between w-full h-9 pl-3 pr-2.5 text-sm text-left bg-surface border border-border-soft rounded-[8px] cursor-pointer",
+            "transition-[background-color,border-color] duration-[120ms]",
+            "hover:border-border hover:bg-surface-2 focus:outline-none focus:border-accent focus:bg-surface-2",
+            "data-[state=open]:border-accent data-[state=open]:bg-surface-2",
+            className
+          )}>
             <span className={selected ? 'text-text' : 'text-text-faint'}>
               {selected?.name ?? `Select ${label} credential…`}
             </span>
@@ -87,14 +93,17 @@ export function CredentialSelector({
             <DropdownItem
               key={c.id}
               onClick={() => onChange(c.id)}
-              className={value === c.id ? 'bg-[var(--surface)]' : ''}
+              className={cn(
+                'relative pl-8 pr-2 py-1.5 w-full',
+                value === c.id ? 'bg-surface-2 font-medium text-text' : 'text-text-mute'
+              )}
             >
-              <div className="flex items-center justify-between w-full">
-                <span className="truncate">{c.name}</span>
-                {value === c.id && (
-                  <Icons.Check style={{ width: 13, height: 13, color: 'var(--ok)' }} />
-                )}
-              </div>
+              {value === c.id && (
+                <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                  <Icons.Check style={{ width: 13, height: 13, color: 'var(--accent)' }} />
+                </span>
+              )}
+              <span className="truncate">{c.name}</span>
             </DropdownItem>
           ))}
           {relevant.length > 0 && <DropdownSeparator />}

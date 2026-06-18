@@ -15,13 +15,13 @@ const SelectTrigger = forwardRef<
     ref={ref}
     className={cn(
       'flex items-center gap-2 w-full h-9 pl-3 pr-2.5 text-sm text-left',
-      'bg-bg2 border border-border-soft rounded-[8px]',
+      'bg-surface border border-solid border-border-soft rounded-[8px]',
       'transition-[background-color,border-color] duration-[120ms]',
       'disabled:opacity-40 disabled:cursor-not-allowed',
       'focus:outline-none focus:border-accent focus:bg-surface-2',
       error
         ? 'border-err'
-        : 'hover:border-border hover:bg-surface data-[state=open]:border-accent data-[state=open]:bg-surface-2',
+        : 'hover:border-border hover:bg-surface-2 data-[state=open]:border-accent data-[state=open]:bg-surface-2',
       '[&_svg]:text-text-faint [&_svg]:w-3.5 [&_svg]:h-3.5',
       className,
     )}
@@ -72,7 +72,7 @@ const SelectContent = forwardRef<
       ref={ref}
       className={cn(
         'relative z-50 max-h-60 min-w-[8rem] overflow-hidden',
-        'rounded-[10px] border border-border-soft bg-popover shadow-dropdown',
+        'rounded-[10px] border border-border-soft bg-surface shadow-dropdown',
         'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
         'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
         'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2',
@@ -89,7 +89,7 @@ const SelectContent = forwardRef<
         className={cn(
           'p-1.5',
           position === 'popper' &&
-            'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]',
+            'w-full min-w-[var(--radix-select-trigger-width)]',
         )}
       >
         {children}

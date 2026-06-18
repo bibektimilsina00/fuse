@@ -22,10 +22,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           type={type}
           ref={ref}
           className={cn(
-            'flex h-9 w-full rounded-[8px] border border-border-soft bg-bg2 px-3 text-sm text-text',
+            'flex h-9 w-full rounded-[8px] border border-border-soft bg-surface px-3 text-sm text-text',
             'placeholder:text-text-faint',
             'transition-[background-color,border-color] duration-[120ms]',
-            'hover:border-border hover:bg-surface',
+            'hover:border-border hover:bg-surface-2',
             'focus-visible:outline-none focus-visible:border-accent focus-visible:bg-surface-2',
             'disabled:cursor-not-allowed disabled:opacity-40',
             'aria-[invalid=true]:border-err',
@@ -39,13 +39,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div
         className={cn(
-          'flex items-center gap-2 px-3 h-9 w-full rounded-[8px] border bg-bg2',
+          'flex items-center gap-2 px-3 h-9 w-full rounded-[8px] border bg-surface',
           'transition-[background-color,border-color] duration-[120ms]',
           error
             ? 'border-err'
             : success
             ? 'border-ok'
-            : 'border-border-soft hover:border-border hover:bg-surface focus-within:border-accent focus-within:bg-surface-2',
+            : 'border-border-soft hover:border-border hover:bg-surface-2 focus-within:border-accent focus-within:bg-surface-2',
           className,
         )}
       >
