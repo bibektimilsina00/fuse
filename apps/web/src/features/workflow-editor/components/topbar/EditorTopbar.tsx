@@ -201,7 +201,7 @@ export function EditorTopbar({
               variant="outline"
               size="sm"
               leftIcon={<Send className="w-[14px] h-[14px]" strokeWidth={1.8} />}
-              className="h-[30px] gap-[7px] px-[13px] rounded-[8px] text-[13px] font-medium border-[rgba(255,255,255,0.08)] text-[#dcdee2] bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.12)] [&_svg]:text-current"
+              className="h-[30px] gap-[7px] px-[13px] rounded-[8px] text-[13px] font-medium border-[var(--border-soft)] text-[var(--text)] bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.06)] hover:border-[var(--border)] [&_svg]:text-current"
             >
               Deploy
             </Button>
@@ -213,7 +213,7 @@ export function EditorTopbar({
               leftIcon={
                 isRunning
                   ? <Loader2 className="w-[14px] h-[14px] animate-spin" />
-                  : <Play className="w-[14px] h-[14px] fill-white" strokeWidth={0} />
+                  : <Play className="w-[14px] h-[14px] fill-current" strokeWidth={0} />
               }
               className="h-[30px] gap-[7px] px-[14px] rounded-[8px] text-[13px] font-semibold"
             >

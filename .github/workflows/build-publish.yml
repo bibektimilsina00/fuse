@@ -161,6 +161,19 @@ jobs:
         service: [api, worker, web, site]
 
     steps:
+      # GitHub Actions doesn't support dynamic indexing on `needs.*.outputs`,
+      # so we resolve the per-service digest in a shell step and feed it
+      # into Trivy via `steps.<id>.outputs.digest`.
+      - name: Resolve image digest
+        id: digest
+        run: |
+          case "${{ matrix.service }}" in
+            api)    echo "digest=${{ needs.build.outputs.digest-api }}"    >> "$GITHUB_OUTPUT" ;;
+            worker) echo "digest=${{ needs.build.outputs.digest-worker }}" >> "$GITHUB_OUTPUT" ;;
+            web)    echo "digest=${{ needs.build.outputs.digest-web }}"    >> "$GITHUB_OUTPUT" ;;
+            site)   echo "digest=${{ needs.build.outputs.digest-site }}"   >> "$GITHUB_OUTPUT" ;;
+          esac
+
       - name: Run Trivy vulnerability scanner
         # `@master` floats with upstream — fine for a scanning tool we
         # treat as best-effort. Pin to a SHA if you want immutable CI.
@@ -172,7 +185,7 @@ jobs:
         # what's outstanding.
         continue-on-error: true
         with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/fuse-${{ matrix.service }}@${{ needs.build.outputs[format('digest-{0}', matrix.service)] }}
+          image-ref: ghcr.io/${{ github.repository_owner }}/fuse-${{ matrix.service }}@${{ steps.digest.outputs.digest }}
           format: sarif
           output: trivy-${{ matrix.service }}.sarif
           severity: CRITICAL,HIGH
