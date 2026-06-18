@@ -1,8 +1,8 @@
 import {
   Sparkles,
-  Library,
+  Blocks,
   SlidersHorizontal,
-  FlaskConical,
+  Play,
   Terminal,
   type LucideIcon,
 } from 'lucide-react'
@@ -20,10 +20,10 @@ export interface PanelTabMeta {
 
 export const PANEL_TABS: readonly PanelTabMeta[] = [
   { id: 'copilot', label: 'Copilot',   Icon: Sparkles },
-  { id: 'library', label: 'Library',   Icon: Library },
+  { id: 'library', label: 'Library',   Icon: Blocks },
   { id: 'config',  label: 'Inspector', Icon: SlidersHorizontal },
   { id: 'logs',    label: 'Logs',      Icon: Terminal, locked: true },
-  { id: 'test',    label: 'Test',      Icon: FlaskConical },
+  { id: 'test',    label: 'Test',      Icon: Play },
 ] as const
 
 export function tabMeta(id: EditorTab): PanelTabMeta | undefined {

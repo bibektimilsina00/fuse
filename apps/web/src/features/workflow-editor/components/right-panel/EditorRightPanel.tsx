@@ -77,7 +77,7 @@ export function EditorRightPanel({
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
-            className="flex shrink-0 border-b border-[var(--border-faint)] items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex h-11 shrink-0 items-center px-4 bg-[var(--bg-2)] border-b border-[var(--border-faint)] gap-1"
           >
             {tabs.map(({ id, label, Icon, locked }) => {
               const active = rightActiveTab === id
@@ -88,17 +88,14 @@ export function EditorRightPanel({
                   onDragStart={locked ? undefined : onTabDragStart(id)}
                   onClick={() => setRightActive(id)}
                   className={cn(
-                    'relative flex shrink-0 items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium leading-none whitespace-nowrap transition-colors duration-100',
+                    'flex items-center gap-1.5 h-[30px] px-[10px] text-[12px] font-semibold rounded-[6px] transition-all duration-[120ms] border',
                     active
-                      ? 'text-[var(--text)] [&_svg]:text-[var(--text)]'
-                      : 'text-[var(--text-mute)] hover:text-[var(--text)] [&_svg]:text-[var(--text-faint)] hover:[&_svg]:text-[var(--text-mute)]',
+                      ? 'bg-[var(--surface)] text-[var(--text)] border-[var(--border-soft)] shadow-[var(--shadow-float)]'
+                      : 'text-[var(--text-mute)] hover:text-[var(--text)] hover:bg-[var(--surface)]/30 border-transparent',
                   )}
                 >
                   <Icon className="h-3.5 w-3.5" />
                   {label}
-                  {active && (
-                    <span className="absolute bottom-[-1px] left-2 right-2 h-[2px] rounded-t-[2px] bg-[var(--text)]" />
-                  )}
                 </button>
               )
             })}

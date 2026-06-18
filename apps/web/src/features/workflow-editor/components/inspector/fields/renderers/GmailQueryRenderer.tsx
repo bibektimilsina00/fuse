@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { RendererProps } from '../types'
-import { Toggle } from '@/shared/components'
+import { Toggle, Tooltip } from '@/shared/components'
 import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ExpressionEditor } from '../expression/ExpressionEditor'
 import { cn } from '@/lib/cn'
+import { HelpCircle } from 'lucide-react'
 
 /**
  * Visual builder for Gmail's search-query syntax. Reads/writes a raw
@@ -134,14 +135,33 @@ export function GmailQueryRenderer({ prop, value, onChange, disabled }: Renderer
     emit({ ...parsed, chips: [...parsed.chips, { kind: 'op', op, value: initial, negated: false }] })
   }
 
-  // Raw mode delegates to the standard expression editor so users keep
-  // autocomplete + `{{ }}` interpolation when they need full control.
+  const isRequired = prop.required === true
+
+  const header = (
+    <div className="flex items-center justify-between gap-2 h-5">
+      <label className="inline-flex items-center gap-[5px] text-[12px] font-medium text-[var(--text-mute)] leading-none">
+        {prop.label}
+        {isRequired && (
+          <span
+            aria-hidden
+            className="inline-block w-[4px] h-[4px] rounded-full bg-[var(--err)]"
+            title="Required"
+          />
+        )}
+        {prop.description && (
+          <Tooltip content={<span className="max-w-[220px] block text-[11px] leading-normal">{prop.description}</span>} delayDuration={150}>
+            <HelpCircle className="h-[12.5px] w-[12.5px] text-[var(--text-faint)] hover:text-[var(--text-mute)] cursor-help transition-colors" />
+          </Tooltip>
+        )}
+      </label>
+      <ModeToggle mode={mode} setMode={setMode} disabled={disabled} />
+    </div>
+  )
+
   if (mode === 'raw') {
     return (
-      <div className="relative">
-        <div className="absolute -top-[20px] right-0 z-10 flex items-center">
-          <ModeToggle mode={mode} setMode={setMode} disabled={disabled} />
-        </div>
+      <div className="flex flex-col gap-[6px]">
+        {header}
         <ExpressionEditor
           value={raw}
           onChange={(v) => { lastEmitted.current = v; onChange(v) }}
@@ -153,10 +173,8 @@ export function GmailQueryRenderer({ prop, value, onChange, disabled }: Renderer
   }
 
   return (
-    <div className="relative">
-      <div className="absolute -top-[20px] right-0 z-10 flex items-center">
-        <ModeToggle mode={mode} setMode={setMode} disabled={disabled} />
-      </div>
+    <div className="flex flex-col gap-[6px]">
+      {header}
       <div className={cn(
         'flex flex-wrap items-center gap-1.5',
         'min-h-[38px] px-3 py-1.5 rounded-[8px]',
