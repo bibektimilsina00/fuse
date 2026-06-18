@@ -97,10 +97,10 @@ export function AuthForm({ mode }: AuthFormProps) {
         <Icons.FuseMark style={{ width: 40, height: 40, color: 'var(--accent)' }} />
       </div>
 
-      <h1 className="m-0 text-center text-[27px] font-semibold tracking-[-0.028em] text-[var(--text)]">
+      <h1 className="m-0 text-center text-[28px] font-[560] leading-[1.1] tracking-[-0.022em] text-[var(--text)]">
         {copy.heading}
       </h1>
-      <p className="mt-2.5 text-center text-[14.5px] leading-[1.5] text-[var(--text-mute)]">
+      <p className="mt-3 text-center text-[14.5px] leading-[1.55] text-[var(--text-mute)]">
         {copy.sub}
       </p>
 
@@ -208,7 +208,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-[10px] border-none bg-[var(--text)] px-3 py-3 text-[14.5px] font-semibold text-[var(--bg)] transition-[filter] hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 inline-flex h-[42px] w-full items-center justify-center gap-[7px] rounded-[8px] border-none bg-[var(--accent)] px-[16px] text-[14px] font-semibold text-white transition-[filter] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? 'Please wait…' : copy.primary}
           {!isLoading && <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.2} />}
@@ -218,7 +218,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       <button
         type="button"
         onClick={ssoSoon}
-        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-[10px] border border-white/[0.09] bg-transparent px-3 py-2.5 text-[13px] font-medium text-[var(--text-mute)] transition-colors hover:bg-white/[0.03] hover:text-[var(--text)]"
+        className="mt-2.5 inline-flex h-[40px] w-full items-center justify-center gap-2 rounded-[8px] border border-[var(--border-soft)] bg-white/[0.02] px-3 text-[13px] font-medium text-[var(--text-mute)] transition-colors hover:border-[var(--border)] hover:bg-white/[0.05] hover:text-[var(--text)]"
       >
         <Lock className="h-[14px] w-[14px]" strokeWidth={1.8} />
         Single sign-on (SAML)
@@ -262,7 +262,7 @@ function SsoButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-[11px] rounded-[10px] border border-white/[0.1] bg-white/[0.035] px-[15px] py-[11px] text-left text-[14.5px] font-medium text-[var(--text)] transition-colors hover:border-white/[0.16] hover:bg-white/[0.07]"
+      className="flex w-full items-center gap-[11px] rounded-[8px] border border-[var(--border-soft)] bg-white/[0.02] px-[14px] py-[10px] text-left text-[14px] font-medium text-[var(--text)] transition-colors hover:border-[var(--border)] hover:bg-white/[0.05]"
     >
       {children}
     </button>
@@ -297,7 +297,7 @@ function Field({
       <span className="mb-[7px] block text-[12.5px] font-medium text-[var(--text-mute)]">
         {label}
       </span>
-      <span className="flex items-center gap-2 rounded-[10px] border border-white/[0.1] bg-white/[0.025] px-[13px] py-[11px] transition-colors focus-within:border-[var(--accent)] focus-within:bg-[color-mix(in_oklab,var(--accent)_6%,transparent)]">
+      <span className="flex items-center gap-2 rounded-[8px] border border-[var(--border-soft)] bg-white/[0.02] px-[12px] py-[10px] transition-colors focus-within:border-[var(--accent)] focus-within:bg-[color-mix(in_oklab,var(--accent)_6%,transparent)]">
         {icon && <span className="text-[var(--text-faint)]">{icon}</span>}
         <input
           type={type}
