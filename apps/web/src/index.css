@@ -70,6 +70,32 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
+   SHADCN/UI COMPATIBILITY ALIASES
+   Maps Fuse design tokens → shadcn's expected CSS variable names.
+   shadcn components use bg-background, text-foreground, etc., which Tailwind
+   resolves via these vars. Theme overrides cascade automatically.
+══════════════════════════════════════════════════════════════════════════════ */
+:root {
+  --background:             var(--bg);
+  --foreground:             var(--text);
+  --card:                   var(--surface);
+  --card-foreground:        var(--text);
+  --popover:                var(--surface);
+  --popover-foreground:     var(--text);
+  --primary:                var(--accent);
+  --primary-foreground:     #ffffff;
+  --secondary:              var(--surface-2);
+  --secondary-foreground:   var(--text);
+  --muted:                  var(--surface);
+  --muted-foreground:       var(--text-mute);
+  --destructive:            var(--err);
+  --destructive-foreground: #ffffff;
+  --input:                  var(--border-faint);
+  --ring:                   var(--accent);
+  --radius:                 var(--r-md);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
    DESIGN TOKENS — light
 ══════════════════════════════════════════════════════════════════════════════ */
 .light {

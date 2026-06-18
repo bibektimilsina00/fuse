@@ -2,6 +2,7 @@ import React from 'react'
 import { Icons } from '@/shared/components'
 import { Sparkline } from './Sparkline'
 import { cn } from '@/lib/cn'
+import { SpotlightCard } from '@/components/ui/aceternity/spotlight-card'
 import type { DashboardStat } from '../services/dashboardAPI'
 
 const STAT_ICONS: Record<string, React.ReactNode> = {
@@ -23,9 +24,9 @@ export function StatsGrid({ items }: Props) {
                                    'var(--text-dim)'
 
         return (
-          <div
+          <SpotlightCard
             key={i}
-            className="border border-[var(--border-soft)] bg-[rgba(255,255,255,0.018)] rounded-[10px] py-[14px] px-[16px] flex flex-col"
+            className="py-[14px] px-[16px] flex flex-col"
           >
             <div className="flex items-start justify-between">
               <div className="inline-flex items-center gap-[8px] text-[var(--text-mute)] [&_svg]:w-[15px] [&_svg]:h-[15px]">
@@ -75,7 +76,7 @@ export function StatsGrid({ items }: Props) {
                 {s.delta_dir === 'flat' ? 'no change' : 'vs yesterday'}
               </span>
             </div>
-          </div>
+          </SpotlightCard>
         )
       })}
     </div>

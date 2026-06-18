@@ -1,5 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { BackgroundBeams } from '@/components/ui/aceternity/background-beams'
 
 interface AuthShellProps {
   /** Center card content — login form / signup form / reset card. */
@@ -70,7 +71,10 @@ export function AuthShell({
         </a>
       </header>
 
-      <main className="flex flex-1 items-center justify-center px-6 pb-[72px] pt-8">
+      {/* Aceternity background effect */}
+      <BackgroundBeams />
+
+      <main className="relative flex flex-1 items-center justify-center px-6 pb-[72px] pt-8">
         <div className="w-full max-w-[392px]">{children}</div>
       </main>
     </div>
