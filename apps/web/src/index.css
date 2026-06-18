@@ -11,22 +11,22 @@
 ══════════════════════════════════════════════════════════════════════════════ */
 :root {
   /* Surfaces — Linear's stack: app → surface → panel → node */
-  --bg:         #08090a;  /* app canvas, dot-grid background */
-  --bg-2:       #0c0d0f;  /* sidebar / secondary chrome */
+  --bg:         #0b0c0e;  /* app canvas, dot-grid background */
+  --bg-2:       #111215;  /* sidebar / secondary chrome */
 
-  --surface:    #0f1011;  /* cards, panels, inspector */
-  --surface-2:  #161719;  /* nodes, raised tiles */
-  --surface-3:  #1c1d1f;  /* hovered surface-2 */
+  --surface:    #16181c;  /* cards, panels, inspector */
+  --surface-2:  #202227;  /* nodes, raised tiles */
+  --surface-3:  #2a2c32;  /* hovered surface-2 */
 
   /* Hairlines — almost invisible */
-  --border:       rgba(255, 255, 255, 0.11);
-  --border-soft:  rgba(255, 255, 255, 0.07);
-  --border-faint: rgba(255, 255, 255, 0.04);
+  --border:       rgba(255, 255, 255, 0.16);
+  --border-soft:  rgba(255, 255, 255, 0.10);
+  --border-faint: rgba(255, 255, 255, 0.06);
 
   /* Text ramp — neutral whites tilted slightly cool */
-  --text:       #edeef0;  /* primary body, headings */
-  --text-body:  #c7c9ce;  /* assistant-message body, secondary copy */
-  --text-mute:  #8a8f98;  /* meta, captions */
+  --text:       #f3f4f6;  /* primary body, headings */
+  --text-body:  #d1d5db;  /* assistant-message body, secondary copy */
+  --text-mute:  #9ca3af;  /* meta, captions */
   --text-faint: #62666d;  /* faint hints */
   --text-dim:   #52565d;  /* dim labels */
 
@@ -80,7 +80,7 @@
   --foreground:             var(--text);
   --card:                   var(--surface);
   --card-foreground:        var(--text);
-  --popover:                var(--surface);
+  --popover:                var(--bg-2);
   --popover-foreground:     var(--text);
   --primary:                var(--accent);
   --primary-foreground:     #ffffff;

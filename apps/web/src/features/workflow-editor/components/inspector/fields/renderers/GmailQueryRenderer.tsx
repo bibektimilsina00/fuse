@@ -157,9 +157,9 @@ export function GmailQueryRenderer({ prop, value, onChange, disabled }: Renderer
       </div>
       <div className={cn(
         'flex flex-wrap items-center gap-1.5',
-        'min-h-[42px] px-2 py-2 rounded-[5px]',
-        'bg-bg border border-border-faint',
-        'hover:border-border-soft focus-within:border-border focus-within:bg-surface',
+        'min-h-[38px] px-3 py-1.5 rounded-[8px]',
+        'bg-bg2 border border-border-soft transition-colors duration-[120ms]',
+        'hover:border-border hover:bg-surface focus-within:border-accent focus-within:bg-surface-2',
       )}>
         {parsed.chips.map((chip, i) => (
           <ChipEditor
@@ -170,12 +170,12 @@ export function GmailQueryRenderer({ prop, value, onChange, disabled }: Renderer
             onRemove={() => removeChip(i)}
           />
         ))}
-        <Input
+        <input
           value={parsed.text}
           onChange={(e) => emit({ ...parsed, text: e.target.value })}
           placeholder={parsed.chips.length === 0 ? (prop.placeholder ?? 'Search words…') : 'more words…'}
           disabled={disabled}
-          className="!h-7 !py-0 !px-2 !text-xs flex-1 min-w-[120px] !bg-transparent !border-0 focus:!ring-0 focus:!shadow-none"
+          className="h-7 py-0 px-2 text-xs flex-1 min-w-[120px] bg-transparent border-0 outline-none focus:ring-0 focus:shadow-none placeholder:text-text-faint text-text"
         />
         <AddFilterButton disabled={disabled} onPick={addChip} />
       </div>
@@ -228,15 +228,23 @@ function ChipEditor({
       </button>
       <span className="text-text-muted">{def.label}:</span>
       {def.kind === 'preset' ? (
-        <select
-          value={chip.value}
-          onChange={(e) => onChange({ value: e.target.value })}
-          disabled={disabled}
-          className="bg-transparent text-text text-xs outline-none border-0 py-0 pr-1 pl-0.5 cursor-pointer"
-        >
-          {!chip.value && <option value="">—</option>}
-          {def.options!.map(o => <option key={o} value={o}>{o}</option>)}
-        </select>
+        <Dropdown>
+          <DropdownTrigger disabled={disabled}>
+            <button
+              type="button"
+              className="text-text px-1 hover:underline outline-none cursor-pointer"
+            >
+              {chip.value || '—'}
+            </button>
+          </DropdownTrigger>
+          <DropdownContent>
+            {def.options!.map(o => (
+              <DropdownItem key={o} onClick={() => onChange({ value: o })}>
+                {o}
+              </DropdownItem>
+            ))}
+          </DropdownContent>
+        </Dropdown>
       ) : editing ? (
         <input
           ref={inputRef}

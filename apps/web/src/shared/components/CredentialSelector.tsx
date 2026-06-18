@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import {
   Dropdown, DropdownTrigger, DropdownContent, DropdownItem, DropdownSeparator,
 } from './Dropdown'
@@ -68,11 +69,11 @@ export function CredentialSelector({
     <>
       <Dropdown className={className ?? 'w-full'}>
         <DropdownTrigger className="w-full" disabled={disabled}>
-          <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
-            <span className={selected ? 'text-[var(--text)]' : 'text-[var(--text-faint)]'}>
+          <div className="flex items-center justify-between w-full h-9 pl-3 pr-2.5 text-sm bg-bg2 border border-border-soft rounded-[8px] cursor-pointer hover:bg-surface hover:border-border transition-colors">
+            <span className={selected ? 'text-text' : 'text-text-faint'}>
               {selected?.name ?? `Select ${label} credential…`}
             </span>
-            <Icons.Caret style={{ width: 11, height: 11, color: 'var(--text-faint)' }} />
+            <ChevronDown className="ml-auto shrink-0 w-3.5 h-3.5 text-text-faint" />
           </div>
         </DropdownTrigger>
         <DropdownContent className="w-full">
