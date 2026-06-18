@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, Loader2 } from 'lucide-react'
-import { cn } from '@/lib/cn'
+import { Loader2 } from 'lucide-react'
 import apiClient from '@/shared/utils/apiClient'
 import { API_ROUTES } from '@/shared/constants/routes'
+import { Select } from '@/shared/components'
 import type { RendererProps } from '../types'
 
 /**
@@ -92,31 +92,20 @@ export function MetaResourceRenderer({ prop, properties, value, onChange, disabl
   }
 
   return (
-    <div className="relative">
-      <select
+    <div className="flex flex-col gap-1.5">
+      <Select
         value={readString(value) ?? ''}
-        onChange={e => onChange(e.target.value)}
+        onChange={onChange}
         disabled={disabled}
-        className={cn(
-          'h-9 w-full appearance-none rounded-[7px] border border-border-faint bg-bg px-2.5 pr-7 text-[12px] text-text outline-none transition-colors',
-          'hover:border-border-soft focus:border-border',
-          disabled && 'opacity-50',
-        )}
-      >
-        <option value="">Select…</option>
-        {resources.map(r => (
-          <option key={r.id} value={r.id}>
-            {r.name}
-            {r.secondary ? ` · ${r.secondary}` : ''}
-          </option>
-        ))}
-      </select>
-      <ChevronDown
-        size={13}
-        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-text-faint"
+        placeholder="Select…"
+        options={resources.map(r => ({
+          value: r.id,
+          label: r.secondary ? `${r.name} · ${r.secondary}` : r.name,
+        }))}
+        className="w-full"
       />
       {selected?.secondary && (
-        <p className="mt-1 text-[10.5px] text-text-faint">{selected.secondary}</p>
+        <p className="text-[10.5px] text-text-faint pl-1">{selected.secondary}</p>
       )}
     </div>
   )

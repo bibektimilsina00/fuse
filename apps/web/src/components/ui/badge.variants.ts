@@ -6,7 +6,9 @@ export const badgeVariants = cva(
     variants: {
       variant: {
         default:     'bg-accent-soft border-accent-line text-accent',
+        accent:      'bg-accent-soft border-accent-line text-accent',
         secondary:   'bg-surface border-border-faint text-text-mute',
+        draft:       'bg-surface border-border-faint text-text-mute',
         ok:          'bg-[var(--badge-ok-bg)] border-transparent text-ok',
         warn:        'bg-[var(--badge-warn-bg)] border-transparent text-warn',
         err:         'bg-[var(--badge-err-bg)] border-transparent text-err',

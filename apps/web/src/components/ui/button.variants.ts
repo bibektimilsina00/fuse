@@ -13,13 +13,19 @@ export const buttonVariants = cva(
       variant: {
         default:
           'bg-primary border border-primary text-primary-foreground hover:brightness-110 [&_svg]:text-white',
+        primary:
+          'bg-primary border border-primary text-primary-foreground hover:brightness-110 [&_svg]:text-white',
         secondary:
+          'bg-surface border border-border-faint text-text [box-shadow:var(--btn-shadow)] hover:bg-surface-2 hover:border-border-soft [&_svg]:text-text-mute',
+        subtle:
           'bg-surface border border-border-faint text-text [box-shadow:var(--btn-shadow)] hover:bg-surface-2 hover:border-border-soft [&_svg]:text-text-mute',
         outline:
           'bg-transparent border border-border-faint text-text hover:bg-surface hover:border-border-soft [&_svg]:text-text-mute',
         ghost:
           'bg-transparent border border-transparent text-text-mute hover:bg-surface hover:text-text [&_svg]:text-text-mute hover:[&_svg]:text-text',
         destructive:
+          'bg-[var(--danger-bg)] border border-[var(--danger-border)] text-white hover:bg-[var(--danger-bg-hover)] [&_svg]:text-white',
+        danger:
           'bg-[var(--danger-bg)] border border-[var(--danger-border)] text-white hover:bg-[var(--danger-bg-hover)] [&_svg]:text-white',
         link: 'text-primary underline-offset-4 hover:underline',
         icon: [

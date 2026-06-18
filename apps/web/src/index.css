@@ -11,12 +11,12 @@
 ══════════════════════════════════════════════════════════════════════════════ */
 :root {
   /* Surfaces — Linear's stack: app → surface → panel → node */
-  --bg:         #0b0c0e;  /* app canvas, dot-grid background */
-  --bg-2:       #111215;  /* sidebar / secondary chrome */
+  --bg:         #1c1c1c;  /* app canvas, dot-grid background */
+  --bg-2:       #1e1e1e;  /* sidebar / secondary chrome */
 
-  --surface:    #16181c;  /* cards, panels, inspector */
-  --surface-2:  #202227;  /* nodes, raised tiles */
-  --surface-3:  #2a2c32;  /* hovered surface-2 */
+  --surface:    #262626;  /* cards, panels, inspector */
+  --surface-2:  #303030;  /* nodes, raised tiles */
+  --surface-3:  #3b3b3b;  /* hovered surface-2 */
 
   /* Hairlines — almost invisible */
   --border:       rgba(255, 255, 255, 0.16);
@@ -160,55 +160,55 @@
    Tokens are direct ports of the `schemes()` map in Fuse.dc.html.
 ══════════════════════════════════════════════════════════════════════════════ */
 :root[data-theme='slate'] {
-  --bg:        #0e0f12;
-  --bg-2:      #121316;
-  --surface:   #16181c;
-  --surface-2: #1d2024;
-  --surface-3: #232629;
+  --bg:        #1c1c1c;
+  --bg-2:      #1e1e1e;
+  --surface:   #262626;
+  --surface-2: #303030;
+  --surface-3: #3b3b3b;
   --accent:       #6b76e0;
   --accent-soft:  rgba(107, 118, 224, 0.14);
   --accent-line:  rgba(107, 118, 224, 0.45);
 }
 
 :root[data-theme='indigo'] {
-  --bg:        #08090c;
-  --bg-2:      #0c0d12;
-  --surface:   #0f1118;
-  --surface-2: #161820;
-  --surface-3: #1c1e28;
+  --bg:        #1c1c1c;
+  --bg-2:      #1e1e1e;
+  --surface:   #262626;
+  --surface-2: #303030;
+  --surface-3: #3b3b3b;
   --accent:       #7c83ff;
   --accent-soft:  rgba(124, 131, 255, 0.14);
   --accent-line:  rgba(124, 131, 255, 0.45);
 }
 
 :root[data-theme='emerald'] {
-  --bg:        #070908;
-  --bg-2:      #0a0d0b;
-  --surface:   #0d100e;
-  --surface-2: #141a16;
-  --surface-3: #19211c;
+  --bg:        #1c1c1c;
+  --bg-2:      #1e1e1e;
+  --surface:   #262626;
+  --surface-2: #303030;
+  --surface-3: #3b3b3b;
   --accent:       #3fb98a;
   --accent-soft:  rgba(63, 185, 138, 0.14);
   --accent-line:  rgba(63, 185, 138, 0.45);
 }
 
 :root[data-theme='ember'] {
-  --bg:        #0a0807;
-  --bg-2:      #0d0a09;
-  --surface:   #100c0b;
-  --surface-2: #1a1411;
-  --surface-3: #221915;
+  --bg:        #1c1c1c;
+  --bg-2:      #1e1e1e;
+  --surface:   #262626;
+  --surface-2: #303030;
+  --surface-3: #3b3b3b;
   --accent:       #e0673f;
   --accent-soft:  rgba(224, 103, 63, 0.14);
   --accent-line:  rgba(224, 103, 63, 0.45);
 }
 
 :root[data-theme='plum'] {
-  --bg:        #09080a;
-  --bg-2:      #0c0a0e;
-  --surface:   #0f0d12;
-  --surface-2: #181420;
-  --surface-3: #1f1929;
+  --bg:        #1c1c1c;
+  --bg-2:      #1e1e1e;
+  --surface:   #262626;
+  --surface-2: #303030;
+  --surface-3: #3b3b3b;
   --accent:       #a06cf0;
   --accent-soft:  rgba(160, 108, 240, 0.14);
   --accent-line:  rgba(160, 108, 240, 0.45);
@@ -216,14 +216,14 @@
 
 :root[data-theme='n8n-dark'],
 .theme-n8n-dark {
-  --bg:         oklch(0.155 0.032 298);
-  --bg-2:       oklch(0.185 0.032 296);
-  --surface:    oklch(0.218 0.033 294);
-  --surface-2:  oklch(0.258 0.033 294);
-  --surface-3:  oklch(0.298 0.033 294);
-  --border:       oklch(0.33 0.033 294);
-  --border-soft:  oklch(0.28 0.033 294);
-  --border-faint: oklch(0.24 0.033 294);
+  --bg:         #1c1c1c;
+  --bg-2:       #1e1e1e;
+  --surface:    #262626;
+  --surface-2:  #303030;
+  --surface-3:  #3b3b3b;
+  --border:       rgba(255, 255, 255, 0.16);
+  --border-soft:  rgba(255, 255, 255, 0.10);
+  --border-faint: rgba(255, 255, 255, 0.06);
   --text:       oklch(0.985 0.005 298);
   --text-mute:  oklch(0.82 0.01 298);
   --text-faint: oklch(0.66 0.015 298);
@@ -241,14 +241,14 @@
 
 :root[data-theme='linear-dark'],
 .theme-linear-dark {
-  --bg:         oklch(0.08 0 0);
-  --bg-2:       oklch(0.115 0 0);
-  --surface:    oklch(0.15 0 0);
-  --surface-2:  oklch(0.19 0 0);
-  --surface-3:  oklch(0.23 0 0);
-  --border:       oklch(0.53 0 0);
-  --border-soft:  oklch(0.35 0 0);
-  --border-faint: oklch(0.20 0 0);
+  --bg:         #1c1c1c;
+  --bg-2:       #1e1e1e;
+  --surface:    #262626;
+  --surface-2:  #303030;
+  --surface-3:  #3b3b3b;
+  --border:       rgba(255, 255, 255, 0.16);
+  --border-soft:  rgba(255, 255, 255, 0.10);
+  --border-faint: rgba(255, 255, 255, 0.06);
   --text:       oklch(0.98 0 0);
   --text-mute:  oklch(0.82 0 0);
   --text-faint: oklch(0.66 0 0);

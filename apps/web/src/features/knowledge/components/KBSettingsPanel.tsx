@@ -4,7 +4,7 @@ import { Icons } from '@/shared/components/icons'
 import { useToast, CredentialSelector } from '@/shared/components'
 import {
   Dropdown, DropdownTrigger, DropdownContent, DropdownItem,
-} from '@/shared/components/Dropdown'
+} from '@/components/ui/dropdown-menu'
 import { knowledgeAPI } from '../services/knowledgeAPI'
 import { useReindex, useEmbeddingModels } from '../hooks/useKnowledge'
 import {
@@ -118,18 +118,18 @@ export function KBSettingsPanel({ kb, onClose, onSaved }: Props) {
               <div className="text-[13px] font-semibold text-[var(--text)]">Provider</div>
               <p className="text-[12px] text-[var(--text-faint)] mt-0.5">Choose where embeddings are generated.</p>
             </div>
-            <Dropdown className="w-full">
-              <DropdownTrigger className="w-full">
+            <Dropdown>
+              <DropdownTrigger asChild>
                 <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
                   <span className="text-[var(--text)]">{provider}</span>
                   <Icons.Caret style={{ width: 11, height: 11, color: 'var(--text-faint)' }} />
                 </div>
               </DropdownTrigger>
-              <DropdownContent className="w-full">
+              <DropdownContent className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)]">
                 {EMBEDDING_PROVIDERS.map(p => (
                   <DropdownItem key={p} onClick={() => handleProviderChange(p)} className={provider === p ? 'bg-[var(--surface)]' : ''}>
                     <div className="flex items-center justify-between w-full">
-                      <div className="flex flex-col gap-0.5">
+                      <div className="flex flex-col gap-0.5 min-w-0">
                         <span className="text-[13px] font-medium">{p}</span>
                         {p === 'Default' && (
                           <span className="text-[11px] text-[var(--text-faint)]">Fuse-managed Gemini — no credential needed</span>
@@ -229,14 +229,14 @@ export function KBSettingsPanel({ kb, onClose, onSaved }: Props) {
             </div>
             <p className="text-[11px] font-mono text-[var(--text-dim)]">1 token ≈ 4 characters</p>
 
-            <Dropdown className="w-full">
-              <DropdownTrigger className="w-full">
+            <Dropdown>
+              <DropdownTrigger asChild>
                 <div className="flex items-center justify-between h-[36px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[8px] text-[12.5px] text-[var(--text)] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
                   <span>{selectedStrategy?.label ?? 'Auto'}</span>
                   <Icons.Caret style={{ width: 10, height: 10, color: 'var(--text-faint)' }} />
                 </div>
               </DropdownTrigger>
-              <DropdownContent className="w-full">
+              <DropdownContent className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)]">
                 {CHUNKING_STRATEGIES.map(s => (
                   <DropdownItem key={s.id} onClick={() => setStrategy(s.id)} className={strategy === s.id ? 'bg-[var(--surface)]' : ''}>
                     <div className="flex flex-col gap-0.5">

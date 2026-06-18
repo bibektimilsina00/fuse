@@ -1,13 +1,29 @@
 import { forwardRef, type HTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
 
-const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+type CardPadding = 'sm' | 'md' | 'lg' | 'none'
+
+const paddingMap: Record<CardPadding, string> = {
+  none: '',
+  sm:   'p-3',
+  md:   'p-4',
+  lg:   'p-5',
+}
+
+export interface CardProps extends HTMLAttributes<HTMLDivElement> {
+  padding?: CardPadding
+  elevated?: boolean
+}
+
+const Card = forwardRef<HTMLDivElement, CardProps>(
+  ({ className, padding = 'none', elevated = false, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        'rounded-[12px] border border-border-faint bg-bg text-text',
+        'rounded-[12px] border border-border-soft bg-bg2 text-text',
         '[box-shadow:var(--card-shadow)]',
+        padding !== 'none' && paddingMap[padding],
+        elevated && 'shadow-panel',
         className,
       )}
       {...props}

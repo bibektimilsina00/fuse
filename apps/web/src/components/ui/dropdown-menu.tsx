@@ -42,7 +42,7 @@ const DropdownMenuSubContent = forwardRef<
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
-      'z-50 min-w-[8rem] overflow-hidden rounded-[10px] border border-border-faint bg-surface p-1.5',
+      'z-50 min-w-[8rem] overflow-hidden rounded-[10px] border border-border-soft bg-popover p-1.5',
       'text-text shadow-dropdown',
       'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
       'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
@@ -64,7 +64,7 @@ const DropdownMenuContent = forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        'z-50 min-w-[10rem] overflow-hidden rounded-[10px] border border-border-faint bg-bg p-1.5',
+        'z-50 min-w-[10rem] overflow-hidden rounded-[10px] border border-border-soft bg-popover p-1.5',
         'text-text shadow-dropdown',
         'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
         'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
@@ -83,25 +83,37 @@ const DropdownMenuItem = forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
     inset?: boolean
     destructive?: boolean
+    variant?: 'default' | 'danger'
+    leftIcon?: React.ReactNode
+    rightIcon?: React.ReactNode
+    shortcut?: string
   }
->(({ className, inset, destructive, ...props }, ref) => (
-  <DropdownMenuPrimitive.Item
-    ref={ref}
-    className={cn(
-      'relative flex cursor-pointer select-none items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-sm',
-      'outline-none transition-colors duration-[100ms]',
-      'focus:bg-surface focus:text-text',
-      'data-[disabled]:pointer-events-none data-[disabled]:opacity-40',
-      '[&_svg]:pointer-events-none [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:shrink-0',
-      destructive
-        ? 'text-err focus:bg-[var(--badge-err-bg)] focus:text-err'
-        : 'text-text-mute focus:text-text',
-      inset && 'pl-8',
-      className,
-    )}
-    {...props}
-  />
-))
+>(({ className, inset, destructive, variant, leftIcon, rightIcon, shortcut, children, ...props }, ref) => {
+  const isDestructive = destructive || variant === 'danger'
+  return (
+    <DropdownMenuPrimitive.Item
+      ref={ref}
+      className={cn(
+        'relative flex cursor-pointer select-none items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-sm',
+        'outline-none transition-colors duration-[100ms]',
+        'focus:bg-surface focus:text-text',
+        'data-[disabled]:pointer-events-none data-[disabled]:opacity-40',
+        '[&_svg]:pointer-events-none [&_svg]:w-3.5 [&_svg]:h-3.5 [&_svg]:shrink-0',
+        isDestructive
+          ? 'text-err focus:bg-[var(--badge-err-bg)] focus:text-err'
+          : 'text-text-mute focus:text-text',
+        inset && 'pl-8',
+        className,
+      )}
+      {...props}
+    >
+      {leftIcon && <span className="shrink-0 flex items-center justify-center">{leftIcon}</span>}
+      <span className="flex-1">{children}</span>
+      {shortcut && <span className="text-xs text-text-faint font-mono ml-auto shrink-0">{shortcut}</span>}
+      {rightIcon && <span className="ml-auto shrink-0 flex items-center justify-center">{rightIcon}</span>}
+    </DropdownMenuPrimitive.Item>
+  )
+})
 DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName
 
 const DropdownMenuCheckboxItem = forwardRef<
@@ -159,7 +171,12 @@ const DropdownMenuLabel = forwardRef<
 DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName
 
 // ── Convenience: original Dropdown.tsx API wrappers ──────────────────────────
-const Dropdown = DropdownMenuRoot
+interface DropdownProps extends React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root> {
+  className?: string
+}
+const Dropdown = ({ className, ...props }: DropdownProps) => (
+  <DropdownMenuRoot {...props} />
+)
 const DropdownTrigger = DropdownMenuTrigger
 const DropdownContent = DropdownMenuContent
 const DropdownItem = DropdownMenuItem

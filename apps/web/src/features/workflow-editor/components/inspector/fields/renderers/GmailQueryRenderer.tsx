@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { RendererProps } from '../types'
-import { Input, Toggle } from '@/shared/components'
-import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '@/shared/components/Dropdown'
+import { Toggle } from '@/shared/components'
+import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '@/components/ui/dropdown-menu'
 import { ExpressionEditor } from '../expression/ExpressionEditor'
 import { cn } from '@/lib/cn'
 
@@ -229,7 +229,7 @@ function ChipEditor({
       <span className="text-text-muted">{def.label}:</span>
       {def.kind === 'preset' ? (
         <Dropdown>
-          <DropdownTrigger disabled={disabled}>
+          <DropdownTrigger asChild disabled={disabled}>
             <button
               type="button"
               className="text-text px-1 hover:underline outline-none cursor-pointer"
@@ -299,15 +299,18 @@ function AddFilterButton({ disabled, onPick }: { disabled?: boolean; onPick: (op
   const [open, setOpen] = useState(false)
   return (
     <Dropdown open={open} onOpenChange={setOpen}>
-      <DropdownTrigger disabled={disabled}>
-        <span className={cn(
-          'inline-flex items-center gap-1 h-7 px-2 rounded-full text-xs',
-          'border border-dashed border-border text-text-muted',
-          'hover:bg-surface hover:text-text',
-          disabled && 'opacity-50 pointer-events-none',
-        )}>
+      <DropdownTrigger asChild disabled={disabled}>
+        <button
+          type="button"
+          className={cn(
+            'inline-flex items-center gap-1 h-7 px-2 rounded-full text-xs',
+            'border border-dashed border-border text-text-muted',
+            'hover:bg-surface hover:text-text',
+            disabled && 'opacity-50 pointer-events-none',
+          )}
+        >
           + Add filter
-        </span>
+        </button>
       </DropdownTrigger>
       <DropdownContent className="max-h-[260px] overflow-auto">
         {OPERATORS.map(def => (

@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { cn } from '@/lib/cn'
 import {
   Dropdown, DropdownTrigger, DropdownContent, DropdownItem, DropdownSeparator,
-} from './Dropdown'
+} from '@/components/ui/dropdown-menu'
 import { Icons } from './icons'
 import { useCredentials, useProviders } from '@/features/connections/hooks/useConnections'
 import { ConnectModal } from '@/features/connections/components/ConnectModal'
@@ -67,16 +68,16 @@ export function CredentialSelector({
 
   return (
     <>
-      <Dropdown className={className ?? 'w-full'}>
-        <DropdownTrigger className="w-full" disabled={disabled}>
-          <div className="flex items-center justify-between w-full h-9 pl-3 pr-2.5 text-sm bg-bg2 border border-border-soft rounded-[8px] cursor-pointer hover:bg-surface hover:border-border transition-colors">
+      <Dropdown>
+        <DropdownTrigger asChild disabled={disabled}>
+          <div className={cn("flex items-center justify-between w-full h-9 pl-3 pr-2.5 text-sm bg-bg2 border border-border-soft rounded-[8px] cursor-pointer hover:bg-surface hover:border-border transition-colors", className)}>
             <span className={selected ? 'text-text' : 'text-text-faint'}>
               {selected?.name ?? `Select ${label} credential…`}
             </span>
             <ChevronDown className="ml-auto shrink-0 w-3.5 h-3.5 text-text-faint" />
           </div>
         </DropdownTrigger>
-        <DropdownContent className="w-full">
+        <DropdownContent className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)]">
           {relevant.length === 0 && (
             <div className="px-3 py-2 text-[12px] text-[var(--text-faint)]">
               No {label} credentials yet.

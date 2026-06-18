@@ -1,5 +1,5 @@
 import { type ChangeEvent } from 'react'
-import { Check } from 'lucide-react'
+import { Checkbox as RadixCheckbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/cn'
 
 interface CheckboxProps {
@@ -13,37 +13,36 @@ interface CheckboxProps {
 export function Checkbox({ checked = false, onChange, label, className, id }: CheckboxProps) {
   const inputId = id ?? (label ? `cb-${label.toLowerCase().replace(/\s+/g, '-')}` : undefined)
 
+  const handleCheckedChange = (val: boolean | 'indeterminate') => {
+    if (onChange) {
+      const isChecked = val === true
+      const event = {
+        target: {
+          checked: isChecked,
+          type: 'checkbox',
+        },
+        currentTarget: {
+          checked: isChecked,
+        },
+      } as unknown as ChangeEvent<HTMLInputElement>
+      onChange(event)
+    }
+  }
+
   return (
     <label
       htmlFor={inputId}
       className={cn('group inline-flex items-center gap-[7px] cursor-pointer select-none', className)}
     >
-      <div
-        className={cn(
-          'relative w-[14px] h-[14px] shrink-0 rounded-[4px] border',
-          'transition-[background,border-color] duration-[120ms]',
-          checked
-            ? 'bg-text border-text'
-            : 'bg-bg border-border-faint group-hover:border-border-soft',
-        )}
-      >
-        <input
-          id={inputId}
-          type="checkbox"
-          checked={checked}
-          onChange={onChange}
-          className="sr-only"
-        />
-        {checked && (
-          <Check
-            size={10}
-            strokeWidth={3}
-            className="absolute inset-0 m-auto text-bg"
-          />
-        )}
-      </div>
+      <RadixCheckbox
+        id={inputId}
+        checked={checked}
+        onCheckedChange={handleCheckedChange}
+      />
       {label && (
-        <span className="text-[13px] text-text-mute group-hover:text-text transition-colors duration-[120ms] leading-none">{label}</span>
+        <span className="text-[13px] text-text-mute group-hover:text-text transition-colors duration-[120ms] leading-none">
+          {label}
+        </span>
       )}
     </label>
   )

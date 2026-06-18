@@ -4,7 +4,7 @@ import { Icons } from '@/shared/components/icons'
 import { useToast, useConfirm } from '@/shared/components'
 import {
   Dropdown, DropdownTrigger, DropdownContent, DropdownItem,
-} from '@/shared/components/Dropdown'
+} from '@/components/ui/dropdown-menu'
 import {
   useKBDetail, useAddTextDoc, useUploadDoc, useAddUrlDoc,
   useDeleteDoc, useKBSearch, useReindexDoc,
@@ -191,8 +191,8 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                   <span className="text-[12px] text-[var(--warn)]">No {selectedSetupModel?.provider} credentials. Add one in Connections first.</span>
                 </div>
               ) : (
-                <Dropdown className="w-full">
-                  <DropdownTrigger className="w-full">
+                <Dropdown>
+                  <DropdownTrigger asChild>
                     <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
                       <span className={selectedSetupCred ? 'text-[var(--text)]' : 'text-[var(--text-faint)]'}>
                         {selectedSetupCred?.name ?? `Select ${selectedSetupModel?.provider} credential…`}
@@ -200,7 +200,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
                       <Icons.Caret style={{ width: 11, height: 11, color: 'var(--text-faint)' }} />
                     </div>
                   </DropdownTrigger>
-                  <DropdownContent className="w-full">
+                  <DropdownContent className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)]">
                     {relevantCreds.map(c => (
                       <DropdownItem key={c.id} onClick={() => setSetupCredId(c.id)} className={setupCredId === c.id ? 'bg-[var(--surface)]' : ''}>
                         <div className="flex items-center justify-between w-full">
@@ -237,14 +237,14 @@ export function KBDetailPanel({ kb, onClose }: Props) {
 
               <div className="flex flex-col gap-1">
                 <span className="text-[11px] text-[var(--text-faint)]">Strategy</span>
-                <Dropdown className="w-full">
-                  <DropdownTrigger className="w-full">
+                <Dropdown>
+                  <DropdownTrigger asChild>
                     <div className="flex items-center justify-between h-[34px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[8px] text-[12.5px] text-[var(--text)] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
                       <span>{selectedSetupStrategy?.label ?? 'Auto'}</span>
                       <Icons.Caret style={{ width: 10, height: 10, color: 'var(--text-faint)' }} />
                     </div>
                   </DropdownTrigger>
-                  <DropdownContent className="w-full">
+                  <DropdownContent className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)]">
                     {CHUNKING_STRATEGIES.map(s => (
                       <DropdownItem key={s.id} onClick={() => setSetupStrategy(s.id)} className={setupStrategy === s.id ? 'bg-[var(--surface)]' : ''}>
                         <div className="flex flex-col gap-0.5">
