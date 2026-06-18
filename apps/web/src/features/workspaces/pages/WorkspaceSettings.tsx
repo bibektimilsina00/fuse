@@ -116,7 +116,7 @@ export function WorkspaceSettings() {
     <div className="view-body">
       {/* Hero header */}
       <div className="flex items-start gap-5">
-        <div className="w-[56px] h-[56px] rounded-[14px] bg-[var(--text)] text-[var(--bg)] flex items-center justify-center text-[22px] font-bold shrink-0">
+        <div className="w-[56px] h-[56px] rounded-[10px] bg-[var(--text)] text-[var(--bg)] flex items-center justify-center text-[22px] font-bold shrink-0">
           {initial}
         </div>
         <div className="flex flex-col gap-1.5 min-w-0">

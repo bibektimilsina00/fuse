@@ -72,7 +72,7 @@ export function WorkspaceSelector() {
 
           {/* Dropdown */}
           <div
-            className="fixed z-[9999] bg-[var(--bg-2)] border border-[var(--border)] rounded-[13px] p-[6px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]"
+            className="fixed z-[9999] bg-[var(--bg-2)] border border-[var(--border)] rounded-[11px] p-[6px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]"
             style={{ top: pos.top, left: pos.left, width: Math.max(pos.width, 260) }}
           >
             {/* Current workspace header */}

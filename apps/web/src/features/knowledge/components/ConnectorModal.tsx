@@ -55,7 +55,7 @@ export function ConnectorModal({ kbId, onClose, onConnected }: Props) {
   return createPortal(
     <>
       <div className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[540px] max-h-[80vh] bg-[var(--bg-2)] border border-[var(--border)] rounded-[16px] flex flex-col shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]">
+      <div className="fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[540px] max-h-[80vh] bg-[var(--bg-2)] border border-[var(--border)] rounded-[10px] flex flex-col shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)]">
 
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-faint)] shrink-0">
           <div>
