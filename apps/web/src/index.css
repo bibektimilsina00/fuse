@@ -246,6 +246,28 @@ input:focus-visible, textarea:focus-visible { outline: none; }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ══════════════════════════════════════════════════════════════════════════════
+   AUTOFILL — kill Chrome / Safari pale-blue / pale-yellow injection.
+   Clip the browser's autofill background to TEXT only, so the surrounding
+   field background bleeds through and there's no inset rectangle. Text
+   colour is forced via `-webkit-text-fill-color` (autofill ignores plain
+   `color`). The 9999s transition defers the autofill paint long enough
+   that it never appears in practice.
+══════════════════════════════════════════════════════════════════════════════ */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  transition: background-color 9999s ease-in-out 0s,
+              color            9999s ease-in-out 0s;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
    SCROLLBARS
    Hidden globally — scrolling still works (wheel, trackpad, keyboard,
    touch), the visual track + thumb are just suppressed. Mirrors the

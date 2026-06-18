@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Lock, Eye, EyeOff } from 'lucide-react'
+import { ArrowRight, Lock, Eye, EyeOff, Mail } from 'lucide-react'
 import { Icons } from '@/shared/components/icons'
-import { useToast } from '@/shared/components'
+import { FormField, Input, useToast } from '@/shared/components'
 import { APP_ROUTES } from '@/shared/constants/routes'
 import { useAuth } from '../hooks/useAuth'
 
@@ -35,20 +35,8 @@ const COPY = {
 
 /**
  * Shared auth card — drives both Login and Register from one component.
- * Layout pulled directly from `Fuse Auth.dc.html`:
- *
- *   - 40px brand mark
- *   - Heading + sub
- *   - Three SSO buttons (Google / GitHub / Microsoft) — placeholder
- *     handlers until the backend OAuth flows exist; show a toast so
- *     the click is acknowledged.
- *   - "OR" divider
- *   - Email + (signup only) password fields
- *   - Primary submit (light-on-dark CTA, deliberately NOT accent — keeps
- *     the accent as a once-per-page highlight on the toggle link)
- *   - SAML / SSO outlined ghost button
- *   - Toggle line linking to the opposite mode
- *   - Legal footer
+ * Tokens, weights, and radii mirror the marketing site so the handoff
+ * from `fuse.bibektimilsina.tech` → `app.*` feels continuous.
  */
 export function AuthForm({ mode }: AuthFormProps) {
   const copy = COPY[mode]
@@ -124,68 +112,42 @@ export function AuthForm({ mode }: AuthFormProps) {
         <span className="h-px flex-1 bg-white/[0.08]" />
       </div>
 
-      <form onSubmit={submit} className="flex flex-col">
-        <Field
-          label="Email"
-          type="email"
-          value={email}
-          onChange={setEmail}
-          placeholder="you@company.com"
-          autoComplete="email"
-          disabled={isLoading}
-        />
+      <form onSubmit={submit} className="flex flex-col gap-3.5">
+        <FormField label="Email">
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@company.com"
+            autoComplete="email"
+            disabled={isLoading}
+            leftIcon={<Mail strokeWidth={1.8} />}
+            className="h-11 border-white/[0.14] bg-[var(--surface-2)] hover:border-white/[0.22] focus-within:border-[var(--accent)]"
+          />
+        </FormField>
 
-        {mode === 'signup' && (
-          <>
-            <div className="h-3.5" />
-            <Field
-              label="Work password"
-              type={showPwd ? 'text' : 'password'}
-              value={password}
-              onChange={setPassword}
-              placeholder="Create a password"
-              autoComplete="new-password"
-              disabled={isLoading}
-              icon={<Lock className="h-[14px] w-[14px]" strokeWidth={1.8} />}
-              trailing={
-                <button
-                  type="button"
-                  onClick={() => setShowPwd((v) => !v)}
-                  className="rounded-md p-1 text-[var(--text-faint)] transition-colors hover:bg-white/[0.06] hover:text-[var(--text)]"
-                  aria-label={showPwd ? 'Hide password' : 'Show password'}
-                >
-                  {showPwd ? <EyeOff className="h-[14px] w-[14px]" /> : <Eye className="h-[14px] w-[14px]" />}
-                </button>
-              }
-            />
-          </>
-        )}
-
-        {mode === 'login' && (
-          <>
-            <div className="h-3.5" />
-            <Field
-              label="Password"
-              type={showPwd ? 'text' : 'password'}
-              value={password}
-              onChange={setPassword}
-              placeholder="Your password"
-              autoComplete="current-password"
-              disabled={isLoading}
-              icon={<Lock className="h-[14px] w-[14px]" strokeWidth={1.8} />}
-              trailing={
-                <button
-                  type="button"
-                  onClick={() => setShowPwd((v) => !v)}
-                  className="rounded-md p-1 text-[var(--text-faint)] transition-colors hover:bg-white/[0.06] hover:text-[var(--text)]"
-                  aria-label={showPwd ? 'Hide password' : 'Show password'}
-                >
-                  {showPwd ? <EyeOff className="h-[14px] w-[14px]" /> : <Eye className="h-[14px] w-[14px]" />}
-                </button>
-              }
-            />
-          </>
-        )}
+        <FormField label={mode === 'signup' ? 'Work password' : 'Password'}>
+          <Input
+            type={showPwd ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={mode === 'signup' ? 'Create a password' : 'Your password'}
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            disabled={isLoading}
+            leftIcon={<Lock strokeWidth={1.8} />}
+            className="h-11 border-white/[0.14] bg-[var(--surface-2)] hover:border-white/[0.22] focus-within:border-[var(--accent)]"
+            rightIcon={
+              <button
+                type="button"
+                onClick={() => setShowPwd((v) => !v)}
+                className="rounded-md p-0.5 text-[var(--text-faint)] transition-colors hover:bg-white/[0.06] hover:text-[var(--text)]"
+                aria-label={showPwd ? 'Hide password' : 'Show password'}
+              >
+                {showPwd ? <EyeOff /> : <Eye />}
+              </button>
+            }
+          />
+        </FormField>
 
         {mode === 'login' && (
           <div className="mt-3 text-right">
@@ -218,7 +180,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       <button
         type="button"
         onClick={ssoSoon}
-        className="mt-2.5 inline-flex h-[40px] w-full items-center justify-center gap-2 rounded-[8px] border border-[var(--border-soft)] bg-white/[0.02] px-3 text-[13px] font-medium text-[var(--text-mute)] transition-colors hover:border-[var(--border)] hover:bg-white/[0.05] hover:text-[var(--text)]"
+        className="mt-2.5 inline-flex h-[40px] w-full items-center justify-center gap-2 rounded-[8px] border border-white/[0.14] bg-white/[0.05] px-3 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-white/[0.22] hover:bg-white/[0.09]"
       >
         <Lock className="h-[14px] w-[14px]" strokeWidth={1.8} />
         Single sign-on (SAML)
@@ -262,55 +224,10 @@ function SsoButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-[11px] rounded-[8px] border border-[var(--border-soft)] bg-white/[0.02] px-[14px] py-[10px] text-left text-[14px] font-medium text-[var(--text)] transition-colors hover:border-[var(--border)] hover:bg-white/[0.05]"
+      className="flex w-full items-center gap-[11px] rounded-[8px] border border-white/[0.14] bg-white/[0.05] px-[14px] py-[10px] text-left text-[14px] font-medium text-[var(--text)] transition-colors hover:border-white/[0.22] hover:bg-white/[0.09]"
     >
       {children}
     </button>
-  )
-}
-
-interface FieldProps {
-  label: string
-  type: string
-  value: string
-  onChange: (v: string) => void
-  placeholder?: string
-  autoComplete?: string
-  disabled?: boolean
-  icon?: React.ReactNode
-  trailing?: React.ReactNode
-}
-
-function Field({
-  label,
-  type,
-  value,
-  onChange,
-  placeholder,
-  autoComplete,
-  disabled,
-  icon,
-  trailing,
-}: FieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-[7px] block text-[12.5px] font-medium text-[var(--text-mute)]">
-        {label}
-      </span>
-      <span className="flex items-center gap-2 rounded-[8px] border border-[var(--border-soft)] bg-white/[0.02] px-[12px] py-[10px] transition-colors focus-within:border-[var(--accent)] focus-within:bg-[color-mix(in_oklab,var(--accent)_6%,transparent)]">
-        {icon && <span className="text-[var(--text-faint)]">{icon}</span>}
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          autoComplete={autoComplete}
-          disabled={disabled}
-          className="flex-1 border-none bg-transparent text-[14.5px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
-        />
-        {trailing}
-      </span>
-    </label>
   )
 }
 

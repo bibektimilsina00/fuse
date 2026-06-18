@@ -93,7 +93,7 @@
 
 .dark {
   /* Dark scheme — Linear near-black surfaces + muted indigo accent.
-     1:1 with apps/web's dark theme so the product handoff feels seamless. */
+     1:1 with apps/web's Linear preset (the base :root tokens). */
   --background: #08090a;
   --foreground: #edeef0;
   --card: #0f1011;

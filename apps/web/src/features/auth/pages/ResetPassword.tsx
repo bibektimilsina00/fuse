@@ -3,7 +3,7 @@ import { ResetPasswordForm } from '../components/ResetPasswordForm'
 
 export function ResetPassword() {
   return (
-    <AuthShell backLabel="Back to login">
+    <AuthShell backHref="/login" backLabel="Back to login">
       <ResetPasswordForm />
     </AuthShell>
   )
