@@ -188,6 +188,56 @@
   --accent-line:  rgba(160, 108, 240, 0.45);
 }
 
+:root[data-theme='n8n-dark'],
+.theme-n8n-dark {
+  --bg:         oklch(0.155 0.032 298);
+  --bg-2:       oklch(0.185 0.032 296);
+  --surface:    oklch(0.218 0.033 294);
+  --surface-2:  oklch(0.258 0.033 294);
+  --surface-3:  oklch(0.298 0.033 294);
+  --border:       oklch(0.33 0.033 294);
+  --border-soft:  oklch(0.28 0.033 294);
+  --border-faint: oklch(0.24 0.033 294);
+  --text:       oklch(0.985 0.005 298);
+  --text-mute:  oklch(0.82 0.01 298);
+  --text-faint: oklch(0.66 0.015 298);
+  --text-dim:   oklch(0.52 0.015 298);
+  --accent:       oklch(0.85 0.17 165);
+  --accent-soft:  oklch(0.85 0.17 165 / 0.12);
+  --accent-line:  oklch(0.85 0.17 165 / 0.38);
+  --badge-acc-bg:  oklch(0.230 0.050 165);
+  --dot-color: oklch(0.218 0.033 294);
+  --shadow-float:    0 4px 16px -4px oklch(0 0 0 / 0.55);
+  --shadow-panel:    0 8px 32px -8px oklch(0 0 0 / 0.65);
+  --shadow-modal:    0 24px 64px -16px oklch(0 0 0 / 0.80);
+  --shadow-dropdown: 0 12px 40px -8px oklch(0 0 0 / 0.65);
+}
+
+:root[data-theme='linear-dark'],
+.theme-linear-dark {
+  --bg:         oklch(0.08 0 0);
+  --bg-2:       oklch(0.115 0 0);
+  --surface:    oklch(0.15 0 0);
+  --surface-2:  oklch(0.19 0 0);
+  --surface-3:  oklch(0.23 0 0);
+  --border:       oklch(0.53 0 0);
+  --border-soft:  oklch(0.35 0 0);
+  --border-faint: oklch(0.20 0 0);
+  --text:       oklch(0.98 0 0);
+  --text-mute:  oklch(0.82 0 0);
+  --text-faint: oklch(0.66 0 0);
+  --text-dim:   oklch(0.52 0 0);
+  --accent:       oklch(0.58 0.18 260);
+  --accent-soft:  oklch(0.58 0.18 260 / 0.12);
+  --accent-line:  oklch(0.58 0.18 260 / 0.38);
+  --badge-acc-bg:  oklch(0.18 0.06 260);
+  --dot-color: oklch(0.15 0 0);
+  --shadow-float:    0 4px 16px -4px oklch(0 0 0 / 0.55);
+  --shadow-panel:    0 8px 32px -8px oklch(0 0 0 / 0.65);
+  --shadow-modal:    0 24px 64px -16px oklch(0 0 0 / 0.80);
+  --shadow-dropdown: 0 12px 40px -8px oklch(0 0 0 / 0.65);
+}
+
 /* ══════════════════════════════════════════════════════════════════════════════
    KEYFRAMES
 ══════════════════════════════════════════════════════════════════════════════ */

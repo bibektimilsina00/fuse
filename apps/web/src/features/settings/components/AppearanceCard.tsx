@@ -17,6 +17,8 @@ const SWATCHES: SchemeSwatch[] = [
   { id: 'emerald', label: 'Emerald', app: '#070908', accent: '#3fb98a' },
   { id: 'ember',   label: 'Ember',   app: '#0a0807', accent: '#e0673f' },
   { id: 'plum',    label: 'Plum',    app: '#09080a', accent: '#a06cf0' },
+  { id: 'n8n-dark', label: 'n8n Dark', app: '#0e0918', accent: '#33c482' },
+  { id: 'linear-dark', label: 'Linear Dark', app: '#080808', accent: '#5e6ad2' },
 ]
 
 export function AppearanceCard() {
