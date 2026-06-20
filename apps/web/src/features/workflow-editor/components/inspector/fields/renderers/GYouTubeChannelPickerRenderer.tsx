@@ -95,7 +95,6 @@ export function GYouTubeChannelPickerRenderer({
       return
     }
     let alive = true
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError(null)
     apiClient

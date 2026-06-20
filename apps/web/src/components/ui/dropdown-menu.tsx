@@ -171,12 +171,12 @@ const DropdownMenuLabel = forwardRef<
 DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName
 
 // ── Convenience: original Dropdown.tsx API wrappers ──────────────────────────
-interface DropdownProps extends React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root> {
-  className?: string
-}
-const Dropdown = ({ className, ...props }: DropdownProps) => (
-  <DropdownMenuRoot {...props} />
-)
+// Root is a context-only component (no DOM output) so it doesn't accept
+// className; callers that want to style the trigger pass className to
+// DropdownTrigger instead.
+type DropdownProps = React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>
+const Dropdown = (props: DropdownProps) => <DropdownMenuRoot {...props} />
+
 const DropdownTrigger = DropdownMenuTrigger
 const DropdownContent = DropdownMenuContent
 const DropdownItem = DropdownMenuItem
