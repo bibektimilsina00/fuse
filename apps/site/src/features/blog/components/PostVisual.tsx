@@ -6,7 +6,7 @@ import type { BlogPost } from '../data/posts'
  * brand tokens so they re-tint with the active scheme.
  */
 export function PostVisual({ which }: { which: BlogPost['visual'] }) {
-  if (which === 'fuse-ai')   return <FuseAiVisual />
+  if (which === 'crew-ai')   return <CrewAiVisual />
   if (which === 'enterprise') return <EnterpriseVisual />
   if (which === 'series')    return <SeriesVisual />
   if (which === 'realtime')  return <RealtimeVisual />
@@ -14,7 +14,7 @@ export function PostVisual({ which }: { which: BlogPost['visual'] }) {
   return <MothershipVisual />
 }
 
-function FuseAiVisual() {
+function CrewAiVisual() {
   return (
     <svg viewBox="0 0 600 320" className="h-full w-full">
       <defs>
@@ -129,7 +129,7 @@ function MothershipVisual() {
       </defs>
       <rect width="600" height="320" fill="url(#bg-m)" />
       <ellipse cx="300" cy="140" rx="120" ry="34" fill="rgba(255,255,255,0.9)" />
-      <text x="265" y="148" fontFamily="Inter, sans-serif" fontSize="18" fontWeight="700" fill="#08090a">Fuse</text>
+      <text x="231" y="148" fontFamily="Inter, sans-serif" fontSize="18" fontWeight="700" fill="#08090a">RunMyCrew</text>
       <g stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" fill="none">
         <path d="M0 220 L600 200" />
         <path d="M0 240 L600 220" />

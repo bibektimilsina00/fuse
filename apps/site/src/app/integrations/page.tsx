@@ -22,7 +22,7 @@ export default function IntegrationsPage() {
             <p className="mt-5 max-w-[600px] text-[15px] leading-[1.55] text-muted-foreground">
               {INTEGRATIONS.length}+ first-party integrations across communication,
               developer tools, productivity, marketing and AI. No API keys to babysit —
-              Fuse handles OAuth, token refresh and health.
+              RunMyCrew handles OAuth, token refresh and health.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-2.5">
               <Link

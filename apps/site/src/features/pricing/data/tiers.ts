@@ -22,7 +22,7 @@ export const TIERS: Tier[] = [
     name: 'Free',
     price: '$0',
     cadence: '/ month',
-    tagline: 'For solo builders trying Fuse on side projects.',
+    tagline: 'For solo builders trying RunMyCrew on side projects.',
     ctaLabel: 'Start for free',
     ctaHref: EXTERNAL_LINKS.REGISTER,
     features: [
@@ -88,7 +88,7 @@ export const COMPARISON: ComparisonGroup[] = [
   {
     group: 'Build',
     rows: [
-      { label: 'Fuse AI prompt → workflow', free: true,  pro: true,  enterprise: true  },
+      { label: 'Crew AI prompt → workflow', free: true,  pro: true,  enterprise: true  },
       { label: 'OAuth integrations',         free: true,  pro: true,  enterprise: true  },
       { label: 'Webhook + schedule triggers', free: true, pro: true,  enterprise: true  },
       { label: 'Custom apps (HTTP nodes)',   free: false, pro: true,  enterprise: true  },

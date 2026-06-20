@@ -137,7 +137,7 @@ function EmptyState({ tab, searching, hasAny, onCreate, onClearSearch }: EmptySt
     title  = hasAny ? 'All set' : 'Nothing to set up yet'
     body   = hasAny
       ? 'Every knowledge base is configured.'
-      : 'Create one — it runs on the Fuse default model out of the box.'
+      : 'Create one — it runs on the RunMyCrew default model out of the box.'
     action = hasAny
       ? null
       : { label: 'New knowledge base', onClick: onCreate, primary: true }

@@ -15,7 +15,7 @@ export function Templates() {
     <div className="view-body">
       <div className="page-head">
         <div>
-          <span className="eyebrow">Curated · by fuse team</span>
+          <span className="eyebrow">Curated · by RunMyCrew team</span>
           <h1>Templates</h1>
         </div>
         <div className="btn-group">

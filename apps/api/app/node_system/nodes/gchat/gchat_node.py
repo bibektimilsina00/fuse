@@ -106,7 +106,7 @@ def format_chat_error(status_code: int, body: str) -> str:
             ),
             actions=[
                 "GCP Console → APIs & Services → Library → enable `chat.googleapis.com`.",
-                "Fuse → Credentials → disconnect this Google account and reconnect to grant the new chat.* scopes.",
+                "RunMyCrew → Credentials → disconnect this Google account and reconnect to grant the new chat.* scopes.",
             ],
             raw=snippet,
         )
@@ -150,7 +150,7 @@ def format_chat_error(status_code: int, body: str) -> str:
                 "revoked from the Google account settings."
             ),
             actions=[
-                "Fuse → Credentials → disconnect and reconnect the Google account.",
+                "RunMyCrew → Credentials → disconnect and reconnect the Google account.",
             ],
             raw=snippet,
         )
@@ -342,7 +342,7 @@ class GoogleChatNode(BaseNode[GoogleChatProperties]):
                     "label": "Message text",
                     "type": "string",
                     "typeOptions": {"multiline": True, "rows": 4},
-                    "placeholder": "Hello from Fuse — {{ $trigger.summary }}",
+                    "placeholder": "Hello from RunMyCrew — {{ $trigger.summary }}",
                     "condition": _cond_any("send_message", "update_message"),
                 },
                 {

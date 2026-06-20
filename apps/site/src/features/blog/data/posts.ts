@@ -11,20 +11,20 @@ export type BlogPost = {
   category: BlogCategory
   date: string         // ISO-ish, used as display string
   read: string         // e.g. '4 min read'
-  visual: 'mothership' | 'series' | 'realtime' | 'executor' | 'enterprise' | 'fuse-ai'
+  visual: 'mothership' | 'series' | 'realtime' | 'executor' | 'enterprise' | 'crew-ai'
   featured?: boolean
   body?: string        // optional stub markdown-ish body for the detail page
 }
 
 export const POSTS: BlogPost[] = [
   {
-    slug: 'introducing-fuse-ai',
-    title: 'Introducing Fuse AI',
-    excerpt: 'Generate entire branching workflows from a single sentence. Fuse AI ships today on every plan.',
+    slug: 'introducing-crew-ai',
+    title: 'Introducing Crew AI',
+    excerpt: 'Generate entire branching workflows from a single sentence. Crew AI ships today on every plan.',
     category: 'Product',
     date: 'Jun 10, 2026',
     read: '5 min read',
-    visual: 'fuse-ai',
+    visual: 'crew-ai',
     featured: true,
   },
   {
@@ -48,7 +48,7 @@ export const POSTS: BlogPost[] = [
   {
     slug: 'realtime-collaboration',
     title: 'Realtime collaboration',
-    excerpt: 'Multiplayer cursors and live edits on the workflow canvas. Build with your team without leaving Fuse.',
+    excerpt: 'Multiplayer cursors and live edits on the workflow canvas. Build with your team without leaving RunMyCrew.',
     category: 'Engineering',
     date: 'May 27, 2026',
     read: '7 min read',
@@ -56,7 +56,7 @@ export const POSTS: BlogPost[] = [
   },
   {
     slug: 'inside-the-executor',
-    title: 'Inside the Fuse executor',
+    title: 'Inside the RunMyCrew executor',
     excerpt: 'How we run thousands of workflows per second with predictable latency and zero dropped runs.',
     category: 'Engineering',
     date: 'May 21, 2026',
@@ -66,7 +66,7 @@ export const POSTS: BlogPost[] = [
   {
     slug: 'mothership',
     title: 'Introducing Mothership',
-    excerpt: 'A new way to deploy your Fuse runtime across regions with one click.',
+    excerpt: 'A new way to deploy your RunMyCrew runtime across regions with one click.',
     category: 'Product',
     date: 'May 12, 2026',
     read: '4 min read',

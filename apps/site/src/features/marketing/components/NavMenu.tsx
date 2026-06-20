@@ -270,7 +270,7 @@ function FeaturedVisual() {
           />
         ))}
       </g>
-      {/* Fuse mark front */}
+      {/* Brand mark front */}
       <g transform="translate(200,55)">
         <rect x="0"  y="0"  width="34" height="34" rx="10" fill="#fff" opacity="0.45" />
         <rect x="14" y="14" width="34" height="34" rx="10" fill="#fff" />

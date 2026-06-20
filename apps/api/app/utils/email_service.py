@@ -69,7 +69,7 @@ class SmtpEmailProvider:
         self.use_tls = settings.SMTP_TLS
 
     async def send_workspace_invite(self, email: InviteEmail) -> None:
-        subject = f"You've been invited to {email.workspace_name} on Fuse"
+        subject = f"You've been invited to {email.workspace_name} on RunMyCrew"
         await self._send(
             to=email.to_email,
             subject=subject,
@@ -78,7 +78,7 @@ class SmtpEmailProvider:
         )
 
     async def send_password_reset(self, email: PasswordResetEmail) -> None:
-        subject = "Reset your Fuse password"
+        subject = "Reset your RunMyCrew password"
         await self._send(
             to=email.to_email,
             subject=subject,
@@ -145,9 +145,9 @@ class EmailService:
 
 def _invite_text(e: InviteEmail) -> str:
     return (
-        f"{e.inviter_email} has invited you to join {e.workspace_name} on Fuse as {e.role}.\n\n"
+        f"{e.inviter_email} has invited you to join {e.workspace_name} on RunMyCrew as {e.role}.\n\n"
         f"Accept the invite (expires in 7 days):\n{e.invite_url}\n\n"
-        "If you don't have a Fuse account you'll be asked to create one first.\n"
+        "If you don't have a RunMyCrew account you'll be asked to create one first.\n"
         "If you weren't expecting this email you can safely ignore it."
     )
 
@@ -159,7 +159,7 @@ def _invite_html(e: InviteEmail) -> str:
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#fff;margin:0;padding:40px 20px">
   <div style="max-width:520px;margin:0 auto;background:#1a1a1a;border-radius:12px;border:1px solid #2a2a2a;overflow:hidden">
     <div style="padding:32px 32px 24px;border-bottom:1px solid #2a2a2a">
-      <p style="font-size:13px;color:#666;margin:0 0 8px;letter-spacing:.05em;text-transform:uppercase">Fuse</p>
+      <p style="font-size:13px;color:#666;margin:0 0 8px;letter-spacing:.05em;text-transform:uppercase">RunMyCrew</p>
       <h1 style="font-size:22px;font-weight:700;margin:0;color:#fff">You're invited</h1>
     </div>
     <div style="padding:32px">
@@ -177,7 +177,7 @@ def _invite_html(e: InviteEmail) -> str:
       </a>
       <p style="color:#444;font-size:12px;margin:28px 0 0;line-height:1.6">
         This invite expires in 7 days.<br>
-        If you don't have a Fuse account you'll be prompted to create one.<br>
+        If you don't have a RunMyCrew account you'll be prompted to create one.<br>
         If you weren't expecting this you can safely ignore it.
       </p>
     </div>
@@ -188,7 +188,7 @@ def _invite_html(e: InviteEmail) -> str:
 
 def _password_reset_text(e: PasswordResetEmail) -> str:
     return (
-        "You requested a password reset for your Fuse account.\n\n"
+        "You requested a password reset for your RunMyCrew account.\n\n"
         f"Reset your password (expires in {e.expires_minutes} minutes):\n{e.reset_url}\n\n"
         "If you didn't request this you can safely ignore this email — your password won't change."
     )
@@ -201,12 +201,12 @@ def _password_reset_html(e: PasswordResetEmail) -> str:
 <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#fff;margin:0;padding:40px 20px">
   <div style="max-width:520px;margin:0 auto;background:#1a1a1a;border-radius:12px;border:1px solid #2a2a2a;overflow:hidden">
     <div style="padding:32px 32px 24px;border-bottom:1px solid #2a2a2a">
-      <p style="font-size:13px;color:#666;margin:0 0 8px;letter-spacing:.05em;text-transform:uppercase">Fuse</p>
+      <p style="font-size:13px;color:#666;margin:0 0 8px;letter-spacing:.05em;text-transform:uppercase">RunMyCrew</p>
       <h1 style="font-size:22px;font-weight:700;margin:0;color:#fff">Reset your password</h1>
     </div>
     <div style="padding:32px">
       <p style="color:#aaa;line-height:1.6;margin:0 0 24px">
-        You requested a password reset for your Fuse account. Click below to set a new password.
+        You requested a password reset for your RunMyCrew account. Click below to set a new password.
       </p>
       <a href="{e.reset_url}"
          style="display:inline-block;background:#fff;color:#000;font-weight:600;font-size:14px;

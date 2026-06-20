@@ -1,6 +1,6 @@
 /**
  * Integration catalog. Mirrors the providers actually supported in the
- * Fuse product so the marketing page never lies. When adding a real
+ * RunMyCrew product so the marketing page never lies. When adding a real
  * connector, append it here — letters render as the icon tile.
  */
 

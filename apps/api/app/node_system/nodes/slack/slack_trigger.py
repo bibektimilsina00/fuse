@@ -32,7 +32,7 @@ class SlackTriggerNode(BaseNode[SlackTriggerProperties]):
                     "type": "options",
                     "default": "fuse_bot",
                     "options": [
-                        {"label": "Fuse Bot (OAuth)", "value": "fuse_bot"},
+                        {"label": "RunMyCrew Bot (OAuth)", "value": "fuse_bot"},
                         {"label": "Custom Bot (Token)", "value": "custom_bot"},
                     ],
                 },

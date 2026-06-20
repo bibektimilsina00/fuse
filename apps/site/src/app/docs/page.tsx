@@ -19,16 +19,16 @@ export default function DocsHome() {
         <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">
           Introduction
         </p>
-        <h1>Welcome to Fuse</h1>
+        <h1>Welcome to RunMyCrew</h1>
         <p className="lead">
-          Fuse is the automation system for teams and agents. Connect the apps
+          RunMyCrew is the automation system for teams and agents. Connect the apps
           you already use, build workflows from a single prompt, and run
           everything with full observability.
         </p>
 
         <h2 id="overview">Overview</h2>
         <p>
-          Workflows in Fuse are graphs of <strong>triggers</strong>,{' '}
+          Workflows in RunMyCrew are graphs of <strong>triggers</strong>,{' '}
           <strong>conditions</strong> and <strong>actions</strong>. They run
           on schedules, webhooks or app events, and every execution is logged
           end-to-end.
@@ -54,7 +54,7 @@ export default function DocsHome() {
         <div className="not-prose mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <NextCard href="/docs/quickstart" title="Quickstart" sub="Build your first workflow in 5 minutes" />
           <NextCard href="/docs/concepts"   title="Core concepts" sub="Triggers, conditions, actions" />
-          <NextCard href="/docs/fuse-ai"    title="Fuse AI" sub="Generate workflows from a prompt" />
+          <NextCard href="/docs/crew-ai"    title="Crew AI" sub="Generate workflows from a prompt" />
           <NextCard href="/docs/self-host"  title="Self-hosting" sub="Run on your own infra" />
         </div>
       </DocsLayout>

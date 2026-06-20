@@ -46,13 +46,13 @@ class KnowledgeService:
     async def _get_api_key(self, kb: KnowledgeBase, workspace_id: uuid.UUID) -> str:
         model = kb.embedding_model or "text-embedding-3-small"
 
-        # Fuse-managed default: use Gemini key from settings, skip credential lookup.
+        # RunMyCrew-managed default: use Gemini key from settings, skip credential lookup.
         if _is_default_model(model):
             if not settings.GEMINI_API_KEY:
                 raise HTTPException(
                     status_code=400,
                     detail=(
-                        "Fuse default embedding model is unavailable: GEMINI_API_KEY is not set "
+                        "RunMyCrew default embedding model is unavailable: GEMINI_API_KEY is not set "
                         "on the server. Pick a different provider in KB settings."
                     ),
                 )

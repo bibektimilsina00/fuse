@@ -106,7 +106,7 @@ function FeedbackModal({ open, text, sent, onTextChange, onSend, onClose }: Feed
               <Icons.Check className="w-[20px] h-[20px] text-[var(--ok)]" />
             </div>
             <h3 className="text-[15px] font-semibold text-[var(--text)]">Thanks for your feedback!</h3>
-            <p className="text-[13px] text-[var(--text-faint)]">We read every submission and use it to improve fuse.</p>
+            <p className="text-[13px] text-[var(--text-faint)]">We read every submission and use it to improve RunMyCrew.</p>
             <button onClick={onClose} className="mt-2 px-4 py-2 rounded-[9px] bg-[var(--accent)] text-white text-[13px] font-medium border-none cursor-pointer hover:brightness-110 transition-colors">
               Close
             </button>

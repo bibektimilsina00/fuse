@@ -67,7 +67,7 @@ export function Showcase() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold tracking-tight text-text">Fuse Design System</span>
+                <span className="text-sm font-semibold tracking-tight text-text">RunMyCrew Design System</span>
                 <Badge variant="accent" className="text-[10px] px-1.5 py-0.2">v2.0</Badge>
               </div>
               <p className="text-xs text-text-faint">Premium operations dashboard component playground</p>
@@ -122,7 +122,7 @@ export function Showcase() {
                 </FormField>
 
                 <FormField label="Receiver Email Address" error="Please enter a valid developer email">
-                  <Input error placeholder="developer@fuse.dev" />
+                  <Input error placeholder="developer@runmycrew.com" />
                 </FormField>
 
                 <FormField label="Private API Key" success="Key verified by SecurityService">
@@ -468,7 +468,7 @@ export function Showcase() {
                   <div className="flex items-center gap-3">
                     <Avatar name="Alice Chen" size="sm" />
                     <Avatar name="Bob Tanner" size="md" />
-                    <Avatar name="Fuse System" size="lg" />
+                    <Avatar name="RunMyCrew System" size="lg" />
                     <Divider vertical className="h-5" />
                     <Spinner size="xs" />
                     <Spinner size="sm" />
@@ -556,7 +556,7 @@ export function Showcase() {
 
         {/* Footer info */}
         <footer className="text-center py-4 border-t border-border-faint mt-4">
-          <p className="text-xs text-text-dim">Fuse Design System · Built with Tailwind CSS and Vanilla CSS variables</p>
+          <p className="text-xs text-text-dim">RunMyCrew Design System · Built with Tailwind CSS and Vanilla CSS variables</p>
         </footer>
       </div>
 

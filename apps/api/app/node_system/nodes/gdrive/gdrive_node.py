@@ -133,8 +133,8 @@ class GDriveNode(BaseNode[GDriveProperties]):
             category="integration",
             description=(
                 "Upload, list, share, rename, and trash Google Drive files via "
-                "OAuth. Operates within the `drive.file` scope — only files Fuse "
-                "created or the user explicitly opened with Fuse are visible."
+                "OAuth. Operates within the `drive.file` scope — only files RunMyCrew "
+                "created or the user explicitly opened with RunMyCrew are visible."
             ),
             icon="si:SiGoogledrive",
             color="#4285f4",

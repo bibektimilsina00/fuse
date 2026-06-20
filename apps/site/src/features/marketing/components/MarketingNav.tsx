@@ -5,7 +5,7 @@ import { useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { EXTERNAL_LINKS } from '@/shared/constants/routes'
 import { NAV_LINKS, type NavMenuKey } from '../data/site'
-import { FuseMark } from './FuseMark'
+import { BrandMark } from './BrandMark'
 import { NavMenu } from './NavMenu'
 
 /**
@@ -45,9 +45,9 @@ export function MarketingNav() {
     <header className="sticky top-0 z-40 backdrop-blur-xl supports-[backdrop-filter]:bg-background/65">
       <nav className="mx-auto flex h-16 max-w-[1280px] items-center gap-8 px-7">
         <Link href="/" className="flex shrink-0 items-center gap-[9px]">
-          <FuseMark className="h-[28px] w-[28px] text-primary" />
+          <BrandMark className="h-[28px] w-[28px] text-primary" />
           <span className="text-[19px] font-semibold tracking-[-0.03em] text-foreground">
-            Fuse
+            RunMyCrew
           </span>
         </Link>
 

@@ -74,7 +74,7 @@ export const CHUNKING_STRATEGIES = [
 ]
 
 export const EMBEDDING_MODELS = [
-  // Default — Fuse-managed Gemini (no credential required).
+  // Default — RunMyCrew-managed Gemini (no credential required).
   // Backend interprets `default` and `default:<google-model>` sentinels.
   { id: 'default:gemini-embedding-001', label: 'gemini-embedding-001', provider: 'Default', credType: null as string | null, dims: 3072 },
   { id: 'default:gemini-embedding-2',   label: 'gemini-embedding-2',   provider: 'Default', credType: null as string | null, dims: 3072 },
@@ -108,7 +108,7 @@ export const EmbeddingModelInfoSchema = z.object({
 })
 export type EmbeddingModelInfo = z.infer<typeof EmbeddingModelInfoSchema>
 
-/** True when `modelId` is the Fuse-managed default (uses server's Gemini key). */
+/** True when `modelId` is the RunMyCrew-managed default (uses server's Gemini key). */
 export function isDefaultModel(modelId: string | null | undefined): boolean {
   return !!modelId && (modelId === 'default' || modelId.startsWith('default:'))
 }

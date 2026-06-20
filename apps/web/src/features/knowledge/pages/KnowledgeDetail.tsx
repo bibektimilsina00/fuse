@@ -202,7 +202,7 @@ export function KnowledgeDetail() {
 
           {addMode === 'url' && (
             <div className="flex flex-col gap-3">
-              <p className="text-[12.5px] text-[var(--text-faint)]">fuse fetches the page, strips HTML, and indexes the text content.</p>
+              <p className="text-[12.5px] text-[var(--text-faint)]">RunMyCrew fetches the page, strips HTML, and indexes the text content.</p>
               <div className="flex gap-2">
                 <input type="url" value={urlValue} onChange={e => setUrlValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddUrl()}
                   placeholder="https://docs.example.com/page"

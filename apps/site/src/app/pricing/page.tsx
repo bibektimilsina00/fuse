@@ -8,8 +8,8 @@ const FAQ = [
     a: 'A run is a single execution of a workflow, regardless of how many steps it contains. Failed runs and retries on the same trigger fire don’t count twice.',
   },
   {
-    q: 'Can I self-host Fuse?',
-    a: 'Yes — Fuse ships as a Docker compose stack you can run on any VPS or Kubernetes cluster. The Enterprise plan adds VPC isolation + region pinning.',
+    q: 'Can I self-host RunMyCrew?',
+    a: 'Yes — RunMyCrew ships as a Docker compose stack you can run on any VPS or Kubernetes cluster. The Enterprise plan adds VPC isolation + region pinning.',
   },
   {
     q: 'Do you charge per integration?',

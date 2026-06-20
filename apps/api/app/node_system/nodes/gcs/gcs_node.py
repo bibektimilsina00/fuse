@@ -246,7 +246,7 @@ class GoogleCloudStorageNode(BaseNode[GoogleCloudStorageProperties]):
             description=(
                 "Manage Cloud Storage buckets and objects — list, "
                 "read, write, copy, delete. Object uploads can pull "
-                "from a URL, a Fuse Library asset, or inline content."
+                "from a URL, a RunMyCrew Library asset, or inline content."
             ),
             icon="si:SiGooglecloudstorage",
             color="#4285f4",
@@ -422,7 +422,7 @@ class GoogleCloudStorageNode(BaseNode[GoogleCloudStorageProperties]):
                     "label": "Content",
                     "type": "media",
                     "required": True,
-                    "description": "From a URL, a Fuse Library asset, or paste inline content.",
+                    "description": "From a URL, a RunMyCrew Library asset, or paste inline content.",
                     "condition": _cond("upload_object"),
                 },
                 {

@@ -137,7 +137,7 @@ class GDriveTriggerNode(BaseNode[GDriveTriggerProperties]):
                 "Fires once per added / modified / trashed file matching your "
                 "filters. Uses Drive's `pageToken` cursor — each poll only "
                 "surfaces what changed since the last run. Visibility is "
-                "restricted to files Fuse can see (drive.file scope)."
+                "restricted to files RunMyCrew can see (drive.file scope)."
             ),
             icon="si:SiGoogledrive",
             color="#4285f4",
@@ -182,11 +182,11 @@ class GDriveTriggerNode(BaseNode[GDriveTriggerProperties]):
                     "default": "",
                     "description": (
                         "Pick a Drive folder via Google's Picker. Drive's "
-                        "`drive.file` scope only surfaces files Fuse created "
+                        "`drive.file` scope only surfaces files RunMyCrew created "
                         "OR files inside a folder the user explicitly picked "
-                        "here — that's how Fuse stays inside the non-sensitive "
+                        "here — that's how RunMyCrew stays inside the non-sensitive "
                         "scope that doesn't need Google's security review. "
-                        "Leave blank to fall back to whatever Fuse created."
+                        "Leave blank to fall back to whatever RunMyCrew created."
                     ),
                 },
                 {

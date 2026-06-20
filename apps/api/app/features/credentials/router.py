@@ -1328,7 +1328,7 @@ async def get_picker_token(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=(
-                "Google Picker is not configured on this Fuse instance "
+                "Google Picker is not configured on this RunMyCrew instance "
                 "(missing GOOGLE_API_KEY / GOOGLE_APP_ID)."
             ),
         )

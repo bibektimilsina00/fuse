@@ -67,14 +67,14 @@ export default async function BlogPost({
                 </p>
                 <h2>Why it matters</h2>
                 <p>
-                  Fuse is built so teams can ship integrations in an afternoon
+                  RunMyCrew is built so teams can ship integrations in an afternoon
                   instead of a sprint, and so AI agents can use the same
                   workflows humans do without translation cost.
                 </p>
                 <h2>Get started</h2>
                 <p>
                   Spin up a workspace, connect an app, and describe what you
-                  want to automate. Fuse AI does the rest.
+                  want to automate. Crew AI does the rest.
                 </p>
               </div>
             </Container>

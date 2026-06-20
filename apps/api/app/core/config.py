@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Fuse"
+    PROJECT_NAME: str = "RunMyCrew"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = "development_secret_key_change_me"
     ENCRYPTION_KEY: str = "ZqprL7EBBN63_Nk0a_MoJyMTTrqf06xWY_3oTibUXAY="
@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     GOOGLE_API_KEY: str = ""
     GOOGLE_APP_ID: str = ""
     # Drive trigger scope tier. False (default) → request only
-    # `drive.file` — Drive trigger sees uploads done via Fuse's action
+    # `drive.file` — Drive trigger sees uploads done via the platform's action
     # node, but NOT external uploads (Drive web UI, mobile app, other
     # apps). True → also request `drive.readonly` so the trigger can
     # watch a Picker-selected folder for ALL uploads regardless of
@@ -136,8 +136,8 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
-    SMTP_FROM: str = "noreply@fuse.app"
-    SMTP_FROM_NAME: str = "Fuse"
+    SMTP_FROM: str = "noreply@runmycrew.com"
+    SMTP_FROM_NAME: str = "RunMyCrew"
     SMTP_TLS: bool = True
 
     model_config = SettingsConfigDict(
