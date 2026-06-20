@@ -165,7 +165,7 @@ async def list_embedding_models(provider: str, api_key: str) -> list[EmbeddingMo
 
     `provider` is one of: Default | OpenAI | Google | Mistral. The Default
     provider lists Google models but prefixes ids with `default:` so the backend
-    recognises them as Fuse-managed.
+    recognises them as RunMyCrew-managed.
     """
     cached = _cache_get(provider, api_key)
     if cached is not None:

@@ -1,7 +1,7 @@
 {
 	# Email for Let's Encrypt expiry / revocation notices. Swap if you
 	# want them going elsewhere.
-	email support@khareedlow.com
+	email support@runmycrew.com
 
 	# Default Caddy auto-issues from Let's Encrypt and renews 30 days
 	# before expiry. No certbot required.

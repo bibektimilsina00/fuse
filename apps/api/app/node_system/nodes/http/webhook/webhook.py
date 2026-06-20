@@ -42,7 +42,7 @@ class WebhookTriggerNode(BaseNode[WebhookTriggerProperties]):
                     "label": "Require Signature",
                     "type": "boolean",
                     "default": False,
-                    "description": "Reject requests without a valid X-Fuse-Signature header",
+                    "description": "Reject requests without a valid X-RunMyCrew-Signature header",
                 },
                 {
                     "name": "secret",

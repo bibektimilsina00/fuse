@@ -52,7 +52,7 @@ export function useRunStream(workflowId: string | null, executionId: string | nu
     if (executionId.startsWith('local-fail-')) return
 
     const token =
-      useAuthStore.getState().token || localStorage.getItem('fuse-auth-token') || ''
+      useAuthStore.getState().token || localStorage.getItem('runmycrew-auth-token') || ''
     if (!token) return
 
     startRun(workflowId, executionId)

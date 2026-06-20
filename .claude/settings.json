@@ -21,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "FILE=\"$CLAUDE_TOOL_INPUT_FILE_PATH\"; if [[ \"$FILE\" == *.py ]]; then uvx ruff format \"$FILE\" 2>/dev/null && uvx ruff check --fix --silent \"$FILE\" 2>/dev/null; elif [[ \"$FILE\" == *.tsx || \"$FILE\" == *.ts ]]; then cd /Users/bibektimilsina/projects/fuse_monorepo && pnpm --filter web exec eslint --fix \"$FILE\" 2>/dev/null; fi; true"
+            "command": "FILE=\"$CLAUDE_TOOL_INPUT_FILE_PATH\"; if [[ \"$FILE\" == *.py ]]; then uvx ruff format \"$FILE\" 2>/dev/null && uvx ruff check --fix --silent \"$FILE\" 2>/dev/null; elif [[ \"$FILE\" == *.tsx || \"$FILE\" == *.ts ]]; then cd /Users/bibektimilsina/projects/runmycrew && pnpm --filter runmycrew-web exec eslint --fix \"$FILE\" 2>/dev/null; fi; true"
           }
         ]
       }

@@ -202,7 +202,7 @@ function Row({ keyName, kind, meta, expanded, onToggle, expression }: RowProps) 
     // don't need bespoke drop handlers on every field renderer.
     e.dataTransfer.setData('text/plain', expression)
     // Custom MIME for inspector-side type checks (future use).
-    e.dataTransfer.setData('application/x-fuse-expression', expression)
+    e.dataTransfer.setData('application/x-runmycrew-expression', expression)
     e.dataTransfer.effectAllowed = 'copy'
   }
 

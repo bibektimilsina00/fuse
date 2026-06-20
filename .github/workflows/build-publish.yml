@@ -1,4 +1,4 @@
-# ─── Build · scan · publish Fuse images to ghcr.io ─────────────────────
+# ─── Build · scan · publish RunMyCrew images to ghcr.io ─────────────────────
 #
 # Triggered on push to main and on any PR that touches a Dockerfile,
 # lockfile, or this workflow itself.
@@ -18,7 +18,7 @@
 #   :main          alias of :latest
 #
 # After the first successful push:
-#   - GitHub → your profile → Packages → fuse-{api,worker,web}
+#   - GitHub → your profile → Packages → runmycrew-{api,worker,web}
 #     → Package settings → Change visibility → Public
 #     (or keep private + set GHCR_PAT in the deploy workflow secrets).
 # ───────────────────────────────────────────────────────────────────────
@@ -103,15 +103,15 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/${{ github.repository_owner }}/fuse-${{ matrix.service }}
+          images: ghcr.io/${{ github.repository_owner }}/runmycrew-${{ matrix.service }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
             type=ref,event=pr
             type=sha,prefix=sha-,format=short
           labels: |
-            org.opencontainers.image.title=fuse-${{ matrix.service }}
-            org.opencontainers.image.description=Fuse ${{ matrix.service }} container
+            org.opencontainers.image.title=runmycrew-${{ matrix.service }}
+            org.opencontainers.image.description=RunMyCrew ${{ matrix.service }} container
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.url=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.licenses=MIT
@@ -146,7 +146,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/attest-build-provenance@v4
         with:
-          subject-name: ghcr.io/${{ github.repository_owner }}/fuse-${{ matrix.service }}
+          subject-name: ghcr.io/${{ github.repository_owner }}/runmycrew-${{ matrix.service }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
@@ -185,7 +185,7 @@ jobs:
         # what's outstanding.
         continue-on-error: true
         with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/fuse-${{ matrix.service }}@${{ steps.digest.outputs.digest }}
+          image-ref: ghcr.io/${{ github.repository_owner }}/runmycrew-${{ matrix.service }}@${{ steps.digest.outputs.digest }}
           format: sarif
           output: trivy-${{ matrix.service }}.sarif
           severity: CRITICAL,HIGH

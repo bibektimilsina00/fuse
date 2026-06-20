@@ -1,6 +1,6 @@
-# Fuse — Operator runbook
+# RunMyCrew — Operator runbook
 
-Production deploy on `fuse.bibektimilsina.tech` (DigitalOcean droplet
+Production deploy on `runmycrew.com` (DigitalOcean droplet
 `139.59.71.226`). Companion to `docs/devops-plan.md`.
 
 Deployment model: **fully automatic**. Every push to `main` triggers
@@ -29,18 +29,18 @@ On the registrar that owns `bibektimilsina.tech`:
 
 | Type | Name | Value | TTL |
 |------|------|-------|-----|
-| A    | fuse | 139.59.71.226 | 300 |
+| A    | runmycrew | 139.59.71.226 | 300 |
 
 Verify:
 
 ```
-dig +short fuse.bibektimilsina.tech    # should print 139.59.71.226
+dig +short runmycrew.com    # should print 139.59.71.226
 ```
 
 ### 1.2 Generate the GitHub deploy SSH key (on your laptop)
 
 ```
-ssh-keygen -t ed25519 -C "fuse-deploy" -f ~/.ssh/fuse_deploy_key -N ""
+ssh-keygen -t ed25519 -C "runmycrew-deploy" -f ~/.ssh/fuse_deploy_key -N ""
 # Produces:  ~/.ssh/fuse_deploy_key   (private — goes into GitHub Secret)
 #            ~/.ssh/fuse_deploy_key.pub (public — goes into VPS authorized_keys)
 ```
@@ -57,15 +57,15 @@ cat ~/.ssh/fuse_deploy_key.pub
 SSH into the VPS using your normal admin key (the `fv` alias). Run:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/bibektimilsina00/fuse_monorepo/main/deploy/bootstrap-vps.sh \
-  | bash -s -- "ssh-ed25519 AAAA...your-pub-key-here... fuse-deploy"
+curl -fsSL https://raw.githubusercontent.com/bibektimilsina00/runmycrew/main/deploy/bootstrap-vps.sh \
+  | bash -s -- "ssh-ed25519 AAAA...your-pub-key-here... runmycrew-deploy"
 ```
 
 What this does (idempotent — safe to re-run):
 
 1. Installs Docker via the official one-liner if missing.
 2. Opens ufw 22 / 80 / 443 only.
-3. Creates `/opt/fuse/deploy/pg-init/`.
+3. Creates `/opt/runmycrew/deploy/pg-init/`.
 4. Appends the deploy public key to `/root/.ssh/authorized_keys`.
 
 ### 1.4 Set GitHub Secrets + Variables
@@ -86,7 +86,7 @@ GitHub → repo → Settings:
 |------|-------|
 | `VPS_HOST` | `139.59.71.226` |
 | `VPS_USER` | `root` |
-| `VPS_DEPLOY_DIR` | `/opt/fuse/deploy` |
+| `VPS_DEPLOY_DIR` | `/opt/runmycrew/deploy` |
 
 **Settings → Environments → New environment** → name it `production`.
 Optionally add yourself as a Required Reviewer if you want a manual
@@ -118,8 +118,8 @@ cat deploy/.env | pbcopy   # macOS
 
 Public packages = no PAT needed = simpler workflow. Recommended:
 
-GitHub → your profile → Packages → **fuse-api** → Package settings →
-Change visibility → Public. Repeat for `fuse-worker` and `fuse-web`.
+GitHub → your profile → Packages → **runmycrew-api** → Package settings →
+Change visibility → Public. Repeat for `runmycrew-worker` and `runmycrew-web`.
 
 ### 1.7 First deploy
 
@@ -135,7 +135,7 @@ Watch the run:
 - `Sync compose stack to VPS`   — scp's the deploy/ files
 - `Write production .env on VPS`— from the GitHub secret
 - `Deploy (pull + up + prune)`  — docker compose runs the stack
-- `Smoke-test the deploy`       — hits `https://fuse.bibektimilsina.tech/api/v1/health` until it returns 200
+- `Smoke-test the deploy`       — hits `https://runmycrew.com/api/v1/health` until it returns 200
 
 On first run the API container does `alembic upgrade head` before
 opening the port — give it ~45 s.
@@ -147,19 +147,19 @@ updated. For each provider you actually use:
 
 | Provider | Console path | URL to add |
 |---|---|---|
-| Google Cloud | APIs & Services → Credentials → OAuth client → Authorized redirect URIs | `https://fuse.bibektimilsina.tech/api/v1/credentials/oauth/google/callback` |
-| Meta | App Dashboard → Use cases → settings → Valid OAuth Redirect URIs | `https://fuse.bibektimilsina.tech/api/v1/credentials/oauth/facebook/callback` |
-| Slack | api.slack.com/apps → OAuth & Permissions → Redirect URLs | `https://fuse.bibektimilsina.tech/api/v1/credentials/oauth/slack/callback` |
-| GitHub | Settings → Developer settings → OAuth Apps → Callback URL | `https://fuse.bibektimilsina.tech/api/v1/credentials/oauth/github/callback` |
-| Notion | Integration settings → Redirect URIs | `https://fuse.bibektimilsina.tech/api/v1/credentials/oauth/notion/callback` |
-| Discord | Developer Portal → app → OAuth2 → Redirects | `https://fuse.bibektimilsina.tech/api/v1/credentials/oauth/discord/callback` |
-| Linear | Workspace settings → API → Application | `https://fuse.bibektimilsina.tech/api/v1/credentials/oauth/linear/callback` |
+| Google Cloud | APIs & Services → Credentials → OAuth client → Authorized redirect URIs | `https://runmycrew.com/api/v1/credentials/oauth/google/callback` |
+| Meta | App Dashboard → Use cases → settings → Valid OAuth Redirect URIs | `https://runmycrew.com/api/v1/credentials/oauth/facebook/callback` |
+| Slack | api.slack.com/apps → OAuth & Permissions → Redirect URLs | `https://runmycrew.com/api/v1/credentials/oauth/slack/callback` |
+| GitHub | Settings → Developer settings → OAuth Apps → Callback URL | `https://runmycrew.com/api/v1/credentials/oauth/github/callback` |
+| Notion | Integration settings → Redirect URIs | `https://runmycrew.com/api/v1/credentials/oauth/notion/callback` |
+| Discord | Developer Portal → app → OAuth2 → Redirects | `https://runmycrew.com/api/v1/credentials/oauth/discord/callback` |
+| Linear | Workspace settings → API → Application | `https://runmycrew.com/api/v1/credentials/oauth/linear/callback` |
 
 Until you do this, every OAuth flow returns `redirect_uri mismatch`.
 
 ### 1.9 Smoke test
 
-- Open `https://fuse.bibektimilsina.tech` → app loads.
+- Open `https://runmycrew.com` → app loads.
 - Log in. Create a workspace. Connect a Google credential → confirm
   OAuth bounce works. Run a simple workflow.
 
@@ -182,14 +182,14 @@ Watch in Actions tab. ~3 min cold, ~90s warm-cache. No SSH needed.
 Actions → `deploy` → Run workflow → **Image tag** = `sha-abc1234`
 (grab from a recent `build-publish` run) → Run.
 
-Or for a longer-lived pin: set `FUSE_IMAGE_TAG=sha-abc1234` in the
+Or for a longer-lived pin: set `RUNMYCREW_IMAGE_TAG=sha-abc1234` in the
 `ENV_PRODUCTION` GitHub secret and re-trigger.
 
 ### Tail logs (via SSH)
 
 ```
 fv                                   # admin SSH alias
-cd /opt/fuse/deploy
+cd /opt/runmycrew/deploy
 docker compose -f docker-compose.production.yml logs -f api worker
 docker compose -f docker-compose.production.yml logs --tail=200 web
 ```
@@ -220,7 +220,7 @@ docker compose -f docker-compose.production.yml exec api \
 
 ```
 docker compose -f docker-compose.production.yml exec db \
-  psql -U fuse -d fuse
+  psql -U runmycrew -d runmycrew
 ```
 
 ### Rotate a secret
@@ -229,7 +229,7 @@ docker compose -f docker-compose.production.yml exec db \
 2. Trigger the `deploy` workflow → new `.env` is shipped + services
    restart with the updated env.
 
-(Or to test fast: SSH in, edit `/opt/fuse/deploy/.env`, run
+(Or to test fast: SSH in, edit `/opt/runmycrew/deploy/.env`, run
 `./deploy.sh`. Remember to update the GitHub secret afterward or the
 next CI deploy overwrites your change.)
 
@@ -241,14 +241,14 @@ next CI deploy overwrites your change.)
 
 ```
 fv
-cd /opt/fuse/deploy
+cd /opt/runmycrew/deploy
 
 # 1. What does the API say?
 docker compose -f docker-compose.production.yml logs --tail=200 api
 
 # 2. Is the DB up?
 docker compose -f docker-compose.production.yml ps db
-docker compose -f docker-compose.production.yml exec db pg_isready -U fuse
+docker compose -f docker-compose.production.yml exec db pg_isready -U runmycrew
 
 # 3. Is Redis up?
 docker compose -f docker-compose.production.yml exec redis redis-cli ping
@@ -280,7 +280,7 @@ docker compose -f docker-compose.production.yml logs --tail=200 web
 
 Common causes:
 
-- DNS isn't pointing at the VPS yet (`dig +short fuse.bibektimilsina.tech`).
+- DNS isn't pointing at the VPS yet (`dig +short runmycrew.com`).
 - Port 80 is closed (Let's Encrypt's HTTP-01 challenge needs it open).
 - LE rate limit — 5 certs per 7 days per registered domain. Wait or
   use the staging tier (edit Caddyfile: add `acme_ca https://acme-staging-v02.api.letsencrypt.org/directory`
@@ -292,7 +292,7 @@ Common causes:
 docker system df         # see what's eating it
 docker image prune -af   # nuke dangling + unused (won't touch running)
 docker volume ls
-ls -lh /var/lib/docker/volumes/fuse_pg_backups/_data | tail
+ls -lh /var/lib/docker/volumes/runmycrew_pg_backups/_data | tail
 ```
 
 If `pg_backups` is huge: drop retention in `deploy/backup.sh` from 14
@@ -304,8 +304,8 @@ to 7 days; the next push to `main` re-syncs the script and the
 See `deploy/restore.sh`. **Test on a scratch DB first.**
 
 ```
-ls -lh /var/lib/docker/volumes/fuse_pg_backups/_data
-./restore.sh /var/lib/docker/volumes/fuse_pg_backups/_data/latest.dump.gz
+ls -lh /var/lib/docker/volumes/runmycrew_pg_backups/_data
+./restore.sh /var/lib/docker/volumes/runmycrew_pg_backups/_data/latest.dump.gz
 ```
 
 ### "Deploy workflow failed at the smoke test"
@@ -333,10 +333,10 @@ Recommended: rsync the `pg_backups` volume to Backblaze B2 (~$0.005/GB/mo)
 or DO Spaces nightly. Cron entry on the VPS:
 
 ```
-# /etc/cron.d/fuse-offsite-backup
+# /etc/cron.d/runmycrew-offsite-backup
 30 3 * * * root /usr/local/bin/rclone sync \
-  /var/lib/docker/volumes/fuse_pg_backups/_data \
-  b2:fuse-backups/$(date -u +\%Y\%m) --quiet
+  /var/lib/docker/volumes/runmycrew_pg_backups/_data \
+  b2:runmycrew-backups/$(date -u +\%Y\%m) --quiet
 ```
 
 Requires `rclone` installed and configured with B2 credentials. Doc
@@ -348,10 +348,10 @@ the rclone setup separately when you wire this up.
 
 | Thing | Location |
 |---|---|
-| Compose stack | `/opt/fuse/deploy/docker-compose.production.yml` (CI overwrites on each deploy) |
-| `.env` | `/opt/fuse/deploy/.env` (CI writes from `ENV_PRODUCTION` secret) |
+| Compose stack | `/opt/runmycrew/deploy/docker-compose.production.yml` (CI overwrites on each deploy) |
+| `.env` | `/opt/runmycrew/deploy/.env` (CI writes from `ENV_PRODUCTION` secret) |
 | Postgres data | volume `fuse_postgres_data` → `/var/lib/docker/volumes/fuse_postgres_data/_data` |
-| DB backups | volume `fuse_pg_backups` → `/var/lib/docker/volumes/fuse_pg_backups/_data` |
+| DB backups | volume `runmycrew_pg_backups` → `/var/lib/docker/volumes/runmycrew_pg_backups/_data` |
 | Caddy certs | volume `fuse_caddy_data` → `/var/lib/docker/volumes/fuse_caddy_data/_data/caddy/certificates` |
-| Images | `ghcr.io/bibektimilsina00/fuse-{api,worker,web}:<tag>` |
-| Source of truth | `git@github.com:bibektimilsina00/fuse_monorepo.git` (main branch) |
+| Images | `ghcr.io/bibektimilsina00/runmycrew-{api,worker,web}:<tag>` |
+| Source of truth | `git@github.com:bibektimilsina00/runmycrew.git` (main branch) |

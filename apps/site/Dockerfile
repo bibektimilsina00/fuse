@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1.7
-# ─── Fuse marketing site — Next.js 16 standalone ───────────────────────
+# ─── RunMyCrew marketing site — Next.js 16 standalone ───────────────────────
 #
 # Multi-stage build:
 #   1. deps:    install pnpm workspace deps for `apps/site` only.
-#   2. build:   `pnpm --filter fuse-site build` → produces
+#   2. build:   `pnpm --filter runmycrew-site build` → produces
 #               `apps/site/.next/standalone` + `.next/static` + `public`.
 #   3. runtime: copy the three folders into a slim node:22-alpine image
 #               and run `node server.js` as a non-root user.
@@ -29,7 +29,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/site/package.json apps/site/package.json
 COPY apps/web/package.json  apps/web/package.json
 
-RUN pnpm install --frozen-lockfile --filter fuse-site...
+RUN pnpm install --frozen-lockfile --filter runmycrew-site...
 
 # ─── 2. build ─────────────────────────────────────────────────────────
 FROM node:${NODE_VERSION} AS build
@@ -41,7 +41,7 @@ COPY --from=deps /repo /repo
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm --filter fuse-site build
+RUN pnpm --filter runmycrew-site build
 
 # ─── 3. runtime ───────────────────────────────────────────────────────
 FROM node:${NODE_VERSION} AS runtime

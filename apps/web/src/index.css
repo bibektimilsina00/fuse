@@ -7,7 +7,7 @@
    ─────────────────────────────────────────────────────────────────────────────
    Near-pure-black canvas, muted indigo accent, almost-invisible hairlines,
    flat surfaces with no glows. Direct translation of the Claude Design /
-   Fuse.dc.html "Linear" scheme.
+   design reference "Linear" scheme.
 ══════════════════════════════════════════════════════════════════════════════ */
 :root {
   /* Surfaces — Linear's stack: app → surface → panel → node */
@@ -157,7 +157,7 @@
    ─────────────────────────────────────────────────────────────────────────────
    Class scoped on <html data-theme="...">. Each block redefines ONLY the
    surface + accent tokens; text, semantic, radii, fonts cascade from :root.
-   Tokens are direct ports of the `schemes()` map in Fuse.dc.html.
+   Tokens are direct ports of the `schemes()` map in design reference.
 ══════════════════════════════════════════════════════════════════════════════ */
 :root[data-theme='slate'] {
   --bg:        #1c1c1c;

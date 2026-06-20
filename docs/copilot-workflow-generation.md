@@ -1,4 +1,4 @@
-# Fuse Copilot — AI Workflow Generation & Editing (Implementation Plan)
+# Crew AI — AI Workflow Generation & Editing (Implementation Plan)
 
 Status: planning · Owner: TBD · Reference: Sim architecture writeup (`temp/AI_WORKFLOW_GENERATION.md`, gitignored)
 
@@ -46,7 +46,7 @@ This is **brownfield** — the backend is ~80% built. The work is: wire the fron
 
 ## 4. Target architecture
 
-Adapted from Sim, mapped to Fuse. Sim's four representations collapse for us because we already have one canonical graph.
+Adapted from Sim, mapped to RunMyCrew. Sim's four representations collapse for us because we already have one canonical graph.
 
 - **A — Runtime/canvas state**: ReactFlow nodes/edges in `workflowEditorStore` (source of truth).
 - **B — Persistence**: `workflow.graph` JSONB (same shape as A, cleaned). Already versioned.
@@ -147,7 +147,7 @@ All three discovery tools filter server-side by the user's allowed integrations 
 ### Current-graph budget
 The embedded current graph also grows with the user's workflow. Keep the projection compact (id, type, name, connections) and, for very large graphs, summarize/truncate distant nodes — scales with the user's own workflow, not the registry.
 
-### Replication checklist (Fuse-specific)
+### Replication checklist (RunMyCrew-specific)
 - [ ] `project_node()` compressed projection (shared module).
 - [ ] Tier-1 index builder: categories + triggers + curated core (config-driven `CORE_NODE_TYPES`).
 - [ ] `search_node_types`, `get_trigger_nodes` tools; `get_node_metadata` → array + projection.

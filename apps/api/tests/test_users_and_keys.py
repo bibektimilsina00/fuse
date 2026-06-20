@@ -113,7 +113,7 @@ async def test_get_current_user_with_x_api_key():
     # Arrange
     mock_db = AsyncMock()
     user_id = uuid.uuid4()
-    mock_user = User(id=user_id, email="dev@fuse.com", is_active=True)
+    mock_user = User(id=user_id, email="dev@runmycrew.com", is_active=True)
     mock_key_record = ApiKey(user_id=user_id, name="Token Name")
 
     # Mock DB interaction
@@ -150,7 +150,7 @@ async def test_get_current_user_with_bearer_api_key():
     # Arrange
     mock_db = AsyncMock()
     user_id = uuid.uuid4()
-    mock_user = User(id=user_id, email="dev@fuse.com", is_active=True)
+    mock_user = User(id=user_id, email="dev@runmycrew.com", is_active=True)
     mock_key_record = ApiKey(user_id=user_id, name="Token Name")
 
     # Construct request with Bearer authorization

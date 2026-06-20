@@ -1,6 +1,6 @@
 #!/bin/sh
 # ----------------------------------------------------------------------
-# Fuse — nightly Postgres dump
+# RunMyCrew — nightly Postgres dump
 #
 # Runs inside the `backup` container in compose; the entrypoint sleeps
 # 24h between runs. Writes to /backups (the pg_backups volume).
@@ -13,7 +13,7 @@
 set -e
 
 TS=$(date -u +%Y%m%d-%H%M%S)
-DEST="/backups/fuse-${TS}.dump.gz"
+DEST="/backups/runmycrew-${TS}.dump.gz"
 
 echo "[$(date -u +%FT%TZ)] Backup START → ${DEST}"
 
@@ -26,7 +26,7 @@ PGPASSWORD="${POSTGRES_PASSWORD}" pg_dump \
 ln -sf "$(basename "${DEST}")" /backups/latest.dump.gz
 
 # Retention sweep — keep 14 days, delete the rest.
-find /backups -name 'fuse-*.dump.gz' -mtime +14 -delete
+find /backups -name 'runmycrew-*.dump.gz' -mtime +14 -delete
 
 SIZE=$(stat -c '%s' "${DEST}" 2>/dev/null || stat -f '%z' "${DEST}")
 echo "[$(date -u +%FT%TZ)] Backup OK   → ${DEST} (${SIZE} bytes)"

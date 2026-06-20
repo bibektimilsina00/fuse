@@ -322,7 +322,7 @@ class KnowledgeService:
         api_key = await self._get_api_key(kb, workspace_id)
         try:
             async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-                resp = await client.get(url, headers={"User-Agent": "fuse-kb-crawler/1.0"})
+                resp = await client.get(url, headers={"User-Agent": "runmycrew-kb-crawler/1.0"})
                 resp.raise_for_status()
                 content_type = resp.headers.get("content-type", "")
                 raw = resp.text

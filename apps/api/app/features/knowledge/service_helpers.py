@@ -8,7 +8,7 @@ TOKENS_TO_CHARS = 4
 CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 200
 
-# Sentinel for "use the Fuse-managed Gemini key from settings.GEMINI_API_KEY".
+# Sentinel for "use the RunMyCrew-managed Gemini key from settings.GEMINI_API_KEY".
 # Accepted forms:
 #   - "default"                          → resolves to DEFAULT_GOOGLE_MODEL
 #   - "default:<google-model-id>"        → resolves to that Google embedding model

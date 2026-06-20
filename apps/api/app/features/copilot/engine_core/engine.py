@@ -182,7 +182,7 @@ async def run_copilot(
     user_id: str = "",
 ) -> AsyncGenerator[str]:
     """
-    Run the Fuse Copilot agentic loop (Sim-style).
+    Run the Crew AI agentic loop (Sim-style).
     Yields SSE-formatted strings.
     """
     import uuid as _uuid

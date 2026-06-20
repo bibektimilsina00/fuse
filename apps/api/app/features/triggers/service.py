@@ -116,9 +116,13 @@ class TriggerService:
                         status_code=401, detail="Webhook secret not configured on this trigger"
                     )
 
-                sig_header = headers.get("x-fuse-signature", headers.get("X-Fuse-Signature", ""))
+                sig_header = headers.get(
+                    "x-runmycrew-signature", headers.get("X-RunMyCrew-Signature", "")
+                )
                 if not sig_header:
-                    raise HTTPException(status_code=401, detail="Missing X-Fuse-Signature header")
+                    raise HTTPException(
+                        status_code=401, detail="Missing X-RunMyCrew-Signature header"
+                    )
 
                 if not verify_signature(raw_body, secret, sig_header):
                     logger.warning(f"Webhook {path}: invalid signature")

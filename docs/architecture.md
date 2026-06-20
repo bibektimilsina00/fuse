@@ -1,6 +1,6 @@
 # Architecture
 
-Fuse is a workflow-automation / AI-agent platform: users build node graphs on a
+RunMyCrew is a workflow-automation / AI-agent platform: users build node graphs on a
 canvas and run them. This document reflects the **current, verified** structure
 of the codebase.
 

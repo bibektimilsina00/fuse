@@ -16,7 +16,7 @@ from apps.api.app.core.observability import init_sentry
 init_sentry()
 
 celery_app = Celery(
-    "fuse",
+    "runmycrew",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
     include=[

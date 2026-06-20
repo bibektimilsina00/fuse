@@ -9,7 +9,7 @@ from apps.api.app.node_system.base.node_result import NodeResult
 
 
 class SlackTriggerProperties(BaseModel):
-    authentication: str = "fuse_bot"
+    authentication: str = "runmycrew_bot"
     bot_token: str | None = None
     event_type: str = "message"
     channel: str | None = None
@@ -30,9 +30,9 @@ class SlackTriggerNode(BaseNode[SlackTriggerProperties]):
                     "name": "authentication",
                     "label": "Authentication",
                     "type": "options",
-                    "default": "fuse_bot",
+                    "default": "runmycrew_bot",
                     "options": [
-                        {"label": "RunMyCrew Bot (OAuth)", "value": "fuse_bot"},
+                        {"label": "RunMyCrew Bot (OAuth)", "value": "runmycrew_bot"},
                         {"label": "Custom Bot (Token)", "value": "custom_bot"},
                     ],
                 },
@@ -42,7 +42,7 @@ class SlackTriggerNode(BaseNode[SlackTriggerProperties]):
                     "type": "credential",
                     "credentialType": "slack_oauth",
                     "required": True,
-                    "condition": {"field": "authentication", "value": "fuse_bot"},
+                    "condition": {"field": "authentication", "value": "runmycrew_bot"},
                 },
                 {
                     "name": "bot_token",

@@ -19,7 +19,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: fuse
+          POSTGRES_DB: runmycrew
         ports:
           - 5432:5432
         options: >-
@@ -86,13 +86,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: pnpm --filter web exec tsc -b
+        run: pnpm --filter runmycrew-web exec tsc -b
 
       - name: Lint
-        run: pnpm --filter web lint
+        run: pnpm --filter runmycrew-web lint
 
       - name: Test
-        run: pnpm --filter web test
+        run: pnpm --filter runmycrew-web test
 
       - name: Build
-        run: pnpm --filter web build
+        run: pnpm --filter runmycrew-web build

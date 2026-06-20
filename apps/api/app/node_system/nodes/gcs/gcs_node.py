@@ -446,7 +446,7 @@ class GoogleCloudStorageNode(BaseNode[GoogleCloudStorageProperties]):
                     "name": "metadata",
                     "label": "Custom metadata (JSON)",
                     "type": "json",
-                    "placeholder": '{ "uploaded-by": "fuse" }',
+                    "placeholder": '{ "uploaded-by": "runmycrew" }',
                     "description": "Forwarded as `metadata.{}` on the object — read back via `get_object_metadata`.",
                     "condition": _cond("upload_object"),
                     "mode": "advanced",
@@ -744,7 +744,7 @@ async def _upload_object(
     if isinstance(custom_meta, dict) and custom_meta:
         metadata["metadata"] = {str(k): str(v) for k, v in custom_meta.items()}
 
-    boundary = "fuse-gcs-upload-boundary"
+    boundary = "runmycrew-gcs-upload-boundary"
     body_bytes = (
         (
             f"--{boundary}\r\n"

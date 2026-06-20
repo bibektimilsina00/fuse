@@ -30,7 +30,7 @@ function authHeaders(): Record<string, string> {
   let token = useAuthStore.getState().token
   if (!token) {
     try {
-      token = localStorage.getItem('fuse-auth-token')
+      token = localStorage.getItem('runmycrew-auth-token')
     } catch {
       token = null
     }

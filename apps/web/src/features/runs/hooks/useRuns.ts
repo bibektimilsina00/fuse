@@ -107,7 +107,7 @@ export function useRuns() {
   useEffect(() => {
     if (!workspaceId) return
 
-    const resolvedToken = token || localStorage.getItem('fuse-auth-token') || ''
+    const resolvedToken = token || localStorage.getItem('runmycrew-auth-token') || ''
     if (!resolvedToken) return
 
     const rawApiUrl = import.meta.env.VITE_API_URL || '/api/v1'

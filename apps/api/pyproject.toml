@@ -1,7 +1,7 @@
 [project]
-name = "fuse-api"
+name = "runmycrew-api"
 version = "0.1.0"
-description = "Fuse Platform API"
+description = "RunMyCrew Platform API"
 dependencies = [
     "fastapi",
     "uvicorn[standard]",

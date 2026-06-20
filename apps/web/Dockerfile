@@ -13,7 +13,7 @@ RUN corepack enable
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web/package.json ./apps/web/
 
-RUN pnpm install --frozen-lockfile --filter web...
+RUN pnpm install --frozen-lockfile --filter runmycrew-web...
 
 # Now the actual sources.
 COPY apps/web ./apps/web

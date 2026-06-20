@@ -1,7 +1,7 @@
 import logging
 import time
 
-logger = logging.getLogger("fuse")
+logger = logging.getLogger("runmycrew")
 
 
 class LoggingMiddleware:

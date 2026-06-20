@@ -34,9 +34,9 @@ executes workflows — see [execution-flow.md](./execution-flow.md).
 PYTHONPATH=. uv run --project apps/api python -m pytest apps/api/tests -q
 
 # Frontend
-pnpm --filter web exec tsc -b      # typecheck
-pnpm --filter web lint             # eslint
-pnpm --filter web build            # production build
+pnpm --filter runmycrew-web exec tsc -b      # typecheck
+pnpm --filter runmycrew-web lint             # eslint
+pnpm --filter runmycrew-web build            # production build
 ```
 
 The backend suite includes a **live execution integration test**

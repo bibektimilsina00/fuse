@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
-    POSTGRES_DB: str = "fuse"
+    POSTGRES_DB: str = "runmycrew"
 
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379

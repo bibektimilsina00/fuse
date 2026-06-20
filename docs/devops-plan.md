@@ -1,8 +1,8 @@
-# Fuse — Production DevOps Plan
+# RunMyCrew — Production DevOps Plan
 
 > **Status:** draft for review. Not yet implemented.
 > **Owner:** Bibek
-> **Target:** single-VPS production deploy on `fuse.bibektimilsina.tech`
+> **Target:** single-VPS production deploy on `runmycrew.com`
 > (DigitalOcean droplet, currently 2 GB → recommend upgrade to 4 GB)
 
 ---
@@ -11,7 +11,7 @@
 
 ### Goals
 
-- Get Fuse live on a production VPS with HTTPS, Google OAuth callbacks working, and zero manual server config drift.
+- Get RunMyCrew live on a production VPS with HTTPS, Google OAuth callbacks working, and zero manual server config drift.
 - Containerise every service so the same image runs locally, in CI, and in prod.
 - CI/CD via GitHub Actions → ghcr.io. Push to `main` builds + publishes; VPS pulls.
 - Repeatable deploys: one `./deploy.sh` on the VPS.
@@ -25,7 +25,7 @@
 - Multi-region replication.
 - Auto-deploy from CI (manual gate stays for now — safer while iterating).
 - Blue/green or canary. Compose rolling restart is enough for v1.
-- Dedicated vector DB. pgvector covers Fuse for the foreseeable future.
+- Dedicated vector DB. pgvector covers RunMyCrew for the foreseeable future.
 - Image-signing / Cosign. Worth it for an enterprise sale; premature now.
 
 ---
@@ -43,7 +43,7 @@
 | Reverse proxy | Caddy 2 (auto-HTTPS via Let's Encrypt) |
 | Registry | ghcr.io (GitHub Container Registry) |
 | CI | GitHub Actions |
-| Domain | `fuse.bibektimilsina.tech` |
+| Domain | `runmycrew.com` |
 
 ---
 
@@ -87,10 +87,10 @@
 
 | Service | Image | Restart | Memory cap | Notes |
 |---|---|---|---|---|
-| `web` | `ghcr.io/<owner>/fuse-web:<tag>` (Caddy + dist baked in) | unless-stopped | 128M | Ports 80/443 → host. Single image, no shared volume. |
-| `api` | `ghcr.io/<owner>/fuse-api:<tag>` | unless-stopped | 512M | Entrypoint runs `alembic upgrade head` then `exec uvicorn`. |
-| `worker` | `ghcr.io/<owner>/fuse-worker:<tag>` | unless-stopped | 384M | Celery worker. |
-| `beat` | `ghcr.io/<owner>/fuse-worker:<tag>` (same image, different cmd) | unless-stopped | 128M | `celery -A apps.worker.app.jobs.tasks beat`. |
+| `web` | `ghcr.io/<owner>/runmycrew-web:<tag>` (Caddy + dist baked in) | unless-stopped | 128M | Ports 80/443 → host. Single image, no shared volume. |
+| `api` | `ghcr.io/<owner>/runmycrew-api:<tag>` | unless-stopped | 512M | Entrypoint runs `alembic upgrade head` then `exec uvicorn`. |
+| `worker` | `ghcr.io/<owner>/runmycrew-worker:<tag>` | unless-stopped | 384M | Celery worker. |
+| `beat` | `ghcr.io/<owner>/runmycrew-worker:<tag>` (same image, different cmd) | unless-stopped | 128M | `celery -A apps.worker.app.jobs.tasks beat`. |
 | `db` | `pgvector/pgvector:pg15` | unless-stopped | 512M | Tuned `shared_buffers`/`work_mem` for the cap. |
 | `redis` | `redis:7-alpine` | unless-stopped | 128M | `appendonly yes` for durability. |
 | `backup` | `postgres:15-alpine` (just for `pg_dump`) | unless-stopped | 64M | Cron loop: nightly dump + 14-day prune. |
@@ -102,7 +102,7 @@
 ## 4. Repo additions
 
 ```
-fuse_monorepo/
+runmycrew/
 ├── apps/
 │   ├── api/
 │   │   ├── Dockerfile               # ← UPDATE: multi-stage, non-root, entrypoint
@@ -164,7 +164,7 @@ HEALTHCHECK --interval=30s --timeout=5s \
     email <YOUR_EMAIL_FOR_LE_NOTICES>
 }
 
-fuse.bibektimilsina.tech {
+runmycrew.com {
     encode gzip zstd
 
     # static frontend
@@ -281,7 +281,7 @@ x-logging: &default-logging
 
 services:
   web:
-    image: ghcr.io/${GITHUB_OWNER}/fuse-web:${FUSE_IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_OWNER}/runmycrew-web:${RUNMYCREW_IMAGE_TAG:-latest}
     restart: unless-stopped
     ports: ["80:80", "443:443"]
     volumes:
@@ -293,14 +293,14 @@ services:
     logging: *default-logging
 
   api:
-    image: ghcr.io/${GITHUB_OWNER}/fuse-api:${FUSE_IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_OWNER}/runmycrew-api:${RUNMYCREW_IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     environment:
       POSTGRES_SERVER: db
       REDIS_HOST: redis
       ENVIRONMENT: production
-      BASE_URL: https://fuse.bibektimilsina.tech
+      BASE_URL: https://runmycrew.com
       TZ: UTC
     depends_on:
       db: { condition: service_healthy }
@@ -315,7 +315,7 @@ services:
     logging: *default-logging
 
   worker:
-    image: ghcr.io/${GITHUB_OWNER}/fuse-worker:${FUSE_IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_OWNER}/runmycrew-worker:${RUNMYCREW_IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     environment: { POSTGRES_SERVER: db, REDIS_HOST: redis, TZ: UTC }
@@ -334,7 +334,7 @@ services:
     logging: *default-logging
 
   beat:
-    image: ghcr.io/${GITHUB_OWNER}/fuse-worker:${FUSE_IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_OWNER}/runmycrew-worker:${RUNMYCREW_IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     environment: { POSTGRES_SERVER: db, REDIS_HOST: redis, TZ: UTC }
@@ -421,14 +421,14 @@ volumes:
 
 ```env
 # ─── App ────────────────────────────────────────────────────────────────
-PROJECT_NAME=Fuse
+PROJECT_NAME=RunMyCrew
 API_V1_STR=/api/v1
-BASE_URL=https://fuse.bibektimilsina.tech
-FRONTEND_URL=https://fuse.bibektimilsina.tech
+BASE_URL=https://runmycrew.com
+FRONTEND_URL=https://runmycrew.com
 
 # ─── Image tag (pin a SHA in prod; use latest only for staging) ─────────
 GITHUB_OWNER=bibektimilsina00
-FUSE_IMAGE_TAG=latest
+RUNMYCREW_IMAGE_TAG=latest
 
 # ─── Security (REQUIRED — generate fresh) ───────────────────────────────
 # openssl rand -hex 32
@@ -438,9 +438,9 @@ ENCRYPTION_KEY=
 ACCESS_TOKEN_EXPIRE_MINUTES=11520
 
 # ─── Postgres ───────────────────────────────────────────────────────────
-POSTGRES_USER=fuse
+POSTGRES_USER=runmycrew
 POSTGRES_PASSWORD=
-POSTGRES_DB=fuse
+POSTGRES_DB=runmycrew
 
 # ─── Redis ──────────────────────────────────────────────────────────────
 REDIS_HOST=redis
@@ -452,7 +452,7 @@ SMTP_PORT=587
 SMTP_USER=
 SMTP_PASSWORD=
 SMTP_FROM=
-SMTP_FROM_NAME=Fuse
+SMTP_FROM_NAME=RunMyCrew
 SMTP_TLS=true
 
 # ─── OAuth providers (only fill what you actually use) ──────────────────
@@ -524,7 +524,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/fuse-${{ matrix.service }}
+          images: ghcr.io/${{ github.repository_owner }}/runmycrew-${{ matrix.service }}
           tags: |
             type=raw,value=latest
             type=sha,prefix=sha-,format=short
@@ -542,7 +542,7 @@ jobs:
           platforms: linux/amd64
 ```
 
-> After the first run: GitHub → Settings → Packages → make `fuse-api`/`fuse-worker`/`fuse-web` **public** (otherwise VPS gets 401).
+> After the first run: GitHub → Settings → Packages → make `runmycrew-api`/`runmycrew-worker`/`runmycrew-web` **public** (otherwise VPS gets 401).
 
 ---
 
@@ -550,7 +550,7 @@ jobs:
 
 Document in `docs/deploy.md`. Concrete steps:
 
-1. DNS A record: `fuse` → `139.59.71.226`, TTL 300.
+1. DNS A record: `runmycrew` → `139.59.71.226`, TTL 300.
 2. SSH in: `fv` (alias already set up).
 3. Install Docker (official one-liner):
    ```
@@ -563,8 +563,8 @@ Document in `docs/deploy.md`. Concrete steps:
 5. Open firewall: `ufw allow 22 && ufw allow 80 && ufw allow 443 && ufw enable`.
 6. Pull repo:
    ```
-   mkdir -p /opt/fuse && cd /opt/fuse
-   git clone https://github.com/bibektimilsina00/fuse_monorepo.git .
+   mkdir -p /opt/runmycrew && cd /opt/runmycrew
+   git clone https://github.com/bibektimilsina00/runmycrew.git .
    cp deploy/.env.production.example deploy/.env
    nano deploy/.env       # fill all secrets
    chmod 600 deploy/.env
@@ -577,8 +577,8 @@ Document in `docs/deploy.md`. Concrete steps:
    docker compose -f docker-compose.production.yml up -d
    docker compose -f docker-compose.production.yml logs -f web api
    ```
-9. Hit `https://fuse.bibektimilsina.tech/health` → should return JSON.
-10. **Update OAuth redirect URIs** in every provider console (Google, Meta, Slack, etc.) to `https://fuse.bibektimilsina.tech/api/v1/credentials/oauth/<service>/callback`.
+9. Hit `https://runmycrew.com/health` → should return JSON.
+10. **Update OAuth redirect URIs** in every provider console (Google, Meta, Slack, etc.) to `https://runmycrew.com/api/v1/credentials/oauth/<service>/callback`.
 
 ---
 
@@ -591,7 +591,7 @@ After bootstrap, every release is:
 git push origin main          # triggers Actions build → ghcr
 
 # on VPS (via `fv`)
-cd /opt/fuse/deploy
+cd /opt/runmycrew/deploy
 ./deploy.sh                   # pulls latest image, restarts only changed services
 ```
 
@@ -605,7 +605,7 @@ git pull --ff-only            # for docker-compose.production.yml + Caddyfile up
 docker compose -f docker-compose.production.yml pull
 docker compose -f docker-compose.production.yml up -d --remove-orphans
 docker image prune -f
-echo "✓ Fuse updated to $(git rev-parse --short HEAD)"
+echo "✓ RunMyCrew updated to $(git rev-parse --short HEAD)"
 ```
 
 ---
@@ -618,7 +618,7 @@ echo "✓ Fuse updated to $(git rev-parse --short HEAD)"
 #!/bin/sh
 set -e
 TS=$(date -u +%Y%m%d-%H%M%S)
-DUMP="/backups/fuse-${TS}.sql.gz"
+DUMP="/backups/runmycrew-${TS}.sql.gz"
 
 PGPASSWORD="$POSTGRES_PASSWORD" pg_dump \
   -h db -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
@@ -626,7 +626,7 @@ PGPASSWORD="$POSTGRES_PASSWORD" pg_dump \
   | gzip > "$DUMP"
 
 # 14-day retention
-find /backups -name 'fuse-*.sql.gz' -mtime +14 -delete
+find /backups -name 'runmycrew-*.sql.gz' -mtime +14 -delete
 
 echo "[$(date -u)] Backup written: $DUMP"
 ```
@@ -644,7 +644,7 @@ gunzip -c "$DUMP" | docker compose -f docker-compose.production.yml exec -T db \
 **Drill schedule:** restore the latest dump into a `fuse_restore_test` DB monthly — doc the checklist in `deploy.md`.
 
 **Off-VPS sync (recommended add-on):**
-Nightly rsync `/var/lib/docker/volumes/fuse_pg_backups/_data` to:
+Nightly rsync `/var/lib/docker/volumes/runmycrew_pg_backups/_data` to:
 - DO Spaces (S3-compatible), or
 - Backblaze B2 (cheap), or
 - A second VPS / your laptop on a schedule
@@ -659,7 +659,7 @@ Every image is tagged with `:sha-<short>` in ghcr. Rollback:
 
 ```bash
 # on VPS
-export FUSE_IMAGE_TAG=sha-abc1234        # pick from ghcr / Actions logs
+export RUNMYCREW_IMAGE_TAG=sha-abc1234        # pick from ghcr / Actions logs
 docker compose -f docker-compose.production.yml pull
 docker compose -f docker-compose.production.yml up -d
 ```
@@ -735,7 +735,7 @@ Don't pre-build for P2/P3. Move when the pain shows up.
 2. **VPS size** — stay at 2 GB and hope, or bump to 4 GB ($24/mo) before launch? Strong recommend the bump.
 3. **Sentry DSN** — have one set up, or skip for v1?
 4. **Off-VPS backups** — DO Spaces, Backblaze B2, or rsync to a second machine? Want this in P0 or P1?
-5. **Staging environment** — single prod for now, or separate `staging.fuse.bibektimilsina.tech`? (Adds complexity but catches breakage before users see it.)
+5. **Staging environment** — single prod for now, or separate `staging.runmycrew.com`? (Adds complexity but catches breakage before users see it.)
 
 ---
 

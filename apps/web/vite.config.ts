@@ -10,7 +10,7 @@ export default defineConfig({
     // local dev builds don't fail without the token.
     sentryVitePlugin({
       org: 'brandtech-4o',
-      project: 'fuse-web',
+      project: 'runmycrew-web',
       authToken: process.env.SENTRY_AUTH_TOKEN,
       disable: !process.env.SENTRY_AUTH_TOKEN,
     }),

@@ -48,7 +48,7 @@ class RedisMemoryProvider:
         self._ttl = ttl_seconds
 
     def _redis_key(self, key: str) -> str:
-        return f"fuse:agent_memory:{key}"
+        return f"runmycrew:agent_memory:{key}"
 
     async def get(self, key: str, limit: int, query: str | None = None) -> list[dict[str, Any]]:
         try:

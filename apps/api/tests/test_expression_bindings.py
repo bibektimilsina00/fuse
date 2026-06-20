@@ -23,8 +23,8 @@ def test_vars_binding_resolves() -> None:
 
 
 def test_env_binding_resolves() -> None:
-    resolver = JsonataResolver(env={"API_URL": "https://api.fuse.io"})
-    assert resolver.evaluate("$env.API_URL") == "https://api.fuse.io"
+    resolver = JsonataResolver(env={"API_URL": "https://api.runmycrew.com"})
+    assert resolver.evaluate("$env.API_URL") == "https://api.runmycrew.com"
 
 
 def test_secrets_binding_resolves() -> None:

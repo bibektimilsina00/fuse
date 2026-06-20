@@ -4,7 +4,7 @@ Fires once per added / modified / trashed file in the user's Drive
 that matches the node's filters.
 
 The OAuth credential is currently scoped to `drive.file`, so the
-visible delta is restricted to files Fuse itself created (uploads
+visible delta is restricted to files RunMyCrew itself created (uploads
 done via the Drive action node, or downstream effects on those
 files). Expanding to the full Drive surface needs `drive.readonly`
 and a Google verification pass — out of scope here.
@@ -340,7 +340,7 @@ class GDriveTriggerNode(BaseNode[GDriveTriggerProperties]):
     ) -> dict[str, Any]:
         """Initial cursor. Always uses Drive's `changes/startPageToken`
         which is real-time across both scope tiers (`drive.file` shows
-        only files Fuse owns; `drive.readonly` shows everything). The
+        only files RunMyCrew owns; `drive.readonly` shows everything). The
         parent_folder_id filter is applied client-side in `_poll_changes`.
         """
         return {"page_token": await self._snapshot_page_token(client, headers)}
@@ -361,7 +361,7 @@ class GDriveTriggerNode(BaseNode[GDriveTriggerProperties]):
         tiers:
 
         - **`drive.file` only** — Drive returns changes restricted to
-          files Fuse created. Parent / mime / name filters apply
+          files RunMyCrew created. Parent / mime / name filters apply
           client-side.
         - **`drive.readonly`** (with `GOOGLE_DRIVE_WATCH_EXTERNAL=true`)
           — Drive returns every change the user can see. The

@@ -130,7 +130,7 @@ export const useEditorLayoutStore = create<EditorLayoutState>()(
         }),
     }),
     {
-      name: 'fuse-editor-layout',
+      name: 'runmycrew-editor-layout',
       version: 1,
       partialize: (s) => ({
         panelZones: s.panelZones,

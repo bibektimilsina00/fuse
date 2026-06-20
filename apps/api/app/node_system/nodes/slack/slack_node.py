@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 
 
 class SlackProperties(BaseModel):
-    authentication: str = "fuse_bot"
+    authentication: str = "runmycrew_bot"
     credential: str | None = None
     bot_token: str | None = None
     selectBy: str = "channel"
@@ -56,9 +56,9 @@ class SlackNode(BaseNode[SlackProperties]):
                     "name": "authentication",
                     "label": "Authentication",
                     "type": "options",
-                    "default": "fuse_bot",
+                    "default": "runmycrew_bot",
                     "options": [
-                        {"label": "RunMyCrew Bot (OAuth)", "value": "fuse_bot"},
+                        {"label": "RunMyCrew Bot (OAuth)", "value": "runmycrew_bot"},
                         {"label": "Custom Bot (Token)", "value": "custom_bot"},
                     ],
                 },
@@ -68,7 +68,7 @@ class SlackNode(BaseNode[SlackProperties]):
                     "type": "credential",
                     "credentialType": "slack_oauth",
                     "required": True,
-                    "condition": {"field": "authentication", "value": "fuse_bot"},
+                    "condition": {"field": "authentication", "value": "runmycrew_bot"},
                 },
                 {
                     "name": "bot_token",
@@ -348,7 +348,7 @@ class SlackNode(BaseNode[SlackProperties]):
                 if not access_token:
                     return NodeResult(success=False, error="Custom Bot Token is required.")
             else:
-                # Use Fuse Bot (OAuth)
+                # Use RunMyCrew Bot (OAuth)
                 if not self.credential:
                     return NodeResult(
                         success=False,

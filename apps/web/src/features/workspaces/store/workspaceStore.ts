@@ -50,7 +50,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       isOwner: () => get().currentRole === 'owner',
     }),
     {
-      name: 'fuse-workspace-v2',
+      name: 'runmycrew-workspace-v2',
       partialize: (state) => ({ currentWorkspaceId: state.currentWorkspaceId }),
     } satisfies PersistConfig,
   )

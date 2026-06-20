@@ -174,7 +174,7 @@ class ContainerExecutor:
     """Phase B — ephemeral, locked-down container per execution."""
 
     async def run(self, language, code, input_data, timeout):
-        name = f"fuse-exec-{uuid.uuid4().hex}"
+        name = f"runmycrew-exec-{uuid.uuid4().hex}"
         flags = [
             "run",
             "--rm",
