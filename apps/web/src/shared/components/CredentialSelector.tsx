@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
+import { cn } from '@/lib/cn'
 import {
   Dropdown, DropdownTrigger, DropdownContent, DropdownItem, DropdownSeparator,
-} from './Dropdown'
+} from '@/components/ui/dropdown-menu'
 import { Icons } from './icons'
 import { useCredentials, useProviders } from '@/features/connections/hooks/useConnections'
 import { ConnectModal } from '@/features/connections/components/ConnectModal'
@@ -66,16 +68,22 @@ export function CredentialSelector({
 
   return (
     <>
-      <Dropdown className={className ?? 'w-full'}>
-        <DropdownTrigger className="w-full" disabled={disabled}>
-          <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
-            <span className={selected ? 'text-[var(--text)]' : 'text-[var(--text-faint)]'}>
+      <Dropdown>
+        <DropdownTrigger asChild disabled={disabled}>
+          <div className={cn(
+            "flex items-center justify-between w-full h-9 pl-3 pr-2.5 text-sm text-left bg-surface border border-border-soft rounded-[8px] cursor-pointer",
+            "transition-[background-color,border-color] duration-[120ms]",
+            "hover:border-border hover:bg-surface-2 focus:outline-none focus:border-accent focus:bg-surface-2",
+            "data-[state=open]:border-accent data-[state=open]:bg-surface-2",
+            className
+          )}>
+            <span className={selected ? 'text-text' : 'text-text-faint'}>
               {selected?.name ?? `Select ${label} credential…`}
             </span>
-            <Icons.Caret style={{ width: 11, height: 11, color: 'var(--text-faint)' }} />
+            <ChevronDown className="ml-auto shrink-0 w-3.5 h-3.5 text-text-faint" />
           </div>
         </DropdownTrigger>
-        <DropdownContent className="w-full">
+        <DropdownContent className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)]">
           {relevant.length === 0 && (
             <div className="px-3 py-2 text-[12px] text-[var(--text-faint)]">
               No {label} credentials yet.
@@ -85,14 +93,17 @@ export function CredentialSelector({
             <DropdownItem
               key={c.id}
               onClick={() => onChange(c.id)}
-              className={value === c.id ? 'bg-[var(--surface)]' : ''}
+              className={cn(
+                'relative pl-8 pr-2 py-1.5 w-full',
+                value === c.id ? 'bg-surface-2 font-medium text-text' : 'text-text-mute'
+              )}
             >
-              <div className="flex items-center justify-between w-full">
-                <span className="truncate">{c.name}</span>
-                {value === c.id && (
-                  <Icons.Check style={{ width: 13, height: 13, color: 'var(--ok)' }} />
-                )}
-              </div>
+              {value === c.id && (
+                <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                  <Icons.Check style={{ width: 13, height: 13, color: 'var(--accent)' }} />
+                </span>
+              )}
+              <span className="truncate">{c.name}</span>
             </DropdownItem>
           ))}
           {relevant.length > 0 && <DropdownSeparator />}

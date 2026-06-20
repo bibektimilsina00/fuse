@@ -26,8 +26,8 @@ export function NumberRenderer({ prop, value, onChange, disabled }: RendererProp
   return (
     <div
       className={cn(
-        'flex h-[34px] w-[128px] items-center rounded-[7px] border border-[var(--border-soft)] bg-[rgba(255,255,255,0.025)] overflow-hidden transition-colors',
-        'hover:border-[var(--border)] focus-within:border-[var(--border)]',
+        'flex h-9 w-full items-center rounded-[8px] border border-solid border-border-soft bg-surface overflow-hidden transition-colors',
+        'hover:border-border hover:bg-surface-2 focus-within:border-accent focus-within:bg-surface-2',
         disabled && 'opacity-50 cursor-not-allowed',
       )}
     >

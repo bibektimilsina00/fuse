@@ -1,21 +1,24 @@
-import { Plus, Copy, Trash2, Play, Loader2 } from 'lucide-react'
+import { Plus, Copy, Trash2, Play,  ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useTestPanel } from '../../../hooks/useTestPanel'
+import { Button } from '@/shared/components'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface TestPanelProps {
   onRun: () => void
   isRunning: boolean
 }
 
-const inputCls = 'w-full rounded-[7px] border border-[var(--border-faint)] bg-[var(--bg)] px-2.5 py-1.5 text-[12.5px] text-[var(--text)] placeholder:text-[var(--text-dim)] outline-none transition-colors focus:border-[var(--border-soft)]'
-const iconBtnCls = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]'
+const standardInputCls = 'w-full rounded-[8px] border border-border-soft bg-surface px-3 py-1.5 text-[12.5px] text-[var(--text)] placeholder:text-text-faint outline-none transition-[background-color,border-color] duration-[120ms] hover:border-border hover:bg-surface-2 focus:border-accent focus:bg-surface-2'
+const jsonAreaCls = 'w-full rounded-[8px] border border-border-faint bg-bg px-3 py-2.5 text-xs text-[var(--text)] font-mono placeholder:text-text-faint outline-none transition-[background-color,border-color] duration-[120ms] hover:border-border-soft focus:border-border focus:bg-surface leading-relaxed'
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[11.5px] font-medium text-[var(--text-mute)]">{label}</span>
-        {hint && <span className="text-[10.5px] text-[var(--text-faint)]">{hint}</span>}
+        <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-dim)]">{label}</span>
+        {hint && <span className="text-[10px] text-[var(--text-faint)]">{hint}</span>}
       </div>
       {children}
     </div>
@@ -39,88 +42,120 @@ function CheckRow({ label, checked, onChange }: { label: string; checked: boolea
 export function TestPanel({ onRun, isRunning }: TestPanelProps) {
   const {
     scenarios, selected, selectedId, setSelectedId,
-    renameId, setRenameId, renameScenario, patchSelected,
-    setVar, addVar, removeVar,
+    patchSelected, setVar, addVar, removeVar,
     addScenario, duplicateScenario, deleteScenario, runScenario,
   } = useTestPanel(onRun)
 
+  const [scenariosOpen, setScenariosOpen] = useState(true)
+
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      {/* Scenario list */}
-      <div className="shrink-0 border-b border-[var(--border-faint)]">
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <span className="text-[10.5px] font-semibold uppercase tracking-widest text-[var(--text-dim)]">Saved scenarios</span>
-          <button
-            onClick={addScenario}
-            className="flex items-center gap-1 text-[11.5px] text-[var(--text-mute)] transition-colors hover:text-[var(--text)]"
+    <div className="flex h-full flex-col overflow-hidden bg-[var(--bg-2)]">
+      {/* Collapsible Scenarios List */}
+      <div className="shrink-0 border-b border-[var(--border-faint)] bg-[var(--bg-2)]">
+        <div className="flex items-center justify-between px-4 py-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setScenariosOpen(!scenariosOpen)}
+            className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-[var(--text-dim)] hover:text-[var(--text)] transition-colors h-auto p-0 hover:bg-transparent active:scale-100"
           >
-            <Plus className="h-3 w-3" /> New
-          </button>
+            <span>Saved Scenarios ({scenarios.length})</span>
+            <ChevronDown
+              className={cn(
+                "h-3.5 w-3.5 text-[var(--text-faint)] transition-transform duration-150",
+                scenariosOpen && "rotate-180"
+              )}
+            />
+          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="icon-sm"
+              onClick={addScenario}
+              title="New scenario"
+              className="h-6 w-6 p-0 bg-transparent border-none hover:bg-[var(--surface)] hover:text-[var(--text)]"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-px px-2 pb-2">
-          {scenarios.map(s => (
-            <button
-              key={s.id}
-              onClick={() => setSelectedId(s.id)}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-left transition-colors',
-                s.id === selectedId ? 'bg-[var(--surface)]' : 'hover:bg-[var(--surface)]',
-              )}
+        <AnimatePresence initial={false}>
+          {scenariosOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.18, ease: 'easeInOut' }}
+              className="overflow-hidden"
             >
-              <span className={cn(
-                'h-1.5 w-1.5 shrink-0 rounded-full',
-                s.lastRun?.status === 'ok'  ? 'bg-[var(--ok)]'         :
-                s.lastRun?.status === 'err' ? 'bg-[var(--err)]'        :
-                'bg-[var(--border-soft)]',
-              )} />
-              <span className="min-w-0 flex-1">
-                {renameId === s.id ? (
-                  <input
-                    autoFocus
-                    value={s.name}
-                    onChange={e => renameScenario(s.id, e.target.value)}
-                    onBlur={() => setRenameId(null)}
-                    onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setRenameId(null) }}
-                    onClick={e => e.stopPropagation()}
-                    className="w-full bg-transparent text-[12.5px] text-[var(--text)] outline-none"
-                  />
-                ) : (
-                  <span className="block truncate text-[12.5px] text-[var(--text)]">{s.name}</span>
-                )}
-                <span className="block text-[10.5px] text-[var(--text-faint)]">
-                  {s.lastRun ? `Ran ${s.lastRun.t}` : 'Never run'}
-                </span>
-              </span>
-            </button>
-          ))}
-        </div>
+              <div className="flex flex-col gap-1 px-3 pb-3 max-h-[200px] overflow-y-auto">
+                {scenarios.map(s => {
+                  const isActive = s.id === selectedId
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => {
+                        setSelectedId(s.id)
+                      }}
+                      className={cn(
+                        'group relative flex h-8 w-full items-center justify-between gap-2.5 rounded-[6px] px-2.5 text-left transition-all duration-[120ms] cursor-pointer select-none',
+                        isActive
+                          ? 'bg-[var(--surface)] text-[var(--text)] border-l-2 border-[var(--accent)] pl-2'
+                          : 'text-[var(--text-mute)] hover:bg-[var(--surface)]/30 hover:text-[var(--text)] border-l-2 border-transparent pl-2',
+                      )}
+                    >
+                      <span className="truncate text-[12.5px] min-w-0 flex-1">{s.name}</span>
+                      
+                      <span className="text-[10px] text-[var(--text-faint)] shrink-0 font-medium font-mono group-hover:opacity-0 transition-opacity duration-[120ms]">
+                        {s.lastRun ? s.lastRun.t : 'never'}
+                      </span>
+                      
+                      <div className="absolute right-2.5 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto flex items-center gap-1 shrink-0 transition-opacity duration-[120ms]">
+                        <Button
+                          variant="icon-sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            duplicateScenario(s.id)
+                          }}
+                          title="Duplicate scenario"
+                          className="h-5.5 w-5.5 p-0 bg-transparent border-none text-[var(--text-faint)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="icon-sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            deleteScenario(s.id)
+                          }}
+                          disabled={scenarios.length <= 1}
+                          title="Delete scenario"
+                          className="h-5.5 w-5.5 p-0 bg-transparent border-none text-[var(--text-faint)] hover:bg-[var(--surface-2)] hover:text-[var(--err)] disabled:opacity-30"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Editor */}
       <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex flex-col gap-4 p-4">
-
-          {/* Name + actions */}
-          <div className="flex items-center gap-1.5">
+          {/* Scenario Name */}
+          <Field label="Scenario name">
             <input
               value={selected.name}
               onChange={e => patchSelected({ name: e.target.value })}
-              placeholder="Scenario name"
-              className="flex-1 bg-transparent text-[13px] font-medium text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
+              placeholder="Enter scenario name"
+              className={standardInputCls}
             />
-            <button onClick={duplicateScenario} title="Duplicate" className={iconBtnCls}>
-              <Copy className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={deleteScenario}
-              disabled={scenarios.length <= 1}
-              title="Delete"
-              className={cn(iconBtnCls, 'hover:text-[var(--err)] disabled:pointer-events-none disabled:opacity-30')}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
+          </Field>
 
           {/* Description */}
           <Field label="Description" hint="Optional">
@@ -128,7 +163,7 @@ export function TestPanel({ onRun, isRunning }: TestPanelProps) {
               value={selected.desc}
               onChange={e => patchSelected({ desc: e.target.value })}
               placeholder="When does this scenario apply?"
-              className={inputCls}
+              className={standardInputCls}
             />
           </Field>
 
@@ -138,14 +173,15 @@ export function TestPanel({ onRun, isRunning }: TestPanelProps) {
               value={selected.payload}
               onChange={e => patchSelected({ payload: e.target.value })}
               rows={7}
-              className={cn(inputCls, 'resize-none font-mono text-[11.5px] leading-relaxed')}
+              placeholder="{}"
+              className={jsonAreaCls}
             />
           </Field>
 
           {/* Variables */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11.5px] font-medium text-[var(--text-mute)]">Variables</span>
+              <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-dim)]">Variables</span>
               <button
                 onClick={addVar}
                 className="flex items-center gap-0.5 text-[11px] text-[var(--text-faint)] transition-colors hover:text-[var(--text)]"
@@ -154,30 +190,31 @@ export function TestPanel({ onRun, isRunning }: TestPanelProps) {
               </button>
             </div>
             {selected.vars.length === 0 ? (
-              <p className="text-[11.5px] text-[var(--text-faint)]">No variables set.</p>
+              <p className="text-[11.5px] italic text-[var(--text-faint)]">No variables set.</p>
             ) : (
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-2">
                 {selected.vars.map((row, i) => (
-                  <div key={i} className="flex items-center gap-1.5">
+                  <div key={i} className="flex items-center gap-2">
                     <input
                       value={row.k}
                       onChange={e => setVar(i, 'k', e.target.value)}
                       placeholder="KEY"
-                      className={cn(inputCls, 'flex-1 font-mono text-[11px]')}
+                      className={cn(standardInputCls, 'flex-1 font-mono text-[11.5px]')}
                     />
-                    <span className="text-[var(--text-faint)]">=</span>
+                    <span className="text-[var(--text-faint)] font-mono">=</span>
                     <input
                       value={row.v}
                       onChange={e => setVar(i, 'v', e.target.value)}
                       placeholder="value"
-                      className={cn(inputCls, 'flex-1 font-mono text-[11px]')}
+                      className={cn(standardInputCls, 'flex-1 font-mono text-[11.5px]')}
                     />
-                    <button
+                    <Button
+                      variant="icon-sm"
                       onClick={() => removeVar(i)}
-                      className={cn(iconBtnCls, 'hover:text-[var(--err)]')}
+                      className="hover:text-[var(--err)]"
                     >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+                      <Trash2 />
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -186,28 +223,27 @@ export function TestPanel({ onRun, isRunning }: TestPanelProps) {
 
           {/* Options */}
           <div className="flex flex-col gap-2">
-            <span className="text-[11.5px] font-medium text-[var(--text-mute)]">Options</span>
-            <CheckRow label="Mock external calls" checked={selected.mockCalls} onChange={v => patchSelected({ mockCalls: v })} />
-            <CheckRow label="Replay last successful run" checked={selected.replayLast} onChange={v => patchSelected({ replayLast: v })} />
+            <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-dim)]">Options</span>
+            <div className="flex flex-col gap-2 mt-1">
+              <CheckRow label="Mock external calls" checked={selected.mockCalls} onChange={v => patchSelected({ mockCalls: v })} />
+              <CheckRow label="Replay last successful run" checked={selected.replayLast} onChange={v => patchSelected({ replayLast: v })} />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Footer run button */}
-      <div className="shrink-0 border-t border-[var(--border-faint)] p-3">
-        <button
+      <div className="shrink-0 border-t border-[var(--border-faint)] p-4 bg-[var(--bg-2)]">
+        <Button
           onClick={runScenario}
           disabled={isRunning}
-          className={cn(
-            'flex w-full items-center justify-center gap-2 rounded-[8px] bg-[var(--text)] py-2 text-[13px] font-medium text-[var(--bg)] transition-opacity',
-            'hover:opacity-90 disabled:pointer-events-none disabled:opacity-40',
-          )}
+          loading={isRunning}
+          variant="primary"
+          className="w-full font-semibold"
+          leftIcon={<Play className="h-3.5 w-3.5 fill-current" />}
         >
-          {isRunning
-            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            : <Play className="h-3.5 w-3.5 fill-current" />}
-          {isRunning ? 'Running…' : 'Run scenario'}
-        </button>
+          Run scenario
+        </Button>
       </div>
     </div>
   )

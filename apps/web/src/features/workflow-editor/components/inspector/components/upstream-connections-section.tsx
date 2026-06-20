@@ -73,10 +73,16 @@ function schemaToStub(outputs: { label: string; type: string }[]): Record<string
  * its outputsSchema so drag-drop still inserts `{{nodeId.path}}` even before
  * the node has been run.
  */
+import { useEditorLayoutStore } from '../../../stores/editorLayoutStore'
+
 export function UpstreamConnectionsSection({ nodeId }: UpstreamConnectionsSectionProps) {
   const nodes = useWorkflowEditorStore(s => s.nodes)
   const edges = useWorkflowEditorStore(s => s.edges)
   const nodeDefinitions = useWorkflowEditorStore(s => s.nodeDefinitions)
+
+  const bottomOpen = useEditorLayoutStore(s => s.bottomOpen)
+  const bottomHeight = useEditorLayoutStore(s => s.bottomHeight)
+  const totalHeight = bottomOpen ? bottomHeight : 36
 
   const ancestors = useMemo<Ancestor[]>(() => {
     const distance = collectAncestors(nodeId, edges)
@@ -104,8 +110,11 @@ export function UpstreamConnectionsSection({ nodeId }: UpstreamConnectionsSectio
   }, [nodeId, nodes, edges, nodeDefinitions])
 
   return (
-    <div className="shrink-0 border-t border-[var(--border-faint)] px-3 py-3">
-      <div className="mb-1.5 flex items-center justify-between px-1">
+    <div
+      className="shrink-0 border-t border-[var(--border-faint)] px-3 py-3 flex flex-col overflow-hidden transition-[height] duration-300 ease-in-out"
+      style={{ height: totalHeight }}
+    >
+      <div className="mb-1.5 flex items-center justify-between px-1 shrink-0">
         <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-mute)]">
           Inputs
         </span>
@@ -113,17 +122,19 @@ export function UpstreamConnectionsSection({ nodeId }: UpstreamConnectionsSectio
           <span className="font-mono text-[10px] text-[var(--text-dim)]">{ancestors.length}</span>
         )}
       </div>
-      {ancestors.length === 0 ? (
-        <p className="px-1 text-[11.5px] italic text-[var(--text-faint)]">
-          No upstream nodes connected.
-        </p>
-      ) : (
-        <div className="flex flex-col gap-0.5">
-          {ancestors.map(a => (
-            <AncestorRow key={a.node.id} ancestor={a} />
-          ))}
-        </div>
-      )}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        {ancestors.length === 0 ? (
+          <p className="px-1 text-[11.5px] italic text-[var(--text-faint)]">
+            No upstream nodes connected.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-0.5">
+            {ancestors.map(a => (
+              <AncestorRow key={a.node.id} ancestor={a} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

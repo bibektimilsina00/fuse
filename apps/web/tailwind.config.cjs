@@ -6,6 +6,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // ── Fuse design tokens ────────────────────────────────────────────
         bg:    v('--bg'),
         bg2:   v('--bg-2'),
         surface: { DEFAULT: v('--surface'), 2: v('--surface-2'), 3: v('--surface-3') },
@@ -15,6 +16,36 @@ module.exports = {
         ok:   v('--ok'),
         warn: v('--warn'),
         err:  v('--err'),
+
+        // ── shadcn/ui token aliases (maps to Fuse vars via CSS) ───────────
+        background:  v('--background'),
+        foreground:  v('--foreground'),
+        card: {
+          DEFAULT:    v('--card'),
+          foreground: v('--card-foreground'),
+        },
+        popover: {
+          DEFAULT:    v('--popover'),
+          foreground: v('--popover-foreground'),
+        },
+        primary: {
+          DEFAULT:    v('--primary'),
+          foreground: v('--primary-foreground'),
+        },
+        secondary: {
+          DEFAULT:    v('--secondary'),
+          foreground: v('--secondary-foreground'),
+        },
+        muted: {
+          DEFAULT:    v('--muted'),
+          foreground: v('--muted-foreground'),
+        },
+        destructive: {
+          DEFAULT:    v('--destructive'),
+          foreground: v('--destructive-foreground'),
+        },
+        input:  v('--input'),
+        ring:   v('--ring'),
       },
 
       fontFamily: {
@@ -80,15 +111,23 @@ module.exports = {
         'slide-up':  { from: { opacity: '0', transform: 'translateY(6px) scale(0.98)' }, to: { opacity: '1', transform: 'translateY(0) scale(1)' } },
         'toast-in':  { from: { opacity: '0', transform: 'translateY(12px) scale(0.96)' }, to: { opacity: '1', transform: 'translateY(0) scale(1)' } },
         'toast-out': { from: { opacity: '1', transform: 'translateY(0) scale(1)' }, to: { opacity: '0', transform: 'translateY(8px) scale(0.96)' } },
+        // shadcn/ui animation keyframes
+        'accordion-down': { from: { height: '0' }, to: { height: 'var(--radix-accordion-content-height)' } },
+        'accordion-up':   { from: { height: 'var(--radix-accordion-content-height)' }, to: { height: '0' } },
       },
 
       animation: {
-        'fade-in':   'fade-in 150ms ease-out',
-        'slide-up':  'slide-up 200ms cubic-bezier(0.16, 1, 0.3, 1)',
-        'toast-in':  'toast-in 220ms cubic-bezier(0.16, 1, 0.3, 1)',
-        'toast-out': 'toast-out 180ms ease-in forwards',
+        'fade-in':         'fade-in 150ms ease-out',
+        'slide-up':        'slide-up 200ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'toast-in':        'toast-in 220ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'toast-out':       'toast-out 180ms ease-in forwards',
+        'accordion-down':  'accordion-down 200ms ease-out',
+        'accordion-up':    'accordion-up 200ms ease-out',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwindcss-animate'),
+  ],
 }
+

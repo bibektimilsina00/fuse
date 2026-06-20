@@ -101,11 +101,12 @@ export function DateTimeRenderer({
         placeholder={placeholder}
         disabled={disabled}
         className={cn(
-          'w-full rounded-[6px] border border-border-faint bg-surface',
-          'pl-2.5 pr-8 py-1.5 text-[12px] text-text outline-none',
+          'flex h-9 w-full rounded-[8px] border border-border-soft bg-bg2 pl-3 pr-9 text-sm text-text',
           'placeholder:text-text-faint',
-          'focus:border-accent',
-          disabled && 'cursor-not-allowed opacity-50',
+          'transition-[background-color,border-color] duration-[120ms]',
+          'hover:border-border hover:bg-surface',
+          'focus:outline-none focus:border-accent focus:bg-surface-2',
+          disabled && 'cursor-not-allowed opacity-40',
         )}
       />
       <button
@@ -115,10 +116,10 @@ export function DateTimeRenderer({
         title="Pick a date"
         className={cn(
           'absolute right-1.5 top-1/2 -translate-y-1/2',
-          'flex h-6 w-6 items-center justify-center rounded-[4px]',
-          'text-text-faint hover:bg-surface-2 hover:text-text',
-          'transition-colors',
-          disabled && 'cursor-not-allowed opacity-50',
+          'flex h-6 w-6 items-center justify-center rounded-[6px]',
+          'text-text-faint hover:bg-surface-3 hover:text-text',
+          'transition-colors duration-[100ms]',
+          disabled && 'cursor-not-allowed opacity-40',
         )}
       >
         <Calendar className="h-3.5 w-3.5" />

@@ -11,6 +11,22 @@ import { renameNodeInGraph } from '../utils/rename-refactor'
 
 const AUTOSAVE_DELAY = 1500 // ms
 
+// Trigger node types that need the `/listen` endpoint instead of the
+// fire-once `/run` endpoint. Polling triggers (Gmail / Calendar / …)
+// wait on a Celery-driven snapshot-then-poll loop. Module-scope so the
+// Set identity is stable across renders.
+const POLLING_LISTEN_TYPES = new Set([
+  'trigger.gmail',
+  'trigger.gcal_event',
+  'trigger.gdrive_change',
+  'trigger.google_sheets',
+  'trigger.gtasks_change',
+  'trigger.gforms_response',
+  'trigger.gpeople_change',
+  'trigger.gyt_change',
+  'trigger.gchat_change',
+])
+
 interface SavedGraph {
   nodes: Pick<Node, 'id' | 'type' | 'position' | 'data'>[]
   edges: Pick<Edge, 'id' | 'source' | 'target' | 'sourceHandle' | 'targetHandle' | 'type'>[]
@@ -202,22 +218,6 @@ export function useWorkflowEditor(workflowId: string) {
   //
   // The choice is made at click-time off the live graph so a user
   // doesn't need to know which mode they're in.
-  // Trigger node types that need the `/listen` endpoint instead of the
-  // fire-once `/run` endpoint. Meta triggers wait on real webhooks;
-  // polling triggers (Gmail / Calendar / …) wait on a Celery-driven
-  // snapshot-then-poll loop. Either way the editor should open the
-  // listen slot when the user clicks Run on a graph containing one.
-  const POLLING_LISTEN_TYPES = new Set([
-    'trigger.gmail',
-    'trigger.gcal_event',
-    'trigger.gdrive_change',
-    'trigger.google_sheets',
-    'trigger.gtasks_change',
-    'trigger.gforms_response',
-    'trigger.gpeople_change',
-    'trigger.gyt_change',
-    'trigger.gchat_change',
-  ])
 
   const hasMetaTrigger = useCallback(() => {
     const { nodes } = useWorkflowEditorStore.getState()

@@ -11,24 +11,24 @@
 ══════════════════════════════════════════════════════════════════════════════ */
 :root {
   /* Surfaces — Linear's stack: app → surface → panel → node */
-  --bg:         #08090a;  /* app canvas, dot-grid background */
-  --bg-2:       #0c0d0f;  /* sidebar / secondary chrome */
+  --bg:         #1c1c1c;  /* app canvas, dot-grid background */
+  --bg-2:       #1e1e1e;  /* sidebar / secondary chrome */
 
-  --surface:    #0f1011;  /* cards, panels, inspector */
-  --surface-2:  #161719;  /* nodes, raised tiles */
-  --surface-3:  #1c1d1f;  /* hovered surface-2 */
+  --surface:    #262626;  /* cards, panels, inspector */
+  --surface-2:  #303030;  /* nodes, raised tiles */
+  --surface-3:  #3b3b3b;  /* hovered surface-2 */
 
   /* Hairlines — almost invisible */
-  --border:       rgba(255, 255, 255, 0.11);
-  --border-soft:  rgba(255, 255, 255, 0.07);
-  --border-faint: rgba(255, 255, 255, 0.04);
+  --border:       rgba(255, 255, 255, 0.16);
+  --border-soft:  rgba(255, 255, 255, 0.10);
+  --border-faint: rgba(255, 255, 255, 0.06);
 
   /* Text ramp — neutral whites tilted slightly cool */
-  --text:       #edeef0;  /* primary body, headings */
-  --text-body:  #c7c9ce;  /* assistant-message body, secondary copy */
-  --text-mute:  #8a8f98;  /* meta, captions */
-  --text-faint: #62666d;  /* faint hints */
-  --text-dim:   #52565d;  /* dim labels */
+  --text:       #f3f4f6;  /* primary body, headings */
+  --text-body:  #d1d5db;  /* assistant-message body, secondary copy */
+  --text-mute:  #9ca3af;  /* meta, captions */
+  --text-faint: #7a7f8a;  /* faint hints — lifted for small-text readability */
+  --text-dim:   #656973;  /* dim labels — lifted for small-text readability */
 
   /* Accent — muted indigo (the real Linear blue, NOT bright) */
   --accent:       #5e6ad2;
@@ -54,7 +54,7 @@
   --dot-color: rgba(255, 255, 255, 0.05);
 
   /* Typography */
-  --font-ui:   "Inter", "Inter Tight", "Geist", "Helvetica Neue", system-ui, sans-serif;
+  --font-ui:   "Plus Jakarta Sans", "Geist", "Inter", "Helvetica Neue", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   /* Radii — Linear-tight (was 8/12/16, now 6/8/10) */
@@ -67,6 +67,32 @@
   --shadow-panel:    0 8px 24px rgba(0, 0, 0, 0.45);
   --shadow-modal:    0 24px 64px rgba(0, 0, 0, 0.70);
   --shadow-dropdown: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SHADCN/UI COMPATIBILITY ALIASES
+   Maps Fuse design tokens → shadcn's expected CSS variable names.
+   shadcn components use bg-background, text-foreground, etc., which Tailwind
+   resolves via these vars. Theme overrides cascade automatically.
+══════════════════════════════════════════════════════════════════════════════ */
+:root {
+  --background:             var(--bg);
+  --foreground:             var(--text);
+  --card:                   var(--surface);
+  --card-foreground:        var(--text);
+  --popover:                var(--bg-2);
+  --popover-foreground:     var(--text);
+  --primary:                var(--accent);
+  --primary-foreground:     #ffffff;
+  --secondary:              var(--surface-2);
+  --secondary-foreground:   var(--text);
+  --muted:                  var(--surface);
+  --muted-foreground:       var(--text-mute);
+  --destructive:            var(--err);
+  --destructive-foreground: #ffffff;
+  --input:                  var(--border-faint);
+  --ring:                   var(--accent);
+  --radius:                 var(--r-md);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -134,58 +160,108 @@
    Tokens are direct ports of the `schemes()` map in Fuse.dc.html.
 ══════════════════════════════════════════════════════════════════════════════ */
 :root[data-theme='slate'] {
-  --bg:        #0e0f12;
-  --bg-2:      #121316;
-  --surface:   #16181c;
-  --surface-2: #1d2024;
-  --surface-3: #232629;
+  --bg:        #1c1c1c;
+  --bg-2:      #1e1e1e;
+  --surface:   #262626;
+  --surface-2: #303030;
+  --surface-3: #3b3b3b;
   --accent:       #6b76e0;
   --accent-soft:  rgba(107, 118, 224, 0.14);
   --accent-line:  rgba(107, 118, 224, 0.45);
 }
 
 :root[data-theme='indigo'] {
-  --bg:        #08090c;
-  --bg-2:      #0c0d12;
-  --surface:   #0f1118;
-  --surface-2: #161820;
-  --surface-3: #1c1e28;
+  --bg:        #1c1c1c;
+  --bg-2:      #1e1e1e;
+  --surface:   #262626;
+  --surface-2: #303030;
+  --surface-3: #3b3b3b;
   --accent:       #7c83ff;
   --accent-soft:  rgba(124, 131, 255, 0.14);
   --accent-line:  rgba(124, 131, 255, 0.45);
 }
 
 :root[data-theme='emerald'] {
-  --bg:        #070908;
-  --bg-2:      #0a0d0b;
-  --surface:   #0d100e;
-  --surface-2: #141a16;
-  --surface-3: #19211c;
+  --bg:        #1c1c1c;
+  --bg-2:      #1e1e1e;
+  --surface:   #262626;
+  --surface-2: #303030;
+  --surface-3: #3b3b3b;
   --accent:       #3fb98a;
   --accent-soft:  rgba(63, 185, 138, 0.14);
   --accent-line:  rgba(63, 185, 138, 0.45);
 }
 
 :root[data-theme='ember'] {
-  --bg:        #0a0807;
-  --bg-2:      #0d0a09;
-  --surface:   #100c0b;
-  --surface-2: #1a1411;
-  --surface-3: #221915;
+  --bg:        #1c1c1c;
+  --bg-2:      #1e1e1e;
+  --surface:   #262626;
+  --surface-2: #303030;
+  --surface-3: #3b3b3b;
   --accent:       #e0673f;
   --accent-soft:  rgba(224, 103, 63, 0.14);
   --accent-line:  rgba(224, 103, 63, 0.45);
 }
 
 :root[data-theme='plum'] {
-  --bg:        #09080a;
-  --bg-2:      #0c0a0e;
-  --surface:   #0f0d12;
-  --surface-2: #181420;
-  --surface-3: #1f1929;
+  --bg:        #1c1c1c;
+  --bg-2:      #1e1e1e;
+  --surface:   #262626;
+  --surface-2: #303030;
+  --surface-3: #3b3b3b;
   --accent:       #a06cf0;
   --accent-soft:  rgba(160, 108, 240, 0.14);
   --accent-line:  rgba(160, 108, 240, 0.45);
+}
+
+:root[data-theme='n8n-dark'],
+.theme-n8n-dark {
+  --bg:         #1c1c1c;
+  --bg-2:       #1e1e1e;
+  --surface:    #262626;
+  --surface-2:  #303030;
+  --surface-3:  #3b3b3b;
+  --border:       rgba(255, 255, 255, 0.16);
+  --border-soft:  rgba(255, 255, 255, 0.10);
+  --border-faint: rgba(255, 255, 255, 0.06);
+  --text:       oklch(0.985 0.005 298);
+  --text-mute:  oklch(0.82 0.01 298);
+  --text-faint: oklch(0.66 0.015 298);
+  --text-dim:   oklch(0.52 0.015 298);
+  --accent:       oklch(0.85 0.17 165);
+  --accent-soft:  oklch(0.85 0.17 165 / 0.12);
+  --accent-line:  oklch(0.85 0.17 165 / 0.38);
+  --badge-acc-bg:  oklch(0.230 0.050 165);
+  --dot-color: oklch(0.218 0.033 294);
+  --shadow-float:    0 4px 16px -4px oklch(0 0 0 / 0.55);
+  --shadow-panel:    0 8px 32px -8px oklch(0 0 0 / 0.65);
+  --shadow-modal:    0 24px 64px -16px oklch(0 0 0 / 0.80);
+  --shadow-dropdown: 0 12px 40px -8px oklch(0 0 0 / 0.65);
+}
+
+:root[data-theme='linear-dark'],
+.theme-linear-dark {
+  --bg:         #1c1c1c;
+  --bg-2:       #1e1e1e;
+  --surface:    #262626;
+  --surface-2:  #303030;
+  --surface-3:  #3b3b3b;
+  --border:       rgba(255, 255, 255, 0.16);
+  --border-soft:  rgba(255, 255, 255, 0.10);
+  --border-faint: rgba(255, 255, 255, 0.06);
+  --text:       oklch(0.98 0 0);
+  --text-mute:  oklch(0.82 0 0);
+  --text-faint: oklch(0.66 0 0);
+  --text-dim:   oklch(0.52 0 0);
+  --accent:       oklch(0.58 0.18 260);
+  --accent-soft:  oklch(0.58 0.18 260 / 0.12);
+  --accent-line:  oklch(0.58 0.18 260 / 0.38);
+  --badge-acc-bg:  oklch(0.18 0.06 260);
+  --dot-color: oklch(0.15 0 0);
+  --shadow-float:    0 4px 16px -4px oklch(0 0 0 / 0.55);
+  --shadow-panel:    0 8px 32px -8px oklch(0 0 0 / 0.65);
+  --shadow-modal:    0 24px 64px -16px oklch(0 0 0 / 0.80);
+  --shadow-dropdown: 0 12px 40px -8px oklch(0 0 0 / 0.65);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -228,8 +304,8 @@ body {
   color: var(--text);
   font-family: var(--font-ui);
   font-size: 14px;
-  line-height: 1.5;
-  letter-spacing: -0.005em;
+  line-height: 1.6;
+  letter-spacing: -0.004em;
   font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

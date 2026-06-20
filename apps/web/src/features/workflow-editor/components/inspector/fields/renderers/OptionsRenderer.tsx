@@ -74,6 +74,8 @@ export function OptionsRenderer({ prop, value, onChange, properties, disabled }:
 
 // ── Simple Select ─────────────────────────────────────────────────────────────
 
+import { Select } from '@/components/ui/select'
+
 interface SimpleSelectProps {
   options: NodePropertyOption[]
   value: unknown
@@ -84,63 +86,23 @@ interface SimpleSelectProps {
 }
 
 function SimpleSelect({ options, value, onChange, placeholder, isLoading, disabled }: SimpleSelectProps) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const selected = options.find(o => String(o.value) === String(value))
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
+  const formattedOptions = options.map(o => ({
+    value: String(o.value),
+    label: o.label,
+    description: o.description,
+  }))
 
   return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        disabled={disabled}
-        className={cn(
-          'flex h-[34px] w-full items-center gap-2 rounded-[7px] border border-[var(--border-soft)] bg-[rgba(255,255,255,0.025)] px-[11px] text-[13px] text-left',
-          'transition-colors hover:border-[var(--border)] hover:bg-[rgba(255,255,255,0.04)]',
-          open && 'border-[var(--border)] bg-[var(--surface-2)]',
-          disabled && 'opacity-50 cursor-not-allowed',
-        )}
-      >
-        <span className={cn('flex-1 min-w-0 truncate', !selected && 'text-text-faint')}>
-          {isLoading ? 'Loading…' : (selected?.label ?? placeholder)}
-        </span>
-        {isLoading ? <Loader2 size={12} className="shrink-0 animate-spin text-text-faint" /> : <ChevronDown size={12} className={cn('shrink-0 text-text-faint transition-transform', open && 'rotate-180')} />}
-      </button>
-
-      {open && (
-        <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 max-h-52 overflow-y-auto rounded-[10px] border border-border-faint bg-bg p-1.5 shadow-dropdown">
-          {options.length === 0 && (
-            <p className="px-2.5 py-2 text-[11px] text-text-faint">No options</p>
-          )}
-          {options.map((opt, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => { onChange(opt.value); setOpen(false) }}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-left text-[12px]',
-                String(opt.value) === String(value) ? 'bg-surface-2 font-medium text-text' : 'text-text-mute hover:bg-surface hover:text-text',
-              )}
-            >
-              <span className="flex-1 min-w-0">
-                <span className="block">{opt.label}</span>
-                {opt.description && <span className="block text-[10px] text-text-faint">{opt.description}</span>}
-              </span>
-              {String(opt.value) === String(value) && <Check size={11} className="shrink-0 text-accent" />}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <Select
+      options={formattedOptions}
+      value={value !== undefined && value !== null ? String(value) : undefined}
+      onChange={(val) => {
+        const original = options.find(o => String(o.value) === val)
+        onChange(original ? original.value : val)
+      }}
+      placeholder={isLoading ? 'Loading…' : placeholder}
+      disabled={disabled || isLoading}
+    />
   )
 }
 
@@ -205,22 +167,22 @@ function ComboBox({ options, value, displayValue, onChange, placeholder, isLoadi
         onClick={() => setOpen(v => !v)}
         disabled={disabled}
         className={cn(
-          'flex h-[34px] w-full items-center gap-2 rounded-[7px] border border-[var(--border-soft)] bg-[rgba(255,255,255,0.025)] px-[11px] text-[13px] text-left',
-          'transition-colors hover:border-[var(--border)] hover:bg-[rgba(255,255,255,0.04)]',
-          open && 'border-[var(--border)] bg-[var(--surface-2)]',
-          disabled && 'opacity-50 cursor-not-allowed',
+          'flex h-9 w-full items-center gap-2 rounded-[8px] border border-border-soft bg-surface px-3 text-sm text-left',
+          'transition-[background-color,border-color] duration-[120ms] hover:border-border hover:bg-surface-2',
+          open && 'border-accent bg-surface-2',
+          disabled && 'opacity-40 cursor-not-allowed',
         )}
       >
         <span className={cn('flex-1 min-w-0 truncate', !displayValue && 'text-text-faint')}>
           {isLoading ? 'Loading…' : (displayValue || placeholder)}
         </span>
-        {isLoading ? <Loader2 size={12} className="shrink-0 animate-spin text-text-faint" /> : <ChevronDown size={12} className={cn('shrink-0 text-text-faint transition-transform', open && 'rotate-180')} />}
+        {isLoading ? <Loader2 className="shrink-0 w-3.5 h-3.5 animate-spin text-text-faint" /> : <ChevronDown className={cn('shrink-0 w-3.5 h-3.5 text-text-faint transition-transform duration-[150ms]', open && 'rotate-180')} />}
       </button>
-
+ 
       {open && (
-        <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 rounded-[10px] border border-border-faint bg-bg shadow-dropdown">
+        <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 rounded-[8px] border border-border-soft bg-surface shadow-dropdown animate-in fade-in-0 zoom-in-95 duration-[100ms]">
           {/* Search input — pure filter, never mutates the value. */}
-          <div className="border-b border-border-faint p-1.5">
+          <div className="border-b border-border-soft p-1.5">
             <input
               ref={inputRef}
               value={query}
@@ -235,22 +197,22 @@ function ComboBox({ options, value, displayValue, onChange, placeholder, isLoadi
               }}
               placeholder="Search…"
               spellCheck={false}
-              className="h-7 w-full rounded-[7px] bg-surface px-2.5 text-[12px] text-text outline-none placeholder:text-text-faint"
+              className="h-8 w-full rounded-[6px] bg-surface px-2.5 text-sm text-text border border-border-soft outline-none focus:border-accent focus:bg-surface-2 placeholder:text-text-faint transition-[background-color,border-color] duration-[120ms]"
             />
           </div>
-
+ 
           <div className="max-h-52 overflow-y-auto p-1.5">
             {filtered.length === 0 ? (
               allowCustom && query.trim() ? (
                 <button
                   type="button"
                   onMouseDown={e => { e.preventDefault(); commitCustom() }}
-                  className="flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-left text-[12px] text-text-mute hover:bg-surface hover:text-text"
+                  className="flex w-full items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-left text-sm text-text-mute hover:bg-surface hover:text-text transition-colors duration-[100ms]"
                 >
                   Use <span className="font-mono text-accent">{query.trim()}</span> as custom value
                 </button>
               ) : (
-                <p className="px-2.5 py-2 text-[11px] text-text-faint">No options</p>
+                <p className="px-2.5 py-2 text-xs text-text-faint">No options</p>
               )
             ) : (
               filtered.map((opt, i) => (
@@ -259,15 +221,15 @@ function ComboBox({ options, value, displayValue, onChange, placeholder, isLoadi
                   type="button"
                   onMouseDown={e => { e.preventDefault(); handleSelect(opt) }}
                   className={cn(
-                    'flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-left text-[12px]',
+                    'flex w-full items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-left text-sm transition-colors duration-[100ms]',
                     String(opt.value) === String(value) ? 'bg-surface-2 font-medium text-text' : 'text-text-mute hover:bg-surface hover:text-text',
                   )}
                 >
                   <span className="flex-1 min-w-0">
                     <span className="block">{opt.label}</span>
-                    {opt.description && <span className="block text-[10px] text-text-faint">{opt.description}</span>}
+                    {opt.description && <span className="block text-xs text-text-faint mt-px">{opt.description}</span>}
                   </span>
-                  {String(opt.value) === String(value) && <Check size={11} className="shrink-0 text-accent" />}
+                  {String(opt.value) === String(value) && <Check className="shrink-0 w-3.5 h-3.5 text-accent" />}
                 </button>
               ))
             )}
@@ -330,10 +292,10 @@ function MultiSelect({ options, value, onChange, placeholder, isLoading, disable
         onClick={() => setOpen(v => !v)}
         disabled={disabled}
         className={cn(
-          'flex min-h-[34px] w-full items-center gap-1.5 rounded-[7px] border border-[var(--border-soft)] bg-[rgba(255,255,255,0.025)] p-[5px] pl-[9px] text-[13px] text-left',
-          'transition-colors hover:border-[var(--border)]',
-          open && 'border-[var(--border)] bg-[var(--surface-2)]',
-          disabled && 'opacity-50 cursor-not-allowed',
+          'flex min-h-[36px] w-full items-center gap-1.5 rounded-[8px] border border-border-soft bg-surface p-1.5 pl-3 text-sm text-left',
+          'transition-[background-color,border-color] duration-[120ms] hover:border-border hover:bg-surface-2',
+          open && 'border-accent bg-surface-2',
+          disabled && 'opacity-40 cursor-not-allowed',
         )}
       >
         <div className="flex flex-1 min-w-0 flex-wrap items-center gap-1">
@@ -343,7 +305,7 @@ function MultiSelect({ options, value, onChange, placeholder, isLoading, disable
             selectedOptions.map((opt, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-[6px] rounded-[5px] bg-[rgba(255,255,255,0.07)] px-[8px] py-[3px] text-[12px] text-[var(--text)]"
+                className="inline-flex items-center gap-[6px] rounded-[6px] bg-surface px-2 py-0.5 text-xs text-text border border-border-soft"
               >
                 {opt.label}
                 <button
@@ -358,13 +320,13 @@ function MultiSelect({ options, value, onChange, placeholder, isLoading, disable
             ))
           )}
         </div>
-        {isLoading ? <Loader2 size={12} className="shrink-0 animate-spin text-text-faint" /> : <ChevronDown size={12} className={cn('shrink-0 text-text-faint transition-transform', open && 'rotate-180')} />}
+        {isLoading ? <Loader2 className="shrink-0 w-3.5 h-3.5 animate-spin text-text-faint" /> : <ChevronDown className={cn('shrink-0 w-3.5 h-3.5 text-text-faint transition-transform duration-[150ms]', open && 'rotate-180')} />}
       </button>
-
+ 
       {open && (
-        <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 max-h-52 overflow-y-auto rounded-[10px] border border-border-faint bg-bg p-1.5 shadow-dropdown">
+        <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 max-h-52 overflow-y-auto rounded-[8px] border border-border-soft bg-surface p-1.5 shadow-dropdown animate-in fade-in-0 zoom-in-95 duration-[100ms]">
           {options.length === 0 && (
-            <p className="px-2.5 py-2 text-[11px] text-text-faint">No options</p>
+            <p className="px-2.5 py-2 text-xs text-text-faint">No options</p>
           )}
           {options.map((opt, i) => {
             const picked = isPicked(opt.value)
@@ -374,19 +336,19 @@ function MultiSelect({ options, value, onChange, placeholder, isLoading, disable
                 type="button"
                 onClick={() => toggle(opt.value)}
                 className={cn(
-                  'flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-left text-[12px]',
+                  'flex w-full items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-left text-sm transition-colors duration-[100ms]',
                   picked ? 'bg-surface-2 font-medium text-text' : 'text-text-mute hover:bg-surface hover:text-text',
                 )}
               >
                 <div className={cn(
                   'flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors',
-                  picked ? 'border-[var(--accent)] bg-[var(--accent)] text-bg' : 'border-border-faint',
+                  picked ? 'border-accent bg-accent text-white' : 'border-border-soft bg-transparent',
                 )}>
                   {picked && <Check size={10} />}
                 </div>
                 <span className="flex-1 min-w-0">
                   <span className="block">{opt.label}</span>
-                  {opt.description && <span className="block text-[10px] text-text-faint">{opt.description}</span>}
+                  {opt.description && <span className="block text-xs text-text-faint mt-px">{opt.description}</span>}
                 </span>
               </button>
             )

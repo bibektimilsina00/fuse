@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { RendererProps } from '../types'
-import { Input, Toggle } from '@/shared/components'
-import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '@/shared/components/Dropdown'
+import { Toggle, Tooltip } from '@/shared/components'
+import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { ExpressionEditor } from '../expression/ExpressionEditor'
 import { cn } from '@/lib/cn'
+import { HelpCircle } from 'lucide-react'
 
 /**
  * Visual builder for Gmail's search-query syntax. Reads/writes a raw
@@ -132,14 +135,33 @@ export function GmailQueryRenderer({ prop, value, onChange, disabled }: Renderer
     emit({ ...parsed, chips: [...parsed.chips, { kind: 'op', op, value: initial, negated: false }] })
   }
 
-  // Raw mode delegates to the standard expression editor so users keep
-  // autocomplete + `{{ }}` interpolation when they need full control.
+  const isRequired = prop.required === true
+
+  const header = (
+    <div className="flex items-center justify-between gap-2 h-5">
+      <label className="inline-flex items-center gap-[5px] text-[12px] font-medium text-[var(--text-mute)] leading-none">
+        {prop.label}
+        {isRequired && (
+          <span
+            aria-hidden
+            className="inline-block w-[4px] h-[4px] rounded-full bg-[var(--err)]"
+            title="Required"
+          />
+        )}
+        {prop.description && (
+          <Tooltip content={<span className="max-w-[220px] block text-[11px] leading-normal">{prop.description}</span>} delayDuration={150}>
+            <HelpCircle className="h-[12.5px] w-[12.5px] text-[var(--text-faint)] hover:text-[var(--text-mute)] cursor-help transition-colors" />
+          </Tooltip>
+        )}
+      </label>
+      <ModeToggle mode={mode} setMode={setMode} disabled={disabled} />
+    </div>
+  )
+
   if (mode === 'raw') {
     return (
-      <div className="space-y-2">
-        <div className="flex justify-end">
-          <ModeToggle mode={mode} setMode={setMode} disabled={disabled} />
-        </div>
+      <div className="flex flex-col gap-[6px]">
+        {header}
         <ExpressionEditor
           value={raw}
           onChange={(v) => { lastEmitted.current = v; onChange(v) }}
@@ -151,15 +173,13 @@ export function GmailQueryRenderer({ prop, value, onChange, disabled }: Renderer
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex justify-end">
-        <ModeToggle mode={mode} setMode={setMode} disabled={disabled} />
-      </div>
+    <div className="flex flex-col gap-[6px]">
+      {header}
       <div className={cn(
         'flex flex-wrap items-center gap-1.5',
-        'min-h-[42px] px-2 py-2 rounded-[5px]',
-        'bg-bg border border-border-faint',
-        'hover:border-border-soft focus-within:border-border focus-within:bg-surface',
+        'min-h-[38px] px-3 py-1.5 rounded-[8px]',
+        'bg-surface border border-solid border-border-soft transition-colors duration-[120ms]',
+        'hover:border-border hover:bg-surface-2 focus-within:border-accent focus-within:bg-surface-2',
       )}>
         {parsed.chips.map((chip, i) => (
           <ChipEditor
@@ -175,13 +195,10 @@ export function GmailQueryRenderer({ prop, value, onChange, disabled }: Renderer
           onChange={(e) => emit({ ...parsed, text: e.target.value })}
           placeholder={parsed.chips.length === 0 ? (prop.placeholder ?? 'Search words…') : 'more words…'}
           disabled={disabled}
-          className="!h-7 !py-0 !px-2 !text-xs flex-1 min-w-[120px] !bg-transparent !border-0 focus:!ring-0 focus:!shadow-none"
+          className="h-7 py-0 px-2 text-xs flex-1 min-w-[120px] bg-transparent border-0 outline-none focus:ring-0 focus:shadow-none focus-visible:ring-0 focus-visible:bg-transparent focus-visible:border-transparent hover:bg-transparent hover:border-transparent placeholder:text-text-faint text-text"
         />
         <AddFilterButton disabled={disabled} onPick={addChip} />
       </div>
-      {prop.description && (
-        <p className="text-[11px] text-text-muted">{prop.description}</p>
-      )}
     </div>
   )
 }
@@ -208,37 +225,46 @@ function ChipEditor({
 
   return (
     <div className={cn(
-      'inline-flex items-center gap-1 h-7 rounded-full text-xs',
+      'inline-flex items-center h-7 rounded-full text-xs px-2.5 gap-0.5',
       'border transition-colors',
       chip.negated
         ? 'border-[var(--danger,#dc2626)]/40 bg-[var(--danger,#dc2626)]/10'
         : 'border-border bg-surface-2',
     )}>
-      <button
-        type="button"
-        onClick={toggleNegate}
-        disabled={disabled}
-        title={chip.negated ? 'Match messages with this (remove −)' : 'Exclude messages with this (add −)'}
-        className={cn(
-          'pl-2 pr-0.5 font-mono leading-none',
-          chip.negated ? 'text-[var(--danger,#dc2626)]' : 'text-text-muted hover:text-text',
-        )}
-      >
-        {chip.negated ? '−' : ''}
-      </button>
-      <span className="text-text-muted">{def.label}:</span>
-      {def.kind === 'preset' ? (
-        <select
-          value={chip.value}
-          onChange={(e) => onChange({ value: e.target.value })}
+      {chip.negated && (
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={toggleNegate}
           disabled={disabled}
-          className="bg-transparent text-text text-xs outline-none border-0 py-0 pr-1 pl-0.5 cursor-pointer"
+          title="Remove negation"
+          className="font-mono h-auto p-0 hover:bg-transparent leading-none text-xs text-[var(--danger,#dc2626)] mr-0.5"
         >
-          {!chip.value && <option value="">—</option>}
-          {def.options!.map(o => <option key={o} value={o}>{o}</option>)}
-        </select>
+          −
+        </Button>
+      )}
+      <span className="text-text-muted font-mono">{chip.op}:</span>
+      {def.kind === 'preset' ? (
+        <Dropdown>
+          <DropdownTrigger asChild disabled={disabled}>
+            <Button
+              type="button"
+              variant="link"
+              className="text-text h-auto p-0 hover:underline outline-none cursor-pointer text-xs font-mono font-normal"
+            >
+              {chip.value || '—'}
+            </Button>
+          </DropdownTrigger>
+          <DropdownContent>
+            {def.options!.map(o => (
+              <DropdownItem key={o} onClick={() => onChange({ value: o })} className="capitalize">
+                {o}
+              </DropdownItem>
+            ))}
+          </DropdownContent>
+        </Dropdown>
       ) : editing ? (
-        <input
+        <Input
           ref={inputRef}
           type={def.kind === 'date' ? 'date' : 'text'}
           value={def.kind === 'date' ? toIsoDate(chip.value) : chip.value}
@@ -247,28 +273,30 @@ function ChipEditor({
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); commit() } }}
           placeholder={def.placeholder}
           disabled={disabled}
-          className="bg-transparent text-text text-xs outline-none border-0 py-0 px-1 min-w-[60px] w-[var(--w,auto)]"
+          className="bg-transparent text-text text-xs outline-none border-0 py-0 px-0.5 min-w-[60px] w-[var(--w,auto)] hover:bg-transparent focus-visible:bg-transparent focus-visible:border-transparent font-mono"
           style={{ width: `${Math.max((chip.value?.length ?? 0) + 1, def.placeholder?.length ?? 8)}ch` }}
         />
       ) : (
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={() => setEditing(true)}
           disabled={disabled}
-          className="text-text px-1 hover:underline"
+          className="text-text h-auto p-0 hover:underline text-xs font-mono font-normal"
         >
           {valueLabel}
-        </button>
+        </Button>
       )}
-      <button
+      <Button
         type="button"
+        variant="ghost"
         onClick={onRemove}
         disabled={disabled}
         title="Remove filter"
-        className="px-1.5 text-text-muted hover:text-text leading-none"
+        className="ml-1 px-1 h-auto p-0 text-text-muted hover:text-text hover:bg-transparent leading-none text-xs"
       >
         ×
-      </button>
+      </Button>
     </div>
   )
 }
@@ -291,15 +319,17 @@ function AddFilterButton({ disabled, onPick }: { disabled?: boolean; onPick: (op
   const [open, setOpen] = useState(false)
   return (
     <Dropdown open={open} onOpenChange={setOpen}>
-      <DropdownTrigger disabled={disabled}>
-        <span className={cn(
-          'inline-flex items-center gap-1 h-7 px-2 rounded-full text-xs',
-          'border border-dashed border-border text-text-muted',
-          'hover:bg-surface hover:text-text',
-          disabled && 'opacity-50 pointer-events-none',
-        )}>
+      <DropdownTrigger asChild disabled={disabled}>
+        <Button
+          type="button"
+          variant="ghost"
+          className={cn(
+            'inline-flex items-center gap-1 h-6 px-2.5 rounded-[6px] text-[11px] font-semibold bg-surface-2 border border-solid border-border-soft text-text-mute hover:bg-surface-3 hover:text-text transition-colors duration-[120ms]',
+            disabled && 'opacity-50 pointer-events-none',
+          )}
+        >
           + Add filter
-        </span>
+        </Button>
       </DropdownTrigger>
       <DropdownContent className="max-h-[260px] overflow-auto">
         {OPERATORS.map(def => (

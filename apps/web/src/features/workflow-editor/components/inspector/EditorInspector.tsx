@@ -63,10 +63,13 @@ export function EditorInspector({ nodes, updateNodeData, className }: EditorInsp
                 className="h-full"
               />
             ) : (
-              <div className="flex flex-col gap-[15px] p-4 pb-6">
-                <div className="text-[10.5px] font-semibold tracking-[0.07em] text-[var(--text-dim)] uppercase">
-                  Configuration
+              <div className="flex flex-col gap-[16px] p-4 pb-6">
+                <div className="flex items-center justify-between gap-4 h-8">
+                  <div className="text-[10.5px] font-bold tracking-[0.08em] text-[var(--text-dim)] uppercase">
+                    Configuration
+                  </div>
                 </div>
+
                 <PropertyGroupList
                   groups={basicGroups}
                   definition={definition}
@@ -76,30 +79,31 @@ export function EditorInspector({ nodes, updateNodeData, className }: EditorInsp
                 />
 
                 {advancedGroups.length > 0 && (
-                  <div className="flex flex-col gap-[14px]">
+                  <div className="flex flex-col gap-3 mt-1 border-t border-[var(--border-faint)] pt-3">
                     <button
                       type="button"
                       onClick={toggleAdvanced}
-                      className="flex items-center gap-[10px] group pt-[2px]"
+                      className="flex items-center justify-between w-full py-1 text-[10.5px] font-bold uppercase tracking-[0.08em] text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
                     >
-                      <span className="h-px flex-1 bg-[var(--border-faint)]" />
-                      <span className="inline-flex items-center gap-[6px] text-[12px] font-semibold text-[var(--text-mute)] transition-colors group-hover:text-[var(--text)]">
-                        {showAdvanced ? 'Hide advanced' : 'Show advanced'}
-                        <ChevronDown
-                          className={cn('h-[13px] w-[13px] transition-transform duration-200', showAdvanced && 'rotate-180')}
-                        />
-                      </span>
-                      <span className="h-px flex-1 bg-[var(--border-faint)]" />
+                      <span>Advanced Settings</span>
+                      <ChevronDown
+                        className={cn(
+                          "h-3.5 w-3.5 text-[var(--text-faint)] transition-transform duration-150",
+                          showAdvanced && "rotate-180"
+                        )}
+                      />
                     </button>
 
                     {showAdvanced && (
-                      <PropertyGroupList
-                        groups={advancedGroups}
-                        definition={definition}
-                        properties={properties}
-                        onPropertyChange={updateProperty}
-                        onPropertiesChange={updateProperties}
-                      />
+                      <div className="animate-in fade-in slide-in-from-top-1 duration-150">
+                        <PropertyGroupList
+                          groups={advancedGroups}
+                          definition={definition}
+                          properties={properties}
+                          onPropertyChange={updateProperty}
+                          onPropertiesChange={updateProperties}
+                        />
+                      </div>
                     )}
                   </div>
                 )}

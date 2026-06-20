@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { Icons } from '@/shared/components/icons'
 import {
   Dropdown, DropdownTrigger, DropdownContent, DropdownItem,
-} from '@/shared/components/Dropdown'
+} from '@/components/ui/dropdown-menu'
 import { useCreateKB } from '../hooks/useKnowledge'
 import { CHUNKING_STRATEGIES } from '../types/knowledgeTypes'
 
@@ -132,14 +132,14 @@ export function CreateKBModal({ onClose, onCreated }: Props) {
           {/* Chunking strategy */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[12px] font-semibold text-[var(--text-mute)]">Chunking Strategy</label>
-            <Dropdown className="w-full">
-              <DropdownTrigger className="w-full">
+            <Dropdown>
+              <DropdownTrigger asChild>
                 <div className="flex items-center justify-between h-[38px] px-3 bg-[var(--bg)] border border-[var(--border-faint)] rounded-[9px] text-[13px] text-[var(--text)] cursor-pointer hover:border-[var(--border-soft)] transition-colors">
                   <span>{selectedStrategy?.label ?? 'Auto'}</span>
                   <Icons.Caret style={{ width: 11, height: 11, color: 'var(--text-faint)' }} />
                 </div>
               </DropdownTrigger>
-              <DropdownContent className="w-full">
+              <DropdownContent className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)]">
                 {CHUNKING_STRATEGIES.map(s => (
                   <DropdownItem key={s.id} onClick={() => setStrategy(s.id)} className={strategy === s.id ? 'bg-[var(--surface)]' : ''}>
                     <div className="flex flex-col gap-0.5">

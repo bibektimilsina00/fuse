@@ -34,17 +34,18 @@ export function RoleSelect({ value, options, onChange, disabled, className }: Pr
   }
 
   return (
-    <Dropdown open={open} onOpenChange={setOpen} className={className}>
+    <Dropdown open={open} onOpenChange={setOpen}>
       <DropdownTrigger disabled={disabled}>
         <button
           className={cn(
             "inline-flex items-center gap-[6px] px-[9px] py-[5px] pl-[8px] rounded-[7px]",
             "bg-[var(--surface)] border border-[var(--border-faint)] text-[12px] font-medium",
             "transition-colors duration-100 outline-none justify-between",
-            disabled 
-              ? "opacity-50 cursor-default" 
+            disabled
+              ? "opacity-50 cursor-default"
               : "cursor-pointer hover:bg-[var(--surface-2)] hover:border-[var(--border-soft)]",
-            "group"
+            "group",
+            className,
           )}
           type="button"
           disabled={disabled}

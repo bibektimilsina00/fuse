@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import apiClient from '@/shared/utils/apiClient'
 import { API_ROUTES } from '@/shared/constants/routes'
+import { Select } from '@/shared/components'
 import type { RendererProps } from '../types'
 
 /**
@@ -113,29 +114,17 @@ export function WATemplateRenderer({ properties, value, onChange, disabled }: Re
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="relative">
-        <select
-          value={readString(value) ?? ''}
-          onChange={e => onChange(e.target.value)}
-          disabled={disabled}
-          className={cn(
-            'h-9 w-full appearance-none rounded-[7px] border border-border-faint bg-bg px-2.5 pr-7 text-[12px] text-text outline-none transition-colors',
-            'hover:border-border-soft focus:border-border',
-            disabled && 'opacity-50',
-          )}
-        >
-          <option value="">Select a template…</option>
-          {templates.map(t => (
-            <option key={`${t.id}-${t.language}`} value={t.name}>
-              {t.name} · {t.language} ({t.status})
-            </option>
-          ))}
-        </select>
-        <ChevronDown
-          size={13}
-          className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-text-faint"
-        />
-      </div>
+      <Select
+        value={readString(value) ?? ''}
+        onChange={onChange}
+        disabled={disabled}
+        placeholder="Select a template…"
+        options={templates.map(t => ({
+          value: t.name,
+          label: `${t.name} · ${t.language} (${t.status})`,
+        }))}
+        className="w-full"
+      />
 
       {selected && (
         <div className="flex flex-col gap-1 rounded-[7px] border border-border-faint bg-bg p-2">

@@ -72,18 +72,22 @@ export function useTestPanel(onRun: () => void) {
     setRenameId(id)
   }, [])
 
-  const duplicateScenario = useCallback(() => {
-    const id = crypto.randomUUID()
-    const dup: TestScenario = { ...selected, id, name: selected.name + ' (copy)', lastRun: null }
+  const duplicateScenario = useCallback((id?: string) => {
+    const target = id ? (scenarios.find(s => s.id === id) ?? selected) : selected
+    const nextId = crypto.randomUUID()
+    const dup: TestScenario = { ...target, id: nextId, name: target.name + ' (copy)', lastRun: null }
     setScenarios(ss => [...ss, dup])
-    setSelectedId(id)
-  }, [selected])
+    setSelectedId(nextId)
+  }, [selected, scenarios])
 
-  const deleteScenario = useCallback(() => {
+  const deleteScenario = useCallback((id?: string) => {
+    const targetId = id ?? selectedId
     if (scenarios.length <= 1) return
-    const remaining = scenarios.filter(s => s.id !== selectedId)
+    const remaining = scenarios.filter(s => s.id !== targetId)
     setScenarios(remaining)
-    setSelectedId(remaining[0].id)
+    if (targetId === selectedId) {
+      setSelectedId(remaining[0].id)
+    }
   }, [scenarios, selectedId])
 
   const runScenario = useCallback(() => {

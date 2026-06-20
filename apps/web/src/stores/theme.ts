@@ -8,9 +8,9 @@ type Theme = 'dark' | 'light'
  * attribute is set. The other five swap surface + accent tokens via
  * `:root[data-theme='<name>']` blocks defined in `index.css`.
  */
-export type ColorScheme = 'linear' | 'slate' | 'indigo' | 'emerald' | 'ember' | 'plum'
+export type ColorScheme = 'linear' | 'slate' | 'indigo' | 'emerald' | 'ember' | 'plum' | 'n8n-dark' | 'linear-dark'
 
-const SCHEMES: readonly ColorScheme[] = ['linear', 'slate', 'indigo', 'emerald', 'ember', 'plum']
+const SCHEMES: readonly ColorScheme[] = ['linear', 'slate', 'indigo', 'emerald', 'ember', 'plum', 'n8n-dark', 'linear-dark']
 
 function getStored(): Theme {
   try {

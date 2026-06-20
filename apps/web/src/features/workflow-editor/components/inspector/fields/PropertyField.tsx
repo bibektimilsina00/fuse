@@ -32,12 +32,14 @@ export function PropertyField({
   onReset,
 }: PropertyFieldProps) {
   const Renderer = FIELD_RENDERERS[prop.type as keyof typeof FIELD_RENDERERS] ?? FallbackRenderer
+  const hideLabel = prop.type === 'gmail-query'
 
   return (
     <FieldWrapper
       prop={prop}
-      canReset={defaultValue !== undefined && !sameValue(value, defaultValue)}
+      canReset={!hideLabel && defaultValue !== undefined && !sameValue(value, defaultValue)}
       onReset={onReset}
+      hideLabel={hideLabel}
     >
       <Renderer
         prop={prop}

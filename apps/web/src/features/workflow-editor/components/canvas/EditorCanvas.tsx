@@ -212,7 +212,7 @@ function Flow({
         connectionLineType={ConnectionLineType.SmoothStep}
         connectionLineStyle={{ stroke: 'var(--border)', strokeWidth: 2 }}
         fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
         minZoom={0.1}
         maxZoom={2}
         defaultEdgeOptions={{ type: 'custom', animated: false }}

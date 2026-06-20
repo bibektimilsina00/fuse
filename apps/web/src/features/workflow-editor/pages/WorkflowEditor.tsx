@@ -89,20 +89,31 @@ export function WorkflowEditor() {
     <ReactFlowProvider>
       {/* ── Editor shell ─────────────────────────────────────────────── */}
       <div className="relative flex h-full w-full flex-col overflow-hidden">
-        {/* Canvas row + right panel */}
+        {/* Main content area */}
         <div className="relative flex min-h-0 flex-1 overflow-hidden">
-          {/* Canvas */}
-          <div className="relative flex min-w-0 flex-1">
-            <EditorCanvas
-              nodes={canvasNodes}
-              edges={canvasEdges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onSelectNode={selectNode}
-              interactive={!diffActive}
-              onToggleFullscreen={toggleZenMode}
-              isFullscreen={zenMode}
+          {/* Canvas + Bottom Panel Column */}
+          <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+            {/* Canvas */}
+            <div className="relative flex min-h-0 flex-1">
+              <EditorCanvas
+                nodes={canvasNodes}
+                edges={canvasEdges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onSelectNode={selectNode}
+                interactive={!diffActive}
+                onToggleFullscreen={toggleZenMode}
+                isFullscreen={zenMode}
+              />
+            </div>
+
+            {/* Bottom panel */}
+            <BottomPanel
+              nodes={nodes}
+              updateNodeData={updateNodeData}
+              onRun={() => run()}
+              isRunning={isRunning}
             />
           </div>
 
@@ -114,14 +125,6 @@ export function WorkflowEditor() {
             isRunning={isRunning}
           />
         </div>
-
-          {/* Bottom panel */}
-        <BottomPanel
-          nodes={nodes}
-          updateNodeData={updateNodeData}
-          onRun={() => run()}
-          isRunning={isRunning}
-        />
       </div>
     </ReactFlowProvider>
   )
