@@ -1,7 +1,7 @@
 import { Toaster as SonnerToaster } from 'sonner'
 
 /**
- * Fuse Toaster — drop-in sonner wrapper with Fuse theme tokens.
+ * RunMyCrew Toaster — drop-in sonner wrapper with RunMyCrew theme tokens.
  * Place once in the app root (App.tsx) to replace the previous ToastProvider.
  */
 function Toaster() {

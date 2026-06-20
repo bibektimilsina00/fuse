@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src=".github/assets/fuse-mark.svg" alt="Fuse" width="72" height="72" />
+<img src=".github/assets/runmycrew-mark.svg" alt="RunMyCrew" width="72" height="72" />
 
-# Fuse
+# RunMyCrew
 
 ### The automation system for teams and agents
 
@@ -10,8 +10,8 @@ Connect every app you already use. Build workflows by describing them in plain E
 
 <br />
 
-[![Build status](https://img.shields.io/github/actions/workflow/status/bibektimilsina00/fuse_monorepo/build-publish.yml?branch=main&label=build&style=flat-square)](https://github.com/bibektimilsina00/fuse_monorepo/actions)
-[![Deploy](https://img.shields.io/github/actions/workflow/status/bibektimilsina00/fuse_monorepo/deploy.yml?branch=main&label=deploy&style=flat-square)](https://github.com/bibektimilsina00/fuse_monorepo/actions)
+[![Build status](https://img.shields.io/github/actions/workflow/status/bibektimilsina00/runmycrew/build-publish.yml?branch=main&label=build&style=flat-square)](https://github.com/bibektimilsina00/runmycrew/actions)
+[![Deploy](https://img.shields.io/github/actions/workflow/status/bibektimilsina00/runmycrew/deploy.yml?branch=main&label=deploy&style=flat-square)](https://github.com/bibektimilsina00/runmycrew/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![ghcr.io](https://img.shields.io/badge/container-ghcr.io-181717?style=flat-square&logo=github)](https://github.com/bibektimilsina00?tab=packages)
 [![Caddy](https://img.shields.io/badge/HTTPS-Caddy-1F88C0?style=flat-square)](https://caddyserver.com/)
@@ -20,7 +20,7 @@ Connect every app you already use. Build workflows by describing them in plain E
 
 <br />
 
-**[🌐 Live app](https://app.fuse.bibektimilsina.tech)** · **[🎯 Marketing site](https://fuse.bibektimilsina.tech)** · **[📚 Docs](https://fuse.bibektimilsina.tech/docs)** · **[🐛 Report a bug](https://github.com/bibektimilsina00/fuse_monorepo/issues/new)**
+**[🌐 Live app](https://app.runmycrew.com)** · **[🎯 Marketing site](https://runmycrew.com)** · **[📚 Docs](https://runmycrew.com/docs)** · **[🐛 Report a bug](https://github.com/bibektimilsina00/runmycrew/issues/new)**
 
 </div>
 
@@ -30,7 +30,7 @@ Connect every app you already use. Build workflows by describing them in plain E
 
 ## 📖 Table of Contents
 
-- [✨ What is Fuse?](#-what-is-fuse)
+- [✨ What is RunMyCrew?](#-what-is-runmycrew)
 - [🎯 Features](#-features)
 - [📸 Showcase](#-showcase)
 - [🏗 Architecture](#-architecture)
@@ -47,15 +47,15 @@ Connect every app you already use. Build workflows by describing them in plain E
 
 <br />
 
-## ✨ What is Fuse?
+## ✨ What is RunMyCrew?
 
-Fuse is an **open-source automation platform** that lives somewhere between Zapier and a workflow IDE. You can:
+RunMyCrew is an **open-source automation platform** that lives somewhere between Zapier and a workflow IDE. You can:
 
-- **Describe** what you want to automate in plain English and let **Fuse AI** (Claude-powered Copilot) turn it into a multi-step workflow.
+- **Describe** what you want to automate in plain English and let **Crew AI** (Claude-powered Copilot) turn it into a multi-step workflow.
 - **Connect** the apps you already use through battle-tested OAuth flows — Google Workspace, Slack, GitHub, Notion, Stripe, Meta, and more.
 - **Run** workflows on a schedule, webhook, or app event with retries, backoff, and per-step payload inspection.
 - **Observe** every execution with full logs, run replay, and alerts so you know the moment something drifts.
-- **Self-host** the whole stack with a single `docker compose up`, or use the hosted version at [`app.fuse.bibektimilsina.tech`](https://app.fuse.bibektimilsina.tech).
+- **Self-host** the whole stack with a single `docker compose up`, or use the hosted version at [`app.runmycrew.com`](https://app.runmycrew.com).
 
 The codebase is a **pnpm + uv monorepo** with four apps and a shared deploy folder — no microservice maze, no Kubernetes required for v1.
 
@@ -65,7 +65,7 @@ The codebase is a **pnpm + uv monorepo** with four apps and a shared deploy fold
 
 | | |
 |---|---|
-| 🤖 **Fuse AI Copilot** | Generate, refine, and explain workflows with a Claude-powered chat panel inside the editor. |
+| 🤖 **Crew AI** | Generate, refine, and explain workflows with a Claude-powered chat panel inside the editor. |
 | 🧩 **Visual node-based builder** | React Flow canvas with typed inputs, expression bindings, conditional branching, and a live inspector. |
 | 🔌 **19+ first-party integrations** | Google Workspace (Drive, Sheets, Docs, Slides, Calendar, Gmail, Chat, People, YouTube, Search Console), Slack, GitHub, Notion, Stripe, Meta, Anthropic, OpenAI, Linear, Jira — and growing. |
 | 📡 **Triggers everywhere** | Webhooks, polling, app events, cron schedules, and manual triggers. Beat survives restarts. |
@@ -81,8 +81,8 @@ The codebase is a **pnpm + uv monorepo** with four apps and a shared deploy fold
 
 ## 📸 Showcase
 
-> Marketing site (anonymous): **[fuse.bibektimilsina.tech](https://fuse.bibektimilsina.tech)**
-> Product app (authenticated): **[app.fuse.bibektimilsina.tech](https://app.fuse.bibektimilsina.tech)**
+> Marketing site (anonymous): **[runmycrew.com](https://runmycrew.com)**
+> Product app (authenticated): **[app.runmycrew.com](https://app.runmycrew.com)**
 
 The product features an editorial-grade Linear-style dark UI with 6 colour schemes, custom illustration sets for the marketing pages, an interactive dashboard mockup in the hero, and a fully animated workflow editor.
 
@@ -119,7 +119,7 @@ flowchart LR
   SITE -- HTTPS --> CADDY
   CADDY -- /api/* --> API
   CADDY -- "/" --> UI
-  CADDY -- "fuse.bibektimilsina.tech" --> SITE
+  CADDY -- "runmycrew.com" --> SITE
 
   API <--> PG
   API <--> REDIS
@@ -191,7 +191,7 @@ The fastest way to run the whole stack on a fresh VPS. Two commands plus a `.env
 ### Requirements
 
 - A Linux host (Ubuntu 22.04+ recommended) with Docker 24+ and Docker Compose v2
-- A domain pointed at the host (DNS A records for `fuse.<your-domain>` and `app.fuse.<your-domain>`)
+- A domain pointed at the host (DNS A records for `runmycrew.<your-domain>` and `app.runmycrew.<your-domain>`)
 - Ports `80` and `443` reachable from the internet (Caddy needs them for Let's Encrypt)
 - ~2 GB RAM minimum (4 GB recommended once you scale to real LLM workloads)
 
@@ -199,8 +199,8 @@ The fastest way to run the whole stack on a fresh VPS. Two commands plus a `.env
 
 ```bash
 # 1. Clone
-git clone https://github.com/bibektimilsina00/fuse_monorepo.git
-cd fuse_monorepo
+git clone https://github.com/bibektimilsina00/runmycrew.git
+cd runmycrew
 
 # 2. Configure
 cp deploy/.env.production.example deploy/.env
@@ -214,7 +214,7 @@ cd deploy
 docker compose -f docker-compose.production.yml up -d
 
 # 5. Verify
-curl -sS https://app.fuse.your-domain.com/health
+curl -sS https://app.runmycrew.your-domain.com/health
 ```
 
 Caddy will issue a Let's Encrypt cert on first request — no certbot setup needed.
@@ -223,11 +223,11 @@ Caddy will issue a Let's Encrypt cert on first request — no certbot setup need
 
 | Service | Image | Purpose |
 |---|---|---|
-| `web` | `ghcr.io/<owner>/fuse-web` | Caddy + static React SPA (the dashboard) |
-| `site` | `ghcr.io/<owner>/fuse-site` | Next.js marketing site |
-| `api` | `ghcr.io/<owner>/fuse-api` | FastAPI app, Alembic migrations on boot |
-| `worker` | `ghcr.io/<owner>/fuse-worker` | Celery worker (2 concurrency by default) |
-| `beat` | `ghcr.io/<owner>/fuse-worker` | Celery beat — polling triggers, schedules |
+| `web` | `ghcr.io/<owner>/runmycrew-web` | Caddy + static React SPA (the dashboard) |
+| `site` | `ghcr.io/<owner>/runmycrew-site` | Next.js marketing site |
+| `api` | `ghcr.io/<owner>/runmycrew-api` | FastAPI app, Alembic migrations on boot |
+| `worker` | `ghcr.io/<owner>/runmycrew-worker` | Celery worker (2 concurrency by default) |
+| `beat` | `ghcr.io/<owner>/runmycrew-worker` | Celery beat — polling triggers, schedules |
 | `db` | `pgvector/pgvector:pg15` | PostgreSQL + pgvector |
 | `redis` | `redis:7-alpine` | Celery broker / result backend / cache |
 | `backup` | `postgres:15-alpine` | Nightly `pg_dump` with 14-day retention |
@@ -238,7 +238,7 @@ Resource caps are tuned for a 2 GB VPS. Bump them in `docker-compose.production.
 
 ## 🛠 Development setup
 
-For working on Fuse itself.
+For working on RunMyCrew itself.
 
 ### Prerequisites
 
@@ -250,8 +250,8 @@ For working on Fuse itself.
 ### Install
 
 ```bash
-git clone https://github.com/bibektimilsina00/fuse_monorepo.git
-cd fuse_monorepo
+git clone https://github.com/bibektimilsina00/runmycrew.git
+cd runmycrew
 
 # JS workspace install (web + site)
 pnpm install
@@ -271,7 +271,7 @@ $EDITOR apps/api/.env
 cp apps/web/.env.example apps/web/.env
 ```
 
-Minimum required env vars are documented in `docs/secrets.md` — at a minimum you need `SECRET_KEY`, `ENCRYPTION_KEY`, `DATABASE_URL`, `REDIS_URL`, and at least one LLM API key (`ANTHROPIC_API_KEY` for Fuse AI).
+Minimum required env vars are documented in `docs/secrets.md` — at a minimum you need `SECRET_KEY`, `ENCRYPTION_KEY`, `DATABASE_URL`, `REDIS_URL`, and at least one LLM API key (`ANTHROPIC_API_KEY` for Crew AI).
 
 ### Run
 
@@ -287,19 +287,19 @@ uv run --no-sync celery -A apps.worker.app.jobs.tasks worker --loglevel=info --c
 uv run --no-sync celery -A apps.worker.app.jobs.tasks beat --loglevel=info
 
 # Frontend product app (terminal 4)
-pnpm --filter @fuse/web dev          # http://localhost:5173
+pnpm --filter runmycrew-web dev          # http://localhost:5173
 
 # Marketing site (terminal 5, optional)
-pnpm --filter fuse-site dev          # http://localhost:3100
+pnpm --filter runmycrew-site dev          # http://localhost:3100
 ```
 
 ### Tooling
 
 ```bash
 # Type-check + lint + format
-pnpm --filter @fuse/web typecheck
-pnpm --filter @fuse/web lint
-pnpm --filter fuse-site typecheck
+pnpm --filter runmycrew-web typecheck
+pnpm --filter runmycrew-web lint
+pnpm --filter runmycrew-site typecheck
 uv run ruff check
 uv run ruff format
 
@@ -316,7 +316,7 @@ uv run --no-sync pytest apps/api
 ## 📁 Project structure
 
 ```
-fuse_monorepo/
+runmycrew/
 ├── apps/
 │   ├── api/                       FastAPI backend
 │   │   └── app/
@@ -454,7 +454,7 @@ Sigstore-signed provenance + SBOM ship inside every image manifest, so consumers
 
 ### Tag pinning
 
-Set `FUSE_IMAGE_TAG=sha-abc1234` in `deploy/.env` to roll back without touching the compose file.
+Set `RUNMYCREW_IMAGE_TAG=sha-abc1234` in `deploy/.env` to roll back without touching the compose file.
 
 ### Backups
 
@@ -486,7 +486,7 @@ PRs welcome! A few conventions to match the existing code:
 - **Backend layering is strict.** Logic in services, queries in repositories, HTTP in routers. No business logic in models.
 - **Frontend is feature-modular.** `features/<thing>/` owns its UI + state. Shared primitives live in `shared/`.
 - **Never use `as any`, `# type: ignore`, `@ts-ignore`.** Diagnose the actual cause, fix it upstream. The full convention list lives in [`CLAUDE.md`](CLAUDE.md).
-- **Run `pnpm --filter @fuse/web typecheck && uv run ruff check`** before opening a PR.
+- **Run `pnpm --filter runmycrew-web typecheck && uv run ruff check`** before opening a PR.
 - **Conventional Commits** for commit messages (`feat:`, `fix:`, `chore:`, …).
 
 For larger changes please open an issue first so we can align on scope.

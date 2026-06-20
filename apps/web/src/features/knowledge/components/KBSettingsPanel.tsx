@@ -132,7 +132,7 @@ export function KBSettingsPanel({ kb, onClose, onSaved }: Props) {
                       <div className="flex flex-col gap-0.5 min-w-0">
                         <span className="text-[13px] font-medium">{p}</span>
                         {p === 'Default' && (
-                          <span className="text-[11px] text-[var(--text-faint)]">Fuse-managed Gemini — no credential needed</span>
+                          <span className="text-[11px] text-[var(--text-faint)]">RunMyCrew-managed Gemini — no credential needed</span>
                         )}
                       </div>
                       {provider === p && <Icons.Check style={{ width: 13, height: 13, color: 'var(--ok)' }} />}

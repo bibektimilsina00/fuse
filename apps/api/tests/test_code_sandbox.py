@@ -47,13 +47,13 @@ async def test_python_code_executes_in_subprocess():
 async def test_worker_env_secrets_are_not_visible_to_user_code():
     """The defining security property of phase A: a worker env var (e.g. a
     secret) must NOT be readable from sandboxed user code."""
-    os.environ["FUSE_SANDBOX_CANARY"] = "leaked-secret"
+    os.environ["RUNMYCREW_SANDBOX_CANARY"] = "leaked-secret"
     try:
         result = await _node(
-            "import os\noutput = {'seen': os.environ.get('FUSE_SANDBOX_CANARY')}"
+            "import os\noutput = {'seen': os.environ.get('RUNMYCREW_SANDBOX_CANARY')}"
         ).execute({}, _ctx())
     finally:
-        os.environ.pop("FUSE_SANDBOX_CANARY", None)
+        os.environ.pop("RUNMYCREW_SANDBOX_CANARY", None)
 
     assert result.success is True
     assert result.output_data["seen"] is None  # clean env — secret not propagated

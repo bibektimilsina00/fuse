@@ -304,7 +304,7 @@ export const useRunsStore = create<RunsState>()(
     ),
 }),
     {
-      name: 'fuse-runs',
+      name: 'runmycrew-runs',
       version: 3,
       partialize: (s) => ({ byWorkflow: s.byWorkflow }),
       merge: (persisted, current) => {

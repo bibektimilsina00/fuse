@@ -367,7 +367,7 @@ class MetaService:
 
         Required (per Meta) for any new conversation to fire a postback
         webhook — without the button, tapping a Messenger thread for the
-        first time doesn't dispatch anything Fuse can route. Idempotent
+        first time doesn't dispatch anything RunMyCrew can route. Idempotent
         on Meta's side: re-POSTing the same payload is a no-op.
 
         Called automatically from the `/listen` and activation paths
@@ -1614,7 +1614,7 @@ async def register_meta_subscription(
     # webhook configuration to provide the default now fail with
     # "(#100) The parameter subscribed_fields is required."
     # The list below covers every Page / Messenger / IG-via-Page / Lead
-    # Ads field Fuse triggers consume — subscribe broadly so a single
+    # Ads field RunMyCrew triggers consume — subscribe broadly so a single
     # workflow activation doesn't have to re-call subscribed_apps for
     # each new trigger node type the same Page already owns.
     page_subscribed_fields = ",".join(

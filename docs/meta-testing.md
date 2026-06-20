@@ -7,29 +7,29 @@ mode without waiting for App Review / Live.
 
 ## Apps
 
-| App | App ID | Credential type in Fuse | Webhook URL |
+| App | App ID | Credential type in RunMyCrew | Webhook URL |
 |---|---|---|---|
-| Fuse (parent) | `861560943689175` | `meta_oauth` | `https://fuse.bibektimilsina.tech/api/v1/webhooks/meta/861560943689175` |
-| Fuse-IG (child) | `1317058520562350` | `instagram_oauth` | `https://fuse.bibektimilsina.tech/api/v1/webhooks/meta/1317058520562350` |
+| RunMyCrew (parent) | `861560943689175` | `meta_oauth` | `https://runmycrew.com/api/v1/webhooks/meta/861560943689175` |
+| RunMyCrew-IG (child) | `1317058520562350` | `instagram_oauth` | `https://runmycrew.com/api/v1/webhooks/meta/1317058520562350` |
 
 Verify token (both apps): the value of `META_WEBHOOK_VERIFY_TOKEN` in `.env`.
 
 ## Pre-flight (one-time, before any test)
 
-1. Tunnel up: `curl -s https://fuse.bibektimilsina.tech/api/v1/webhooks/meta/861560943689175?hub.mode=subscribe&hub.challenge=PING&hub.verify_token=<TOKEN>` returns `PING`.
+1. Tunnel up: `curl -s https://runmycrew.com/api/v1/webhooks/meta/861560943689175?hub.mode=subscribe&hub.challenge=PING&hub.verify_token=<TOKEN>` returns `PING`.
 2. `.env` has:
    - `META_WEBHOOK_LOOSE_LISTEN_MATCH=true` (dev — lets slot fire when Meta's id namespace doesn't match the cred's stored ids)
    - `META_APP_ID`, `META_APP_SECRET`, `META_INSTAGRAM_APP_ID`, `META_INSTAGRAM_APP_SECRET`, `META_WEBHOOK_VERIFY_TOKEN`
 3. Each surface's webhook is configured in its own use-case dashboard (see `docs/meta-setup.md`).
-4. A real credential exists in Fuse for each surface you plan to test.
-5. Test IG account + a second IG account are both Instagram Testers on the Fuse-IG app and have accepted the invite.
+4. A real credential exists in RunMyCrew for each surface you plan to test.
+5. Test IG account + a second IG account are both Instagram Testers on the RunMyCrew-IG app and have accepted the invite.
 
 ## Per-test loop
 
 For every cell in the matrix:
 
 1. Open the workflow → drop the trigger node → set credential + target resource + event_type → wire to the action node → save.
-2. Click **Run** in Fuse — Listen slot opens (or `/run` fires if no Meta trigger).
+2. Click **Run** in RunMyCrew — Listen slot opens (or `/run` fires if no Meta trigger).
 3. Open Meta App Dashboard → relevant product → Webhook fields → click **Test** next to the field listed in the table.
 4. Watch uvicorn — expect:
    - `POST /api/v1/webhooks/meta/<APP_ID> 200`
@@ -37,7 +37,7 @@ For every cell in the matrix:
    - `id-namespace fallback claimed 1 slot(s)` (test mode shortcut)
    - `1 workflow(s) triggered`
 5. Watch Celery worker — expect `Executing node <trigger>` → `Executing node <action>` → terminal status.
-6. Fuse UI Logs panel — trigger row + action row visible, click each to inspect Input/Output.
+6. RunMyCrew UI Logs panel — trigger row + action row visible, click each to inspect Input/Output.
 
 Action nodes are exercised by their parent trigger's Test event. Real Meta API calls inside actions will usually error (synthetic ids aren't real accounts), but the request shape, credential resolution, template rendering, and error surfacing are still verified end-to-end.
 
@@ -45,7 +45,7 @@ Action nodes are exercised by their parent trigger's Test event. Real Meta API c
 
 ## 1. Instagram
 
-Webhook config: Dashboard → app `Fuse` → use case **Manage messaging & content on Instagram**.
+Webhook config: Dashboard → app `RunMyCrew` → use case **Manage messaging & content on Instagram**.
 
 Two flows:
 - **API setup with Facebook login** → wires the parent app (`861560943689175`) → for `meta_oauth` credentials.
@@ -74,7 +74,7 @@ Test events deliver `target_id=0` → loose match fallback claims the slot.
 
 ## 2. Facebook (Page + Messenger)
 
-Webhook config: Dashboard → app `Fuse` → use cases:
+Webhook config: Dashboard → app `RunMyCrew` → use cases:
 - **Manage everything on your Page** → Page object
 - **Engage with customers on Messenger from Meta** → Page object (Messenger DMs come via Page subscription)
 
@@ -93,7 +93,7 @@ Trigger node: `trigger.meta.facebook` · Action node: `action.meta.facebook` · 
 
 ## 3. WhatsApp
 
-Webhook config: Dashboard → app `Fuse` → use case **Connect with customers through WhatsApp** → Webhooks → **Whatsapp Business Account** object.
+Webhook config: Dashboard → app `RunMyCrew` → use case **Connect with customers through WhatsApp** → Webhooks → **Whatsapp Business Account** object.
 
 Trigger node: `trigger.meta.whatsapp` · Action node: `action.meta.whatsapp` · Target prop: `waba_id` · Cred type: `meta_oauth`.
 
@@ -107,7 +107,7 @@ Trigger node: `trigger.meta.whatsapp` · Action node: `action.meta.whatsapp` · 
 
 ## 4. Lead Ads
 
-Webhook config: Dashboard → app `Fuse` → use case **Capture & manage ad leads with Marketing API** → Webhooks → **Page** object → `leadgen` field.
+Webhook config: Dashboard → app `RunMyCrew` → use case **Capture & manage ad leads with Marketing API** → Webhooks → **Page** object → `leadgen` field.
 
 Trigger node: `trigger.meta.lead` · Action node: `action.meta.lead` · Target prop: `page_id` · Cred type: `meta_oauth`.
 
@@ -135,11 +135,11 @@ Status legend per row: `⏳` not started · `🔄` in progress · `✅` passes T
 | 12 | ⏭️ | mirror of #3 against instagram_oauth | |
 | 13 | ⏭️ | mirror of #4 | |
 | 14 | ⏭️ | mirror of #5 | |
-| 15 | 🔒 | Real comment delivery requires **Advanced Access** on `pages_read_user_content` (Meta gate, not Fuse). Pipeline identical to #1 once approved | confirm post-Live: real comment → workflow → reply action |
+| 15 | 🔒 | Real comment delivery requires **Advanced Access** on `pages_read_user_content` (Meta gate, not RunMyCrew). Pipeline identical to #1 once approved | confirm post-Live: real comment → workflow → reply action |
 | 16 | ✅ | Real Messenger DM from tester delivered → workflow fired → send_message POST 200 (real reply sent) | first true production-shape E2E. Messages on Page object deliver to testers in Dev mode without Live |
 | 17 | ⏳ | | |
 | 18 | ⏳ | | |
-| 19 | ✅ | Get Started tap → postback webhook → reply sent. Fuse auto-installed the button via `register_messenger_get_started` at /listen time | end-to-end with zero manual API setup on the user's side |
+| 19 | ✅ | Get Started tap → postback webhook → reply sent. RunMyCrew auto-installed the button via `register_messenger_get_started` at /listen time | end-to-end with zero manual API setup on the user's side |
 | 20 | ⏳ | | |
 | 21 | ⏳ | | |
 | 22 | ✅ | FB Page post published end-to-end (text + media via 3-tab picker) | required adding `pages_manage_posts` to the FB Login for Business Configuration (not just the app perms page) |

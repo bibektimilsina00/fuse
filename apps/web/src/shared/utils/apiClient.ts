@@ -35,7 +35,7 @@ apiClient.interceptors.request.use((config) => {
   } else {
     // Fallback to localStorage (for cold starts)
     try {
-      const storageToken = localStorage.getItem('fuse-auth-token')
+      const storageToken = localStorage.getItem('runmycrew-auth-token')
       if (storageToken) {
         config.headers.Authorization = `Bearer ${storageToken}`
       }
@@ -55,7 +55,7 @@ apiClient.interceptors.request.use((config) => {
 
 /**
  * Perform a type-safe API request and validate the response against a Zod schema.
- * 
+ *
  * @param schema - The Zod schema to validate the response against
  * @param config - Axios request configuration
  * @returns The validated and typed response data
@@ -66,22 +66,22 @@ export async function requestJson<S extends z.ZodTypeAny>(
 ): Promise<z.output<S>> {
   try {
     const response = await apiClient.request(config)
-    
+
     // Validate the response against the provided schema
     const result = schema.safeParse(response.data)
-    
+
     if (!result.success) {
       logger.error('API Response Validation Failed:', result.error)
       throw new APIError('API contract violation: The server returned an unexpected response format.')
     }
-    
+
     return result.data
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
       const status = err.response?.status
       let detail = 'An unexpected error occurred'
       const responseData = err.response?.data
-      
+
       // If we got a JSON response, parse the error details
       if (responseData && typeof responseData === 'object' && !Array.isArray(responseData)) {
         const errorData = responseData as Record<string, unknown>
@@ -107,7 +107,7 @@ export async function requestJson<S extends z.ZodTypeAny>(
       } else if (err.message) {
         detail = err.message
       }
-      
+
       throw new APIError(detail, status, detail)
     }
     throw err

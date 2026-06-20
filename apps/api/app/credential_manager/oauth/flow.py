@@ -263,7 +263,7 @@ class GoogleOAuthProvider:
     scopes = [
         "Read, send, modify, label, and delete Gmail messages",
         "Read and write Google Calendar events",
-        "Create and manage Google Drive files (only files Fuse creates)",
+        "Create and manage Google Drive files (only files RunMyCrew creates)",
         "Read and write Google Sheets",
         "Read and write Google Docs",
         "Manage Google Tasks",
@@ -285,7 +285,7 @@ class GoogleOAuthProvider:
     # - `gmail.modify` is the *one* Gmail scope that covers send + read +
     #   label + thread + trash without needing the broader `gmail` scope
     #   (which triggers Google's Restricted Scope Verification / CASA).
-    # - `drive.file` only grants access to files Fuse itself creates;
+    # - `drive.file` only grants access to files RunMyCrew itself creates;
     #   safer default than the full `drive` scope which is restricted.
     # - Future surfaces (YouTube / Ads / Cloud APIs / Admin) get their
     #   own sibling provider — keeping this provider's consent screen

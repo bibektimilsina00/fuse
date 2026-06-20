@@ -23,7 +23,7 @@ export default function BlogIndex() {
                   Blog
                 </p>
                 <h1 className="m-0 mt-3 text-[clamp(34px,4.4vw,56px)] font-[560] leading-[1.08] tracking-[-0.022em] text-foreground">
-                  The Fuse blog
+                  The RunMyCrew blog
                 </h1>
                 <p className="m-0 mt-3 max-w-[600px] text-[15px] text-muted-foreground">
                   Product launches, engineering deep dives, and customer stories.

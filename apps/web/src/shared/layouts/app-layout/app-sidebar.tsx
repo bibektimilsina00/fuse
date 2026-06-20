@@ -311,8 +311,8 @@ function SidebarHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean; o
       {/* Logo row */}
       <div className="flex items-center justify-between group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:w-full">
         <span className="inline-flex items-center gap-[9px] text-[15px] font-semibold tracking-[-0.02em] text-[var(--text)] group-data-[collapsed=true]/shell:hidden">
-          <Icons.FuseMark style={{ width: 28, height: 28, color: 'var(--accent)' }} />
-          <span>fuse</span>
+          <Icons.BrandMark style={{ width: 28, height: 28, color: 'var(--accent)' }} />
+          <span>RunMyCrew</span>
         </span>
         <button
           className="rounded-[6px] text-[var(--text-faint)] inline-flex items-center justify-center transition-all duration-200 shrink-0 w-[24px] h-[24px] hover:bg-[var(--surface)] hover:text-[var(--text)] [&_svg]:w-[13px] [&_svg]:h-[13px] group-data-[collapsed=true]/shell:w-[32px] group-data-[collapsed=true]/shell:h-[32px] group-data-[collapsed=true]/shell:relative group-data-[collapsed=true]/shell:mx-auto group-data-[collapsed=true]/shell:bg-transparent group-data-[collapsed=true]/shell:hover:bg-[var(--surface)] group-data-[collapsed=true]/shell:hover:text-[var(--text)] group-data-[collapsed=true]/shell:p-0"
@@ -324,7 +324,7 @@ function SidebarHeader({ collapsed, onToggleCollapsed }: { collapsed: boolean; o
           </span>
           <span className="hidden group-data-[collapsed=true]/shell:flex items-center justify-center w-full h-full relative group/btn">
             <span className="absolute inline-flex items-center justify-center transition-all duration-150 group-hover/btn:opacity-0 group-hover/btn:scale-75">
-              <Icons.FuseMark style={{ width: 28, height: 28, color: 'var(--accent)' }} />
+              <Icons.BrandMark style={{ width: 28, height: 28, color: 'var(--accent)' }} />
             </span>
             <span className="absolute opacity-0 scale-75 transition-all duration-150 group-hover/btn:opacity-100 group-hover/btn:scale-100 text-[var(--text-faint)] group-hover/btn:text-[var(--text)] [&_svg]:w-[14px] [&_svg]:h-[14px]">
               {collapsed ? <Icons.PanelOpen /> : <Icons.PanelClose />}

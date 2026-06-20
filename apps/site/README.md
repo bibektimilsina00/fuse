@@ -1,13 +1,13 @@
-# fuse-site
+# runmycrew-site
 
-Marketing site for [Fuse](https://fuse.bibektimilsina.tech). Next.js 16 (App Router) + Tailwind v4 + shadcn/ui.
+Marketing site for [RunMyCrew](https://runmycrew.com). Next.js 16 (App Router) + Tailwind v4 + shadcn/ui.
 
 ## Run
 
 ```bash
-pnpm --filter fuse-site dev      # http://localhost:3100
-pnpm --filter fuse-site build
-pnpm --filter fuse-site typecheck
+pnpm --filter runmycrew-site dev      # http://localhost:3100
+pnpm --filter runmycrew-site build
+pnpm --filter runmycrew-site typecheck
 ```
 
 ## Structure

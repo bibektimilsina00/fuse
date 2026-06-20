@@ -182,7 +182,7 @@ class GoogleYouTubeTriggerNode(BaseNode[GoogleYouTubeTriggerProperties]):
                     "label": "Search query",
                     "type": "string",
                     "required": True,
-                    "placeholder": "fuse workflow automation",
+                    "placeholder": "workflow automation tutorial",
                     "description": (
                         "Each poll costs 100 quota units — keep the interval above 5 minutes."
                     ),

@@ -1,5 +1,5 @@
 /**
- * Unified logger utility for the Fuse V2 frontend.
+ * Unified logger utility for the RunMyCrew frontend.
  * Enforces consistent logging patterns and avoids direct console.log usage.
  */
 

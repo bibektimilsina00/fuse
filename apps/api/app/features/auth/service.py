@@ -151,7 +151,7 @@ class AuthService(BaseService):
 
     async def google_exchange(self, code: str, state: str) -> tuple[User, str, str]:
         """Validate state, exchange code for tokens, fetch userinfo,
-        find-or-create the User, and mint a Fuse JWT.
+        find-or-create the User, and mint a RunMyCrew JWT.
 
         Returns ``(user, fuse_jwt, next_path)``.
         """

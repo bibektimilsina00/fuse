@@ -305,7 +305,7 @@ class GoogleYouTubeNode(BaseNode[GoogleYouTubeProperties]):
                     "name": "tags",
                     "label": "Tags",
                     "type": "json",
-                    "placeholder": '["tutorial", "fuse"]',
+                    "placeholder": '["tutorial", "workflow"]',
                     "condition": _cond_any(*_VIDEO_METADATA_OPS),
                     "mode": "advanced",
                 },
@@ -367,7 +367,7 @@ class GoogleYouTubeNode(BaseNode[GoogleYouTubeProperties]):
                     "label": "Search query",
                     "type": "string",
                     "required": True,
-                    "placeholder": "fuse workflow automation",
+                    "placeholder": "workflow automation tutorial",
                     "condition": _cond("search_videos"),
                 },
                 {

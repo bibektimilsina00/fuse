@@ -116,7 +116,7 @@ def test_messaging_without_message_or_action_is_unknown() -> None:
 
 
 def test_routing_table_covers_all_phase2_events() -> None:
-    """Every webhook field Fuse triggers care about must map to its
+    """Every webhook field RunMyCrew triggers care about must map to its
     consolidated node type. After Phase 2-consolidation, every IG /
     Page / Lead event routes through one node per surface — the
     event_type dropdown picks which of its events to filter on."""

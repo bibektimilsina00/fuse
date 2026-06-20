@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # ----------------------------------------------------------------------
-# Fuse — one-time VPS bootstrap
+# RunMyCrew — one-time VPS bootstrap
 #
 # Run ONCE, the first time after the VPS is provisioned. Sets up:
 #   - Docker (official installer)
 #   - ufw firewall (22 / 80 / 443 only)
-#   - `/opt/fuse/deploy` target directory the deploy workflow writes to
+#   - `/opt/runmycrew/deploy` target directory the deploy workflow writes to
 #   - Authorized key for the GitHub Actions deploy user
 #
 # After this script finishes, the GitHub Actions deploy workflow takes
 # over for every subsequent release — no manual SSH for ops.
 #
 # Usage on the VPS:
-#     curl -fsSL https://raw.githubusercontent.com/bibektimilsina00/fuse_monorepo/main/deploy/bootstrap-vps.sh | bash -s -- "<paste your deploy_key.pub here>"
+#     curl -fsSL https://raw.githubusercontent.com/bibektimilsina00/runmycrew/main/deploy/bootstrap-vps.sh | bash -s -- "<paste your deploy_key.pub here>"
 #
 # Or, if you're already SSHed in and have the repo cloned:
 #     ./bootstrap-vps.sh "<paste deploy_key.pub here>"
@@ -27,7 +27,7 @@ fi
 DEPLOY_KEY_PUB="${1:-}"
 if [[ -z "${DEPLOY_KEY_PUB}" ]]; then
   echo "usage: $0 '<deploy_key.pub contents>'" >&2
-  echo "       (generate locally with: ssh-keygen -t ed25519 -C fuse-deploy -f deploy_key -N \"\")" >&2
+  echo "       (generate locally with: ssh-keygen -t ed25519 -C runmycrew-deploy -f deploy_key -N \"\")" >&2
   exit 2
 fi
 
@@ -52,10 +52,10 @@ else
   echo "  ufw not installed; skipping firewall step."
 fi
 
-echo "▶ Creating /opt/fuse/deploy + /opt/fuse/deploy/pg-init…"
-mkdir -p /opt/fuse/deploy/pg-init
-chown -R root:root /opt/fuse
-chmod 750 /opt/fuse /opt/fuse/deploy
+echo "▶ Creating /opt/runmycrew/deploy + /opt/runmycrew/deploy/pg-init…"
+mkdir -p /opt/runmycrew/deploy/pg-init
+chown -R root:root /opt/runmycrew
+chmod 750 /opt/runmycrew /opt/runmycrew/deploy
 
 echo "▶ Installing GitHub Actions deploy key…"
 mkdir -p ~/.ssh

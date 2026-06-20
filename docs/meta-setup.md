@@ -34,7 +34,7 @@ Plus:
 | One Facebook Page you admin | Required for Page/Messenger/IG/Lead Ads |
 | One Instagram Business or Creator account | Required for IG nodes — must be linked to the Page above |
 | Public HTTPS endpoint pointing at your local API | Meta refuses `http://` and `localhost` webhooks |
-| Postgres + Redis running locally | Standard Fuse dev requirements |
+| Postgres + Redis running locally | Standard RunMyCrew dev requirements |
 | (Optional) Verified WhatsApp Business Account | Required for WA nodes — separate flow, see §10 |
 
 You **don't** need App Review approval to test. The app stays in Development Mode and works for anyone listed as a Tester (§4).
@@ -120,7 +120,7 @@ This creates the `metasubscription` table introduced in PR C.
 2. **My Apps** → **Create App**
 3. **Use Case**: pick **Other** → **Next**
 4. **App Type**: **Business** → **Next**
-5. **App Name**: `Fuse Local Dev` (or any name)
+5. **App Name**: `RunMyCrew Local Dev` (or any name)
 6. **App Contact Email**: yours
 7. **Business Portfolio**: pick one or create — required even for personal dev
 8. Click **Create App**
@@ -229,21 +229,21 @@ Webhooks → **Recent Activity** (per object) shows every delivery + your respon
 
 ---
 
-## 7. Connect via OAuth in Fuse
+## 7. Connect via OAuth in RunMyCrew
 
 1. Open **`${PUBLIC_URL}`** in your browser (NOT `http://localhost:5173` — Meta enforces the OAuth domain match)
-2. Log in to Fuse
+2. Log in to RunMyCrew
 3. **Connections** → **New Connection** → search **Meta**
 4. You're redirected to Facebook's OAuth dialog
 5. Pick the Page(s) + IG account(s) you want to grant access to
 6. Approve every permission
-7. After approval, you're back in Fuse with a `meta_oauth` credential created
+7. After approval, you're back in RunMyCrew with a `meta_oauth` credential created
 
 ### 7.1 Verify the credential loaded
 
 Check the DB:
 ```bash
-docker compose exec postgres psql -U postgres -d fuse \
+docker compose exec postgres psql -U postgres -d runmycrew \
   -c "SELECT id, name, type FROM credential WHERE type='meta_oauth';"
 ```
 
@@ -455,7 +455,7 @@ Templates are the only way to message users outside the 24h window.
 | `/meta/resources?kind=waba` returns `[]` | Business Verification not complete | Wait for verification approval |
 | Workflow doesn't fire on Meta event | `metasubscription` row missing OR `meta_subscribed_at IS NULL` | Re-save the workflow (triggers sync) |
 | Workflow row exists but event arrives at endpoint as 401 | Signature mismatch (see above) | Re-copy app secret |
-| DM 24h-window error | Recipient didn't message you in last 24h | This is Meta's rule, not Fuse's |
+| DM 24h-window error | Recipient didn't message you in last 24h | This is Meta's rule, not RunMyCrew's |
 | IG publish hangs / 504 | Video too long for the 60s sync timeout | Use a shorter video for now; async worker pattern comes in a later PR |
 | Lead fetch returns "Lead Access not granted" | Page admin didn't enable Lead Access for the app | Page Settings → Page access → Lead Access |
 | WA send returns error 131047 | Outside 24h window | Use a template (§10.3) |

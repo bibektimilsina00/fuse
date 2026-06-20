@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Analytics } from '@vercel/analytics/next'
+import { MARKETING_URL } from '@/shared/constants/routes'
 import './globals.css'
 
 const sans = Inter({
@@ -18,15 +19,15 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Fuse — Build workflows in plain English',
-    template: '%s · Fuse',
+    default: 'RunMyCrew — Build workflows in plain English',
+    template: '%s · RunMyCrew',
   },
   description:
-    'Fuse is the automation platform that turns natural-language prompts into production workflows. Connect any app, ship in minutes, audit every run.',
-  metadataBase: new URL('https://fuse.bibektimilsina.tech'),
+    'RunMyCrew is the automation platform that turns natural-language prompts into production workflows. Connect any app, ship in minutes, audit every run.',
+  metadataBase: new URL(MARKETING_URL),
   openGraph: {
     type: 'website',
-    siteName: 'Fuse',
+    siteName: 'RunMyCrew',
   },
   twitter: { card: 'summary_large_image' },
 }

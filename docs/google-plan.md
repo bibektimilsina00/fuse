@@ -145,7 +145,7 @@ node).
 ## Auth model
 
 Most surfaces use **OAuth** with the user's Google account. A handful
-take API keys, service accounts, or extra developer tokens. Fuse maps
+take API keys, service accounts, or extra developer tokens. RunMyCrew maps
 each pattern to its own credential type:
 
 | Cred type           | Surfaces                                                                 |
@@ -174,7 +174,7 @@ In Google Cloud Console → **OAuth Consent Screen**:
   account picker
 
 In Google Cloud Console → **APIs & Services → Library**: enable the
-APIs we call. Each Fuse surface gates on one or more APIs:
+APIs we call. Each RunMyCrew surface gates on one or more APIs:
 
 | Surface              | API to enable                              | Status |
 |----------------------|--------------------------------------------|--------|
@@ -446,7 +446,7 @@ operations behind opt-in.
 
 Google has three patterns:
 
-1. **Polling** — Fuse hits the API on a schedule. Cheap, no setup. ✅
+1. **Polling** — RunMyCrew hits the API on a schedule. Cheap, no setup. ✅
    This is what every shipped Google trigger uses. Provider registry +
    listen-mode driver covered in
    `apps/api/app/execution_engine/scheduler/integration_polling.py` and
@@ -589,11 +589,11 @@ partial / works with caveats · 🛠 internal substrate (not user-facing)
 Before any of this code runs:
 
 1. **GCP project** — pick existing or create one. Hold its project id.
-2. **OAuth Consent Screen** — App name `Fuse`, support email, app
+2. **OAuth Consent Screen** — App name `RunMyCrew`, support email, app
    logo, all scopes from the table above listed under "Scopes for
    Google APIs". Add yourself as a **test user** during dev.
 3. **OAuth client** — Web application, redirect URI:
-   `https://fuse.bibektimilsina.tech/api/v1/credentials/oauth/google/callback`
+   `https://runmycrew.com/api/v1/credentials/oauth/google/callback`
    (and `http://localhost:8000/...` for local). Grab client id + secret.
 4. **Enable APIs** — every API from the per-surface table.
 5. `.env`:

@@ -11,7 +11,7 @@ import {
   ChevronDown,
   ArrowUpRight,
 } from 'lucide-react'
-import { FuseMark } from './FuseMark'
+import { BrandMark } from './BrandMark'
 import {
   EXAMPLES,
   HERO_METRICS,
@@ -22,10 +22,10 @@ import {
 
 /**
  * Hero product shot — stylised but fully-populated recreation of the
- * Fuse dashboard. Matches the production layout (apps/web) panel-for-
+ * RunMyCrew dashboard. Matches the production layout (apps/web) panel-for-
  * panel: greeting row with Connect-app / New-automation buttons, four
  * stat cards with mono-numerals + sparklines + deltas, the Build-with-
- * Fuse-AI prompt card (interactive — click a prompt chip to swap the
+ * Crew-AI prompt card (interactive — click a prompt chip to swap the
  * textarea text), and a Recent runs strip below it.
  *
  * The mockup is fixed-height (620px) with the dashboard body scrolling
@@ -107,13 +107,13 @@ export function DashboardMockup() {
                 ))}
               </div>
 
-              {/* Build-with-Fuse-AI prompt card */}
+              {/* Build-with-Crew-AI prompt card */}
               <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0f1011]">
                 <div className="flex items-center gap-2.5 border-b border-white/[0.05] px-4 py-3">
                   <span className="grid h-[23px] w-[23px] place-items-center rounded-md bg-primary/15 text-primary">
-                    <FuseMark className="h-[13px] w-[13px]" />
+                    <BrandMark className="h-[13px] w-[13px]" />
                   </span>
-                  <span className="text-[13px] font-semibold">Build with Fuse AI</span>
+                  <span className="text-[13px] font-semibold">Build with Crew AI</span>
                   <span className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-white/[0.07] px-2 py-[3px] text-[11px] text-muted-foreground">
                     <span className="h-[5px] w-[5px] rounded-full bg-[#4cc38a]" />
                     Claude Sonnet

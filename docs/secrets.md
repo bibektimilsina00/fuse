@@ -1,4 +1,4 @@
-# Fuse — Secrets inventory
+# RunMyCrew — Secrets inventory
 
 Where every secret lives, who generates it, and what breaks if it's missing
 or rotated.
@@ -10,7 +10,7 @@ or rotated.
 
 ## Production runtime
 
-- `/opt/fuse/deploy/.env` on the VPS, `chmod 600`.
+- `/opt/runmycrew/deploy/.env` on the VPS, `chmod 600`.
 - **Written by the `deploy` GitHub Actions workflow** from the
   `ENV_PRODUCTION` secret on every deploy. Do not edit the VPS copy
   directly — the next CI run overwrites it.
@@ -25,8 +25,8 @@ SSH. All deploy-time credentials live in GitHub.
 
 | Name | Required? | Purpose | Source |
 |---|---|---|---|
-| `VPS_SSH_PRIVATE_KEY` | yes | Private SSH key the deploy workflow uses to log into the VPS. | `ssh-keygen -t ed25519 -C fuse-deploy -f deploy_key -N ""` locally. Paste the `deploy_key` file (private half) here. |
-| `ENV_PRODUCTION` | yes | Full contents of `deploy/.env`. Written verbatim onto the VPS at `/opt/fuse/deploy/.env`. | Build locally from `deploy/.env.production.example`, then `cat deploy/.env \| pbcopy` and paste. |
+| `VPS_SSH_PRIVATE_KEY` | yes | Private SSH key the deploy workflow uses to log into the VPS. | `ssh-keygen -t ed25519 -C runmycrew-deploy -f deploy_key -N ""` locally. Paste the `deploy_key` file (private half) here. |
+| `ENV_PRODUCTION` | yes | Full contents of `deploy/.env`. Written verbatim onto the VPS at `/opt/runmycrew/deploy/.env`. | Build locally from `deploy/.env.production.example`, then `cat deploy/.env \| pbcopy` and paste. |
 | `GHCR_PAT` | optional | Personal Access Token with `read:packages` scope. Only needed if you keep the ghcr packages private. | github.com → Settings → Developer settings → PATs (classic) → check `read:packages`. Leave the secret empty when packages are public. |
 | `GITHUB_TOKEN` | auto | Provided by Actions. Used by `build-publish` to push images to ghcr. | n/a |
 
@@ -36,7 +36,7 @@ SSH. All deploy-time credentials live in GitHub.
 |---|---|---|
 | `VPS_HOST` | `139.59.71.226` | Public IP, not sensitive. |
 | `VPS_USER` | `root` | Public, not sensitive. |
-| `VPS_DEPLOY_DIR` | `/opt/fuse/deploy` | Path constant. |
+| `VPS_DEPLOY_DIR` | `/opt/runmycrew/deploy` | Path constant. |
 
 ### Environment
 
@@ -79,7 +79,7 @@ documents what each one does and what breaks if it's missing or rotated.
 ### Fast-path for testing (don't forget to round-trip)
 
 For quick experimentation you can SSH into the VPS, edit
-`/opt/fuse/deploy/.env`, and run `./deploy.sh`. Then update the
+`/opt/runmycrew/deploy/.env`, and run `./deploy.sh`. Then update the
 `ENV_PRODUCTION` GitHub secret — the next CI deploy overwrites the
 VPS copy from the secret. If you skip the secret update, the next
 push undoes your change.

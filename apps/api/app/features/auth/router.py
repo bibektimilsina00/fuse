@@ -76,7 +76,7 @@ async def reset_password(
 #      `next` is signed into the state JWT so we can come back to the
 #      same path after auth.
 #   2. Google → `/auth/google/callback?code=...&state=...` → backend
-#      exchanges the code, find-or-creates the User, mints a Fuse JWT,
+#      exchanges the code, find-or-creates the User, mints a RunMyCrew JWT,
 #      and 302s to `FRONTEND_URL/login?token=...&next=...`. The login
 #      page consumes the token query and hydrates the auth store.
 #

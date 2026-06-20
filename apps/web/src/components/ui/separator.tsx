@@ -3,7 +3,7 @@ import * as SeparatorPrimitive from '@radix-ui/react-separator'
 import { cn } from '@/lib/cn'
 
 /**
- * Fuse Separator — Radix-backed for a11y role="separator".
+ * RunMyCrew Separator — Radix-backed for a11y role="separator".
  */
 const Separator = forwardRef<
   React.ElementRef<typeof SeparatorPrimitive.Root>,

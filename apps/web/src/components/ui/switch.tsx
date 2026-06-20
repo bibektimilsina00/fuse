@@ -3,7 +3,7 @@ import * as SwitchPrimitive from '@radix-ui/react-switch'
 import { cn } from '@/lib/cn'
 
 /**
- * Fuse Switch — Radix-backed toggle with Fuse accent.
+ * RunMyCrew Switch — Radix-backed toggle with RunMyCrew accent.
  */
 const Switch = forwardRef<
   React.ElementRef<typeof SwitchPrimitive.Root>,

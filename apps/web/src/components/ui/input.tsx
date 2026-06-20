@@ -9,7 +9,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 /**
- * Fuse Input — styled to match the design system.
+ * RunMyCrew Input — styled to match the design system.
  * Wraps or outputs native input and supports legacy leftIcon/rightIcon and validation states.
  */
 const Input = forwardRef<HTMLInputElement, InputProps>(

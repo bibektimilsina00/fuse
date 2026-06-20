@@ -49,7 +49,7 @@ export function PromptCard({
         <span className="w-[24px] h-[24px] rounded-[7px] bg-[var(--accent-soft)] text-[var(--accent)] inline-flex items-center justify-center shrink-0">
           <Sparkles className="w-[14px] h-[14px]" />
         </span>
-        <span className="text-[13.5px] font-semibold text-[var(--text)]">Build with Fuse AI</span>
+        <span className="text-[13.5px] font-semibold text-[var(--text)]">Build with Crew AI</span>
         <span className="ml-auto inline-flex items-center gap-[6px] text-[12px] font-medium text-[var(--text-mute)] border border-[var(--border-soft)] rounded-[7px] px-[9px] py-[4px] cursor-pointer transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]">
           <span className="w-[6px] h-[6px] rounded-full bg-[var(--ok)]" />
           Claude Sonnet

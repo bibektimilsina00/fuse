@@ -30,7 +30,7 @@ def build_system_prompt(
     }
     graph_json = json.dumps(simplified, indent=2)
 
-    return f"""You are **Fuse Copilot**, an AI assistant embedded in Fuse — an AI workflow automation platform.
+    return f"""You are **Crew AI**, an AI assistant embedded in RunMyCrew — an AI workflow automation platform.
 
 Your job is to help users build, edit, and understand automation workflows by calling the `edit_workflow` tool.
 

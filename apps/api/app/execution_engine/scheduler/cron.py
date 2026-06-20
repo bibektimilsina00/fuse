@@ -5,7 +5,7 @@ from apps.api.app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
-REDIS_KEY_PREFIX = "fuse:cron:last_run"
+REDIS_KEY_PREFIX = "runmycrew:cron:last_run"
 
 
 @celery_app.task(name="check_cron_triggers")

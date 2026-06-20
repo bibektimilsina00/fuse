@@ -3,7 +3,7 @@ from typing import Any
 
 import httpx
 
-logger = logging.getLogger("fuse.integration.http")
+logger = logging.getLogger("runmycrew.integration.http")
 
 
 class IntegrationHTTPClient:

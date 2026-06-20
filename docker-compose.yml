@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: fuse
+      POSTGRES_DB: runmycrew
     ports:
       - "5432:5432"
     volumes:

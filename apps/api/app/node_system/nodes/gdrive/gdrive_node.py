@@ -10,13 +10,13 @@ One node, seven operations:
 Same shape as `GmailNode` and `GCalNode` — top-level `operation`
 dropdown with per-op fields gated by `condition`.
 
-All operations work inside the `drive.file` scope, which means Fuse
+All operations work inside the `drive.file` scope, which means RunMyCrew
 can only touch files it created (or that the user explicitly opened
-with Fuse). Listing / reading other Drive content requires expanding
+with RunMyCrew). Listing / reading other Drive content requires expanding
 the OAuth scope to `drive.readonly`, which is a Google-reviewed
 sensitive scope. Documented in the node description so users aren't
 surprised when `list_files` returns an empty result for files they
-created outside Fuse.
+created outside RunMyCrew.
 """
 
 from __future__ import annotations
@@ -133,8 +133,8 @@ class GDriveNode(BaseNode[GDriveProperties]):
             category="integration",
             description=(
                 "Upload, list, share, rename, and trash Google Drive files via "
-                "OAuth. Operates within the `drive.file` scope — only files Fuse "
-                "created or the user explicitly opened with Fuse are visible."
+                "OAuth. Operates within the `drive.file` scope — only files RunMyCrew "
+                "created or the user explicitly opened with RunMyCrew are visible."
             ),
             icon="si:SiGoogledrive",
             color="#4285f4",
@@ -380,7 +380,7 @@ async def _upload_file(
     # use `multipart/form-data` instead, which Drive rejects).
     import json as _json
 
-    boundary = "fuse-drive-upload-boundary"
+    boundary = "runmycrew-drive-upload-boundary"
     body_bytes = (
         (
             f"--{boundary}\r\n"
@@ -514,7 +514,7 @@ async def _delete_file(
     if not node.props.file_id:
         return NodeResult(success=False, error="`file_id` is required.")
     # `drive.file` scope can't issue a permanent DELETE — we trash via
-    # PATCH instead so the operation works under the OAuth grant Fuse
+    # PATCH instead so the operation works under the OAuth grant RunMyCrew
     # currently asks for.
     resp = await client.patch(
         f"{GDRIVE_API}/files/{node.props.file_id.strip()}",

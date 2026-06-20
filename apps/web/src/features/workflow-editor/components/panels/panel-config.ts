@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import type { EditorTab } from '../../stores/editorLayoutStore'
 
-export const DRAG_MIME = 'application/x-fuse-tab'
+export const DRAG_MIME = 'application/x-runmycrew-tab'
 
 export interface PanelTabMeta {
   id: EditorTab

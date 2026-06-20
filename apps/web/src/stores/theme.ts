@@ -14,7 +14,7 @@ const SCHEMES: readonly ColorScheme[] = ['linear', 'slate', 'indigo', 'emerald',
 
 function getStored(): Theme {
   try {
-    const v = localStorage.getItem('fuse-theme')
+    const v = localStorage.getItem('runmycrew-theme')
     if (v === 'light' || v === 'dark') return v
   } catch {
     // Ignore localStorage access errors
@@ -24,7 +24,7 @@ function getStored(): Theme {
 
 function getStoredScheme(): ColorScheme {
   try {
-    const v = localStorage.getItem('fuse-scheme')
+    const v = localStorage.getItem('runmycrew-scheme')
     if (v && (SCHEMES as readonly string[]).includes(v)) return v as ColorScheme
   } catch {
     // Ignore
@@ -55,7 +55,7 @@ export function useTheme() {
 
   useEffect(() => {
     applyTheme(theme)
-    try { localStorage.setItem('fuse-theme', theme) } catch { /* ignore */ }
+    try { localStorage.setItem('runmycrew-theme', theme) } catch { /* ignore */ }
   }, [theme])
 
   const setTheme = useCallback((t: Theme) => setThemeState(t), [])
@@ -69,7 +69,7 @@ export function useColorScheme() {
 
   useEffect(() => {
     applyScheme(scheme)
-    try { localStorage.setItem('fuse-scheme', scheme) } catch { /* ignore */ }
+    try { localStorage.setItem('runmycrew-scheme', scheme) } catch { /* ignore */ }
   }, [scheme])
 
   const setScheme = useCallback((s: ColorScheme) => setSchemeState(s), [])

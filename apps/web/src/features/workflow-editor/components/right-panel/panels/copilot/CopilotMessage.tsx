@@ -19,7 +19,7 @@ interface Props {
 /**
  * Rich-text renderer for Copilot assistant messages.
  *
- * Layout matches the Linear-style Copilot panel in Fuse.dc.html:
+ * Layout matches the Linear-style Copilot panel:
  *  - body text is 13px / line-height 1.55 / --text-body (#c7c9ce on dark)
  *  - <strong> lifts to --text (#edeef0)
  *  - inline code is --accent-tinted on a faint chip
@@ -144,7 +144,7 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
 
 /**
  * ```diff fenced block — per-line render with green/red/muted tints matching
- * the assistant-reply pattern in Fuse.dc.html (e.g. "I'll add a Filter step…"
+ * the assistant-reply pattern (e.g. "I'll add a Filter step…"
  * followed by + new line + context line).
  */
 function DiffBlock({ code }: { code: string }) {

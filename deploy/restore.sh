@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 # ----------------------------------------------------------------------
-# Fuse — Postgres restore from a `backup.sh` dump
+# RunMyCrew — Postgres restore from a `backup.sh` dump
 #
 # DESTRUCTIVE: drops + recreates every table in the target DB. Run
 # this against a SCRATCH database first to verify the dump actually
 # restores cleanly — schedule the drill monthly.
 #
 # Usage:
-#     ./restore.sh /var/lib/docker/volumes/fuse_pg_backups/_data/fuse-20260617-021500.dump.gz
+#     ./restore.sh /var/lib/docker/volumes/runmycrew_pg_backups/_data/runmycrew-20260617-021500.dump.gz
 #
 # Or restore the most recent:
-#     ./restore.sh /var/lib/docker/volumes/fuse_pg_backups/_data/latest.dump.gz
+#     ./restore.sh /var/lib/docker/volumes/runmycrew_pg_backups/_data/latest.dump.gz
 # ----------------------------------------------------------------------
 set -euo pipefail
 
 DUMP="${1:-}"
 if [[ -z "${DUMP}" || ! -f "${DUMP}" ]]; then
-  echo "usage: ./restore.sh <path/to/fuse-*.dump.gz>" >&2
+  echo "usage: ./restore.sh <path/to/runmycrew-*.dump.gz>" >&2
   exit 2
 fi
 

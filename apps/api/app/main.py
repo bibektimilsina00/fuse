@@ -95,7 +95,7 @@ async def health_check():
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Fuse API", "version": "1.0.0"}
+    return {"message": "Welcome to RunMyCrew API", "version": "1.0.0"}
 
 
 app.include_router(api_router)

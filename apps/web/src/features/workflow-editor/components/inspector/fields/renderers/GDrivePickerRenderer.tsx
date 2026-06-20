@@ -13,7 +13,7 @@ import apiClient from '@/shared/utils/apiClient'
  * users. Adblockers operate at the network layer below the page —
  * unfixable from app code.
  *
- * This implementation skips the SDK entirely. The browser asks Fuse's
+ * This implementation skips the SDK entirely. The browser asks the
  * backend (`/credentials/{id}/drive/folders?parent_id=…`) for folders
  * under a given parent; backend calls Drive's `files.list` server-side
  * and returns just `{ id, name, has_children }`. UI renders a finder-

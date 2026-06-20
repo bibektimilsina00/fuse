@@ -12,11 +12,11 @@ interface AuthFormProps { mode: Mode }
 
 const COPY = {
   login: {
-    heading: 'Log in to Fuse',
+    heading: 'Log in to RunMyCrew',
     sub: 'Welcome back. Connect your tools and keep things running.',
     verb: 'Continue with',
     primary: 'Continue with email',
-    togglePrompt: 'New to Fuse?',
+    togglePrompt: 'New to RunMyCrew?',
     toggleLabel: 'Create an account',
     toggleHref: APP_ROUTES.REGISTER,
     legal: 'By continuing, you agree to our',
@@ -36,7 +36,7 @@ const COPY = {
 /**
  * Shared auth card — drives both Login and Register from one component.
  * Tokens, weights, and radii mirror the marketing site so the handoff
- * from `fuse.bibektimilsina.tech` → `app.*` feels continuous.
+ * from `runmycrew.com` → `app.*` feels continuous.
  */
 export function AuthForm({ mode }: AuthFormProps) {
   const copy = COPY[mode]
@@ -92,7 +92,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     <>
       {/* Brand mark */}
       <div className="mb-[22px] flex justify-center">
-        <Icons.FuseMark style={{ width: 40, height: 40, color: 'var(--accent)' }} />
+        <Icons.BrandMark style={{ width: 40, height: 40, color: 'var(--accent)' }} />
       </div>
 
       <h1 className="m-0 text-center text-[28px] font-[560] leading-[1.1] tracking-[-0.022em] text-[var(--text)]">

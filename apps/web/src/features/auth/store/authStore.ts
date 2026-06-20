@@ -19,7 +19,7 @@ interface AuthStoreState {
  */
 const getInitialToken = (): string | null => {
   try {
-    return localStorage.getItem('fuse-auth-token')
+    return localStorage.getItem('runmycrew-auth-token')
   } catch {
     return null
   }
@@ -38,9 +38,9 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
   setToken: (token) => {
     try {
       if (token) {
-        localStorage.setItem('fuse-auth-token', token)
+        localStorage.setItem('runmycrew-auth-token', token)
       } else {
-        localStorage.removeItem('fuse-auth-token')
+        localStorage.removeItem('runmycrew-auth-token')
       }
     } catch {
       // Handle sandboxed/private browser environments where storage access is blocked
@@ -56,7 +56,7 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
 
   logout: () => {
     try {
-      localStorage.removeItem('fuse-auth-token')
+      localStorage.removeItem('runmycrew-auth-token')
     } catch {
       // Ignore storage errors on sandbox
     }

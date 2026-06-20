@@ -1,8 +1,6 @@
 /**
  * Single source of truth for every word + tile rendered on the marketing
  * landing page. Components stay presentational and import only from here.
- * Mirrors the structure of `Fuse Site.dc.html` so design and code stay
- * comparable section-by-section.
  */
 
 export type NavMenuKey = 'docs' | 'blog'
@@ -44,7 +42,7 @@ export const NAV_MENU_DOCS = {
     { title: 'Quickstart',   href: '/docs/quickstart', visual: 'chart'    },
   ] as NavHeroCard[],
   mini: [
-    { icon: 'sparkles', title: 'Fuse AI',     sub: 'Prompt → workflow',  href: '/docs/fuse-ai'   },
+    { icon: 'sparkles', title: 'Crew AI',     sub: 'Prompt → workflow',  href: '/docs/crew-ai'   },
     { icon: 'plug',     title: 'Connections', sub: 'OAuth & webhooks',    href: '/docs/oauth'     },
     { icon: 'server',   title: 'Self-hosting', sub: 'Run on your infra',  href: '/docs/self-host' },
   ] as NavMiniCard[],
@@ -52,12 +50,12 @@ export const NAV_MENU_DOCS = {
 
 /** Blog popup — 1 large featured + 1 enterprise card + 3 thumb cards. */
 export const NAV_MENU_BLOG = {
-  featured:   { title: 'Introducing Fuse AI',   href: '/blog/introducing-fuse-ai', visual: 'city' as const },
-  enterprise: { title: 'Fuse for Enterprise',    href: '/blog/enterprise',          visual: 'enterprise' as const },
+  featured:   { title: 'Introducing Crew AI',   href: '/blog/introducing-crew-ai', visual: 'city' as const },
+  enterprise: { title: 'RunMyCrew for Enterprise',    href: '/blog/enterprise',          visual: 'enterprise' as const },
   thumbs: [
     { title: 'Series Seed announcement',  visual: 'series', href: '/blog/seed-announcement'     },
     { title: 'Realtime collaboration',    visual: 'collab', href: '/blog/realtime-collaboration' },
-    { title: 'Inside the Fuse executor',  visual: 'graph',  href: '/blog/inside-the-executor'   },
+    { title: 'Inside the RunMyCrew executor',  visual: 'graph',  href: '/blog/inside-the-executor'   },
   ] as NavThumbCard[],
 }
 
@@ -66,7 +64,7 @@ export const NAV_MENU_BLOG = {
 export const HERO = {
   title: 'The automation system for teams and agents',
   subtitle: 'Connect every app you already use — no glue code required.',
-  releaseNote: { label: 'New', target: 'Fuse AI' },
+  releaseNote: { label: 'New', target: 'Crew AI' },
 } as const
 
 /** Compact recent-runs list rendered inside the dashboard hero mockup. */
@@ -78,7 +76,7 @@ export const HERO_RUNS: HeroRun[] = [
 ]
 
 /** Three "Suggested automations" cards under the prompt — mirrors the
- *  real Fuse dashboard's empty-state suggestion strip. */
+ *  real RunMyCrew dashboard's empty-state suggestion strip. */
 export type HeroSuggestion = { icon: string; iconBg: string; title: string }
 export const HERO_SUGGESTIONS: HeroSuggestion[] = [
   {
@@ -171,7 +169,7 @@ export const EXAMPLES: PromptExample[] = [
     nodes: [
       { kind: 'TRIGGER', title: 'Schedule · 9:00 AM',          sub: 'Mon–Fri',         icon: '⏱', iconBg: '#3a3f4a' },
       { kind: 'FETCH',   title: 'GitHub · Recent activity',    sub: 'last 24 hours',   icon: 'GH', iconBg: '#24292f' },
-      { kind: 'AI',      title: 'Fuse AI · Summarize',         sub: 'Claude Sonnet',   icon: 'AI', iconBg: '#5e6ad2' },
+      { kind: 'AI',      title: 'Crew AI · Summarize',         sub: 'Claude Sonnet',   icon: 'AI', iconBg: '#5e6ad2' },
       { kind: 'ACTION',  title: 'Slack · Post digest',         sub: 'channel #standup', icon: 'SL', iconBg: '#4a154b', last: true },
     ],
   },
@@ -186,7 +184,7 @@ export const LOGOS = ['GitHub', 'Slack', 'Notion', 'Google', 'Meta', 'Stripe', '
 export const STATEMENT = {
   lead: 'A new kind of automation tool.',
   trail:
-    'Purpose-built for modern teams with AI at its core, Fuse sets a new standard for connecting the apps you already run on.',
+    'Purpose-built for modern teams with AI at its core, RunMyCrew sets a new standard for connecting the apps you already run on.',
 }
 
 export const STATEMENT_FIGS = [
@@ -213,9 +211,9 @@ export const FEATURES = {
     label: 'Build',
     heading: 'Build automations\nby describing them',
     body:
-      'Turn a plain-English request into a multi-step workflow. Fuse AI maps the triggers, conditions, and actions across every connected app — and shows you exactly what it built.',
+      'Turn a plain-English request into a multi-step workflow. Crew AI maps the triggers, conditions, and actions across every connected app — and shows you exactly what it built.',
     sublinks: [
-      { n: '1.1', label: 'Fuse AI' },
+      { n: '1.1', label: 'Crew AI' },
       { n: '1.2', label: 'Triggers' },
       { n: '1.3', label: 'Conditions' },
       { n: '1.4', label: 'Templates' },
@@ -227,7 +225,7 @@ export const FEATURES = {
     label: 'Connect',
     heading: 'Connect the tools\nyou already use',
     body:
-      'Authorize GitHub, Slack, Google, Meta and more in a click — no API keys to babysit. Fuse keeps every connection healthy and reconnects when tokens expire.',
+      'Authorize GitHub, Slack, Google, Meta and more in a click — no API keys to babysit. RunMyCrew keeps every connection healthy and reconnects when tokens expire.',
     sublinks: [
       { n: '2.1', label: 'Integrations' },
       { n: '2.2', label: 'OAuth' },
@@ -241,7 +239,7 @@ export const FEATURES = {
     label: 'Run',
     heading: 'Runs that\nnever miss',
     body:
-      'Every execution is logged, retried, and observable. Fire on a schedule, a webhook, or an app event — Fuse handles backoff and alerts the moment anything drifts.',
+      'Every execution is logged, retried, and observable. Fire on a schedule, a webhook, or an app event — RunMyCrew handles backoff and alerts the moment anything drifts.',
     sublinks: [
       { n: '3.1', label: 'Scheduling' },
       { n: '3.2', label: 'Retries' },
@@ -326,7 +324,7 @@ export const RUN_STEPS: RunStep[] = [
   "event": "issues.labeled",
   "label": "urgent",
   "issue": 4821,
-  "repo": "fuse/api"
+  "repo": "runmycrew/api"
 }`,
   },
   {
@@ -360,7 +358,7 @@ export const RUN_STEPS: RunStep[] = [
 /* ─── CHANGELOG ────────────────────────────────────────────────────── */
 
 export const CHANGELOG = [
-  { dot: 'var(--primary)', title: 'Fuse AI multi-step',  body: 'Generate entire branching workflows from a single sentence.', date: 'JUN 10, 2026' },
+  { dot: 'var(--primary)', title: 'Crew AI multi-step',  body: 'Generate entire branching workflows from a single sentence.', date: 'JUN 10, 2026' },
   { dot: '#8b5cf6',        title: 'Run replay',          body: 'Re-run any execution with the original payload in one click.', date: 'JUN 3, 2026' },
   { dot: 'var(--chart-2)', title: 'Stripe integration',  body: 'Trigger on charges, refunds and disputes out of the box.',     date: 'MAY 27, 2026' },
   { dot: 'var(--chart-4)', title: 'Team workspaces',     body: 'Share connections and automations across your whole team.',    date: 'MAY 21, 2026' },
@@ -371,9 +369,9 @@ export const CHANGELOG = [
 export const TESTIMONIALS = [
   {
     quote:
-      '"Fuse replaced a tangle of scripts and three different tools. Now the whole team just writes what they want and it works."',
+      '"RunMyCrew replaced a tangle of scripts and three different tools. Now the whole team just writes what they want and it works."',
     author: 'Bibek Timilsina',
-    role: 'Founder, Fuse',
+    role: 'Founder, RunMyCrew',
     initial: 'B',
     bg: 'linear-gradient(160deg,#e7e8ff,#d6d9f5)',
     fg: '#1a1b2e',
@@ -383,7 +381,7 @@ export const TESTIMONIALS = [
   },
   {
     quote:
-      '"We ship integrations in an afternoon that used to take a sprint. Fuse is the most action-biased tool we run."',
+      '"We ship integrations in an afternoon that used to take a sprint. RunMyCrew is the most action-biased tool we run."',
     author: 'Aarav Sharma',
     role: 'Head of Ops, Northwind',
     initial: 'A',
@@ -404,4 +402,9 @@ export const FOOTER_COLS = [
   { title: 'Resources',    items: ['Docs', 'API', 'Templates', 'Status'] },
 ] as const
 
-export const FOOTER_LEGAL = ['Privacy', 'Terms', 'DPA', 'Security'] as const
+export const FOOTER_LEGAL = [
+  { label: 'Privacy',        href: '/privacy' },
+  { label: 'Terms',          href: '/terms' },
+  { label: 'Data deletion',  href: '/data-deletion' },
+  { label: 'Security',       href: '#' },
+] as const

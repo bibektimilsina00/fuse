@@ -20,7 +20,7 @@ export const DOCS_NAV: DocGroup[] = [
   {
     group: 'Get started',
     items: [
-      { slug: '',              title: 'Introduction', intro: 'Welcome to Fuse — the automation system for teams and agents.' },
+      { slug: '',              title: 'Introduction', intro: 'Welcome to RunMyCrew — the automation system for teams and agents.' },
       { slug: 'quickstart',    title: 'Quickstart',   intro: 'Build your first workflow in under 5 minutes.' },
       { slug: 'concepts',      title: 'Core concepts', intro: 'Triggers, conditions, actions, and the execution model.' },
       { slug: 'glossary',      title: 'Glossary' },
@@ -29,7 +29,7 @@ export const DOCS_NAV: DocGroup[] = [
   {
     group: 'Building workflows',
     items: [
-      { slug: 'fuse-ai',       title: 'Fuse AI',      intro: 'Generate workflows from a single prompt.' },
+      { slug: 'crew-ai',       title: 'Crew AI',      intro: 'Generate workflows from a single prompt.' },
       { slug: 'triggers',      title: 'Triggers' },
       { slug: 'conditions',    title: 'Conditions' },
       { slug: 'actions',       title: 'Actions' },

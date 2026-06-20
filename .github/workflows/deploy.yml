@@ -1,4 +1,4 @@
-# ─── Auto-deploy Fuse to VPS over SSH ──────────────────────────────────
+# ─── Auto-deploy RunMyCrew to VPS over SSH ──────────────────────────────────
 #
 # Triggered automatically when the `build-publish` workflow finishes
 # successfully on main, OR manually from the Actions tab.
@@ -14,7 +14,7 @@
 # ── Required GitHub Secrets (Settings → Secrets and variables → Actions
 #                              → Secrets) ────────────────────────────────
 #   VPS_SSH_PRIVATE_KEY  Full private key, e.g. contents of ~/.ssh/id_ed25519.
-#                        Generate locally:  ssh-keygen -t ed25519 -C "fuse-deploy" -f deploy_key -N ""
+#                        Generate locally:  ssh-keygen -t ed25519 -C "runmycrew-deploy" -f deploy_key -N ""
 #                        Add `cat deploy_key.pub` to /root/.ssh/authorized_keys on the VPS.
 #                        Paste `cat deploy_key` into this secret.
 #   ENV_PRODUCTION       Full contents of deploy/.env — every key=value line.
@@ -29,7 +29,7 @@
 # ── Required GitHub Variables (Settings → Variables → Actions) ──────────
 #   VPS_HOST             139.59.71.226
 #   VPS_USER             root
-#   VPS_DEPLOY_DIR       /opt/fuse/deploy
+#   VPS_DEPLOY_DIR       /opt/runmycrew/deploy
 #
 # ── Required Environment "production" ──────────────────────────────────
 # Settings → Environments → New environment → "production".
@@ -60,11 +60,11 @@ concurrency:
 
 jobs:
   deploy:
-    name: deploy to fuse.bibektimilsina.tech
+    name: deploy to runmycrew.com
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: https://app.fuse.bibektimilsina.tech
+      url: https://app.runmycrew.com
 
     # Skip when the build job that triggered us actually failed.
     if: >
@@ -163,7 +163,7 @@ jobs:
           ssh -i ~/.ssh/deploy_key "${VPS_USER}@${VPS_HOST}" \
             "set -euo pipefail; \
              cd ${VPS_DIR}; \
-             export FUSE_IMAGE_TAG='${IMAGE_TAG}'; \
+             export RUNMYCREW_IMAGE_TAG='${IMAGE_TAG}'; \
              docker compose -f docker-compose.production.yml pull; \
              docker compose -f docker-compose.production.yml up -d --remove-orphans; \
              docker image prune -f"
@@ -184,11 +184,11 @@ jobs:
           # it explicitly. JSON response with per-component status.
           for i in 1 2 3 4 5 6 7 8; do
             if curl -fsS --max-time 8 \
-                https://app.fuse.bibektimilsina.tech/health > /tmp/health.json; then
+                https://app.runmycrew.com/health > /tmp/health.json; then
               echo "✓ app /health responding."
               cat /tmp/health.json
               # Also verify the marketing site returns 200 on root.
-              if curl -fsS --max-time 8 -o /dev/null https://fuse.bibektimilsina.tech/; then
+              if curl -fsS --max-time 8 -o /dev/null https://runmycrew.com/; then
                 echo "✓ marketing site responding."
                 exit 0
               fi

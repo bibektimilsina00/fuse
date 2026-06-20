@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FuseMark } from './FuseMark'
+import { BrandMark } from './BrandMark'
 import { EXAMPLES } from '../data/site'
 
 /**
@@ -18,7 +18,7 @@ export function MockupWorkflow() {
     <div className="overflow-hidden rounded-[13px] border border-white/[0.09] bg-[#0c0d0f] shadow-[0_40px_100px_-40px_rgba(0,0,0,0.8)]">
       <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-[18px] py-3.5">
         <span className="grid h-[22px] w-[22px] place-items-center rounded-md bg-primary/15 text-primary">
-          <FuseMark className="h-[13px] w-[13px]" />
+          <BrandMark className="h-[13px] w-[13px]" />
         </span>
         <span className="text-[13.5px] font-semibold">{ex.label}</span>
         <span className="ml-auto rounded-[5px] bg-white/[0.05] px-2 py-[2px] font-mono text-[11px] text-muted-foreground/80">

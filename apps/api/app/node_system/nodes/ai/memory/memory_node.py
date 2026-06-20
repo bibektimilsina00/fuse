@@ -183,7 +183,7 @@ async def _clear_memory(provider: Any, key: str, backend: str) -> None:
             from apps.api.app.core.redis import get_redis
 
             redis = await get_redis()
-            await redis.delete(f"fuse:agent_memory:{key}")
+            await redis.delete(f"runmycrew:agent_memory:{key}")
         except Exception as e:
             logger.warning(f"Redis clear failed: {e}")
     else:

@@ -2,7 +2,7 @@ import { type HTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
 
 /**
- * Fuse Skeleton — shimmer placeholder for loading states.
+ * RunMyCrew Skeleton — shimmer placeholder for loading states.
  */
 function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (

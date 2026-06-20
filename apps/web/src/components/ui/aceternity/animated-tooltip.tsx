@@ -20,7 +20,7 @@ interface AnimatedTooltipProps {
 
 /**
  * AnimatedTooltip — stacked avatar row with animated tooltip cards on hover.
- * Adapted from Aceternity UI for Fuse.
+ * Adapted from Aceternity UI for RunMyCrew.
  * @example
  * ```tsx
  * <AnimatedTooltip items={[{ id: 1, name: 'Alice', initials: 'AL', designation: 'Admin' }]} />

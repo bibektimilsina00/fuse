@@ -1,4 +1,4 @@
-# ─── Fuse production stack ─────────────────────────────────────────────
+# ─── RunMyCrew production stack ─────────────────────────────────────────────
 #
 # 7 services on a single host. Pulls pre-built images from ghcr.io —
 # no `build:` lines, so a VPS deploy never needs Node / uv / gcc /
@@ -7,7 +7,7 @@
 # Run from the `deploy/` directory:
 #   docker compose -f docker-compose.production.yml up -d
 #
-# Tag pinning: set FUSE_IMAGE_TAG=sha-abc1234 in .env to roll back
+# Tag pinning: set RUNMYCREW_IMAGE_TAG=sha-abc1234 in .env to roll back
 # without changing this file. Default `latest` tracks main.
 #
 # Resource caps assume a 2 GB VPS. Bump if you upgrade the droplet
@@ -30,10 +30,10 @@ services:
   # "pull web image, restart container".
   #
   # Caddy fronts BOTH hostnames from this one container:
-  #   - fuse.bibektimilsina.tech       → marketing site (`site:3100`)
-  #   - app.fuse.bibektimilsina.tech   → React product (static + api)
+  #   - runmycrew.com       → marketing site (`site:3100`)
+  #   - app.runmycrew.com   → React product (static + api)
   web:
-    image: ghcr.io/${GITHUB_OWNER}/fuse-web:${FUSE_IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_OWNER}/runmycrew-web:${RUNMYCREW_IMAGE_TAG:-latest}
     restart: unless-stopped
     ports:
       - "80:80"
@@ -61,7 +61,7 @@ services:
   # Pure HTML/CSS/JS app — no DB, no Redis, no env vars beyond port.
   # Reverse-proxied by `web` on the apex hostname.
   site:
-    image: ghcr.io/${GITHUB_OWNER}/fuse-site:${FUSE_IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_OWNER}/runmycrew-site:${RUNMYCREW_IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -79,15 +79,15 @@ services:
 
   # ── FastAPI ──────────────────────────────────────────────────────
   api:
-    image: ghcr.io/${GITHUB_OWNER}/fuse-api:${FUSE_IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_OWNER}/runmycrew-api:${RUNMYCREW_IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     environment:
       POSTGRES_SERVER: db
       REDIS_HOST: redis
       ENVIRONMENT: production
-      BASE_URL: ${BASE_URL:-https://app.fuse.bibektimilsina.tech}
-      FRONTEND_URL: ${FRONTEND_URL:-https://app.fuse.bibektimilsina.tech}
+      BASE_URL: ${BASE_URL:-https://app.runmycrew.com}
+      FRONTEND_URL: ${FRONTEND_URL:-https://app.runmycrew.com}
       TZ: UTC
     depends_on:
       db:
@@ -105,7 +105,7 @@ services:
 
   # ── Celery worker ────────────────────────────────────────────────
   worker:
-    image: ghcr.io/${GITHUB_OWNER}/fuse-worker:${FUSE_IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_OWNER}/runmycrew-worker:${RUNMYCREW_IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     environment:
@@ -151,7 +151,7 @@ services:
   # YouTube / Cloud Storage / People / Tasks / Forms / Chat). Single
   # replica is mandatory — multiple beats would double-fire schedules.
   beat:
-    image: ghcr.io/${GITHUB_OWNER}/fuse-worker:${FUSE_IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_OWNER}/runmycrew-worker:${RUNMYCREW_IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     environment:

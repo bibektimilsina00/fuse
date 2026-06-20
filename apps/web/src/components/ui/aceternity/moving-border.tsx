@@ -17,7 +17,7 @@ interface MovingBorderProps {
 
 /**
  * MovingBorder — animated gradient border that travels around the element perimeter.
- * Adapted from Aceternity UI for Fuse. Uses framer-motion for the conic-gradient animation.
+ * Adapted from Aceternity UI for RunMyCrew. Uses framer-motion for the conic-gradient animation.
  * @example
  * ```tsx
  * <MovingBorder>

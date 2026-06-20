@@ -1,4 +1,4 @@
-# Fuse documentation
+# RunMyCrew documentation
 
 - [Architecture](./architecture.md) — apps, backend/frontend layout, data, known gaps
 - [Execution flow](./execution-flow.md) — how a workflow runs (trigger → Celery → worker → engine → nodes), sandbox & limits

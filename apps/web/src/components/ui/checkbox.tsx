@@ -4,7 +4,7 @@ import { Check } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 /**
- * Fuse Checkbox — Radix-backed for proper indeterminate + a11y.
+ * RunMyCrew Checkbox — Radix-backed for proper indeterminate + a11y.
  */
 const Checkbox = forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,

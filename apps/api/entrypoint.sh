@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ----------------------------------------------------------------------
-# Fuse API container entrypoint
+# RunMyCrew API container entrypoint
 #
 # 1. Apply pending Alembic migrations idempotently. Safe to re-run on
 #    every container start; no-op when the schema is already at head.

@@ -3,7 +3,7 @@ import * as ProgressPrimitive from '@radix-ui/react-progress'
 import { cn } from '@/lib/cn'
 
 /**
- * Fuse Progress — Radix-backed progress bar.
+ * RunMyCrew Progress — Radix-backed progress bar.
  * @example `<Progress value={65} />`
  */
 const Progress = forwardRef<

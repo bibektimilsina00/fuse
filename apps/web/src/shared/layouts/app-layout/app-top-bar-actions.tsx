@@ -75,7 +75,7 @@ export function AppTopBarActions({ controller }: AppTopBarActionsProps) {
               <button className={MENU_ITEM_CLASS} onClick={() => { setProfileOpen(false); setShortcutsOpen(true) }}>
                 <Icons.Cmd /> Keyboard shortcuts <span className="ml-auto kbd">?</span>
               </button>
-              <button className={MENU_ITEM_CLASS} onClick={() => { setProfileOpen(false); window.open('https://docs.fuse.io', '_blank', 'noopener') }}>
+              <button className={MENU_ITEM_CLASS} onClick={() => { setProfileOpen(false); window.open('https://runmycrew.com/docs', '_blank', 'noopener') }}>
                 <Icons.Doc /> Documentation
               </button>
               <button className={MENU_ITEM_CLASS} onClick={() => { setProfileOpen(false); setFeedbackOpen(true) }}>

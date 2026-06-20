@@ -1,7 +1,7 @@
 [project]
-name = "fuse-worker"
+name = "runmycrew-worker"
 version = "0.1.0"
-description = "Fuse Platform Worker"
+description = "RunMyCrew Platform Worker"
 dependencies = [
     "celery",
     "redis",

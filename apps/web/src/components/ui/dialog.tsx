@@ -127,7 +127,7 @@ const DialogDescription = forwardRef<
 DialogDescription.displayName = DialogPrimitive.Description.displayName
 
 /**
- * Fuse Modal — convenience wrapper over the composable Dialog parts.
+ * RunMyCrew Modal — convenience wrapper over the composable Dialog parts.
  * Drop-in replacement for the previous Modal.tsx API.
  * @example
  * ```tsx

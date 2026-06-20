@@ -49,7 +49,7 @@ export function Testimonials() {
 
         <div className="mt-7 flex flex-wrap items-center justify-between gap-4">
           <span className="text-[16px] text-muted-foreground/85">
-            Fuse runs automations for teams of every size. From solo builders to scaling startups.
+            RunMyCrew runs automations for teams of every size. From solo builders to scaling startups.
           </span>
           <Link
             href="#"

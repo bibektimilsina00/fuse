@@ -460,7 +460,7 @@ export function KBDetailPanel({ kb, onClose }: Props) {
               {addTab === 'url' && (
                 <div className="flex flex-col gap-4">
                   <p className="text-[12.5px] text-[var(--text-faint)]">
-                    Paste a URL — fuse will fetch the page, strip HTML, and index the text content.
+                    Paste a URL — RunMyCrew will fetch the page, strip HTML, and index the text content.
                   </p>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[11.5px] font-medium text-[var(--text-mute)]">URL</label>

@@ -14,7 +14,7 @@ from apps.api.app.features.users.models import User
 from apps.api.app.features.workspaces.models import Workspace
 from apps.api.app.shared.dependencies import get_current_user, get_current_workspace
 
-# Default lifetime for the signed public URLs Fuse hands to external services
+# Default lifetime for the signed public URLs RunMyCrew hands to external services
 # (e.g. Meta's IG content publishing endpoint, which has to fetch our asset
 # without an auth header). 30 minutes is long enough for Meta's container
 # + polling loop to complete, short enough that a leaked link expires.

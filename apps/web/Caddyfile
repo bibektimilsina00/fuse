@@ -1,18 +1,18 @@
 {
 	# Email for Let's Encrypt expiry / revocation notices. Swap if you
 	# want them going elsewhere.
-	email support@khareedlow.com
+	email support@runmycrew.com
 
 	# Default Caddy auto-issues from Let's Encrypt and renews 30 days
 	# before expiry. No certbot required.
 }
 
 # ─────────────────────────────────────────────────────────────────────
-# Marketing site — fuse.bibektimilsina.tech
+# Marketing site — runmycrew.com
 # Reverse-proxies to the Next.js standalone server in the `site`
 # container. The product app lives on the `app.` subdomain.
 # ─────────────────────────────────────────────────────────────────────
-fuse.bibektimilsina.tech {
+runmycrew.com {
 	encode zstd gzip
 
 	header {
@@ -42,12 +42,12 @@ fuse.bibektimilsina.tech {
 }
 
 # ─────────────────────────────────────────────────────────────────────
-# Product app — app.fuse.bibektimilsina.tech
+# Product app — app.runmycrew.com
 # Caddy serves the static React build + reverse-proxies `/api/*`,
 # `/ws/*`, `/health`, etc. to the FastAPI container. This block is
 # what used to live on the apex.
 # ─────────────────────────────────────────────────────────────────────
-app.fuse.bibektimilsina.tech {
+app.runmycrew.com {
 	encode zstd gzip
 
 	header {
@@ -95,3 +95,10 @@ app.fuse.bibektimilsina.tech {
 
 # Caddy auto-issues 308 redirects from :80 to :443 for both managed
 # sites above — no explicit `http://` blocks needed.
+
+# ─────────────────────────────────────────────────────────────────────
+# www → apex canonical redirect (runmycrew.com)
+# ─────────────────────────────────────────────────────────────────────
+www.runmycrew.com {
+	redir https://runmycrew.com{uri} permanent
+}

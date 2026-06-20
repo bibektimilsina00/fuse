@@ -249,7 +249,7 @@ export const Icons = {
       <path d="M21 21l-4.35-4.35" />
     </svg>
   ),
-  FuseMark: (props: IconProps) => (
+  BrandMark: (props: IconProps) => (
     <svg viewBox="0 0 32 32" fill="none" {...props}>
       <rect x="4"  y="4"  width="17" height="17" rx="6" fill="currentColor" opacity="0.42" />
       <rect x="11" y="11" width="17" height="17" rx="6" fill="currentColor" />

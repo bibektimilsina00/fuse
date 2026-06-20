@@ -19,7 +19,7 @@ class User(SQLModelBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     email: str = Field(unique=True, index=True)
     # Null for OAuth-only accounts (Google sign-in) — they never set
-    # a Fuse password, so we let the column be empty rather than store
+    # a RunMyCrew password, so we let the column be empty rather than store
     # an unguessable filler that would always fail password verify.
     hashed_password: str | None = Field(default=None, nullable=True)
     # Identity origin. "password" = registered with email+password,

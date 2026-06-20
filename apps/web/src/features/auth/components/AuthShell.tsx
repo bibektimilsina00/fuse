@@ -12,7 +12,7 @@ interface AuthShellProps {
 }
 
 const MARKETING_URL =
-  import.meta.env.VITE_MARKETING_URL || 'https://fuse.bibektimilsina.tech'
+  import.meta.env.VITE_MARKETING_URL || 'https://runmycrew.com'
 
 /**
  * Auth pages bypass the user's color-scheme + light/dark choice and lock

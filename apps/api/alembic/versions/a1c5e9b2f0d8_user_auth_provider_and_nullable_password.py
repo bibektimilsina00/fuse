@@ -5,7 +5,7 @@ Revises: fb4e4bafc6d6
 Create Date: 2026-06-18 13:55:00.000000
 
 Make `hashed_password` nullable so OAuth-only accounts (Google
-sign-in) can exist without a Fuse password, and add an
+sign-in) can exist without a RunMyCrew password, and add an
 `auth_provider` column ("password" | "google" | ...) so the UI +
 backend can tell native + federated identities apart.
 
