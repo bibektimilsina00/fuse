@@ -164,7 +164,7 @@ export interface SelectOption {
 }
 
 /**
- * Fuse Select — convenience wrapper matching the original Select.tsx API.
+ * RunMyCrew Select — convenience wrapper matching the original Select.tsx API.
  * @example `<Select options={opts} value={val} onChange={setVal} />`
  */
 function Select({

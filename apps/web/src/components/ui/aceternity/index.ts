@@ -1,4 +1,4 @@
-// Aceternity UI components — adapted for Fuse design system
+// Aceternity UI components — adapted for RunMyCrew design system
 // All require framer-motion (already installed).
 
 export { SpotlightCard } from './spotlight-card'

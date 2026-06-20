@@ -11,7 +11,7 @@ interface BentoGridProps {
 /**
  * BentoGrid — responsive asymmetric grid layout.
  * Children should be `<BentoCard>` components.
- * Adapted from Aceternity UI for Fuse dashboard layouts.
+ * Adapted from Aceternity UI for RunMyCrew dashboard layouts.
  */
 function BentoGrid({ children, className }: BentoGridProps) {
   return (

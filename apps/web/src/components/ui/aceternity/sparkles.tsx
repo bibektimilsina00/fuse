@@ -25,7 +25,7 @@ interface SparklesProps {
 /**
  * Sparkles — animated particle burst overlay.
  * Wraps children and renders floating sparkle particles on top.
- * Adapted from Aceternity UI for Fuse.
+ * Adapted from Aceternity UI for RunMyCrew.
  */
 function Sparkles({
   children,

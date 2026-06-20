@@ -12,7 +12,7 @@ interface AuroraBackgroundProps {
 
 /**
  * AuroraBackground — animated aurora borealis effect using CSS gradients + framer-motion.
- * Great for auth/onboarding pages. Adapted from Aceternity UI with Fuse accent palette.
+ * Great for auth/onboarding pages. Adapted from Aceternity UI with RunMyCrew accent palette.
  */
 function AuroraBackground({ children, className, intensity = 1 }: AuroraBackgroundProps) {
   const opacity = Math.min(intensity * 0.07, 0.14)

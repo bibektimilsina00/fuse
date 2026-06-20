@@ -3,7 +3,7 @@ import * as LabelPrimitive from '@radix-ui/react-label'
 import { cn } from '@/lib/cn'
 
 /**
- * Fuse Label — Radix-backed for reliable `htmlFor` association.
+ * RunMyCrew Label — Radix-backed for reliable `htmlFor` association.
  */
 const Label = forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,

@@ -1,4 +1,4 @@
-// shadcn/ui primitives — Fuse-styled
+// shadcn/ui primitives — RunMyCrew-styled
 export { Button, type ButtonProps } from './button'
 export { buttonVariants } from './button.variants'
 export { Input, type InputProps } from './input'

@@ -15,7 +15,7 @@ export interface ButtonProps
 }
 
 /**
- * Fuse Button — built on CVA + Radix Slot.
+ * RunMyCrew Button — built on CVA + Radix Slot.
  * Supports all legacy variants and options from the original Button.tsx.
  */
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -57,4 +57,3 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button'
 
 export { Button }
-

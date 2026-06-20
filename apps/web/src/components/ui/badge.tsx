@@ -21,7 +21,7 @@ export interface BadgeProps
 }
 
 /**
- * Fuse Badge — CVA-based status / label chips.
+ * RunMyCrew Badge — CVA-based status / label chips.
  * Supports legacy `dot` status indicator and custom variants.
  */
 function Badge({ className, variant = 'default', dot, children, ...props }: BadgeProps) {
@@ -35,4 +35,3 @@ function Badge({ className, variant = 'default', dot, children, ...props }: Badg
 }
 
 export { Badge }
-

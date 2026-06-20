@@ -4,7 +4,7 @@ import { cn } from '@/lib/cn'
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement>
 
 /**
- * Fuse Textarea — styled to match Input.
+ * RunMyCrew Textarea — styled to match Input.
  */
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, ...props }, ref) => {
   return (

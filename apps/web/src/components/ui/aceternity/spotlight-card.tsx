@@ -12,7 +12,7 @@ interface SpotlightCardProps {
 
 /**
  * SpotlightCard — a card that follows the mouse with a soft spotlight glow.
- * Adapted from Aceternity UI for Fuse design system.
+ * Adapted from Aceternity UI for RunMyCrew design system.
  */
 function SpotlightCard({ children, className, spotlightColor }: SpotlightCardProps) {
   const divRef = useRef<HTMLDivElement>(null)
