@@ -24,15 +24,19 @@ export function MarketingFooter() {
               {col.title}
             </div>
             <div className="flex flex-col gap-[11px]">
-              {col.items.map((item) => (
-                <Link
-                  key={item}
-                  href="#"
-                  className="text-[13.5px] text-muted-foreground transition-colors hover:text-foreground/80"
-                >
-                  {item}
-                </Link>
-              ))}
+              {col.items.map((item) => {
+                const external = /^https?:\/\//.test(item.href)
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    className="text-[13.5px] text-muted-foreground transition-colors hover:text-foreground/80"
+                  >
+                    {item.label}
+                  </Link>
+                )
+              })}
             </div>
           </div>
         ))}

@@ -395,16 +395,52 @@ export const TESTIMONIALS = [
 
 /* ─── FOOTER ───────────────────────────────────────────────────────── */
 
-export const FOOTER_COLS = [
-  { title: 'Product',      items: ['Build', 'Connect', 'Run', 'Observe', 'Pricing'] },
-  { title: 'Integrations', items: ['GitHub', 'Slack', 'Google', 'Notion', 'All apps'] },
-  { title: 'Company',      items: ['About', 'Blog', 'Careers', 'Contact'] },
-  { title: 'Resources',    items: ['Docs', 'API', 'Templates', 'Status'] },
-] as const
+export type FooterLink = { label: string; href: string }
+export type FooterColumn = { title: string; items: FooterLink[] }
 
-export const FOOTER_LEGAL = [
+export const FOOTER_COLS: FooterColumn[] = [
+  {
+    title: 'Product',
+    items: [
+      { label: 'Pricing',      href: '/pricing' },
+      { label: 'Integrations', href: '/integrations' },
+      { label: 'Templates',    href: '/templates' },
+      { label: 'Changelog',    href: '/changelog' },
+    ],
+  },
+  {
+    title: 'Developers',
+    items: [
+      { label: 'Docs',           href: '/docs' },
+      { label: 'OAuth scopes',   href: '/oauth-scopes' },
+      { label: 'Self-hosting',   href: '/docs/self-host' },
+      { label: 'Status',         href: 'https://status.runmycrew.com' },
+    ],
+  },
+  {
+    title: 'Company',
+    items: [
+      { label: 'About',     href: '/about' },
+      { label: 'Blog',      href: '/blog' },
+      { label: 'Contact',   href: '/contact' },
+      { label: 'Security',  href: '/security' },
+    ],
+  },
+  {
+    title: 'Legal',
+    items: [
+      { label: 'Privacy',        href: '/privacy' },
+      { label: 'Terms',          href: '/terms' },
+      { label: 'Cookies',        href: '/cookies' },
+      { label: 'Transparency',   href: '/transparency' },
+      { label: 'Data deletion',  href: '/data-deletion' },
+    ],
+  },
+]
+
+export const FOOTER_LEGAL: FooterLink[] = [
   { label: 'Privacy',        href: '/privacy' },
   { label: 'Terms',          href: '/terms' },
+  { label: 'Cookies',        href: '/cookies' },
   { label: 'Data deletion',  href: '/data-deletion' },
-  { label: 'Security',       href: '#' },
-] as const
+]

@@ -1,0 +1,6 @@
+Contact: mailto:security@runmycrew.com
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://runmycrew.com/.well-known/security.txt
+Policy: https://runmycrew.com/security
+Acknowledgments: https://runmycrew.com/security#disclosure
