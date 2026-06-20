@@ -20,7 +20,7 @@
     "axios": "^1.18.0",
     "clsx": "^2.1.1",
     "jsonata": "^1.8.7",
-    "lucide-react": "^1.20.0",
+    "lucide-react": "^1.21.0",
     "prismjs": "^1.30.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
