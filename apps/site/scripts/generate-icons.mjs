@@ -29,46 +29,32 @@ const BRAND_PURPLE = '#5e6ad2'
 const TEXT_PRIMARY = '#edeef0'
 const TEXT_MUTED = '#8a8f98'
 
-// Three-petal spinner brand mark. Petal source path:
-//   M16 16 C 12.4 13, 12.4 6.4, 16 3 C 19.6 6.4, 19.6 13, 16 16 Z
-// Renders the petal pointing up from the centre, then duplicates at
-// rotations 0/120/240 with descending opacity (1.0 / 0.66 / 0.4) for
-// the "spinning" look. The centre `<circle>` caps the petal bases so
-// the focal point reads as a single dot instead of three overlapping
-// curves.
-const PETAL = 'M16 16 C 12.4 13, 12.4 6.4, 16 3 C 19.6 6.4, 19.6 13, 16 16 Z'
-const MARK_GROUP = ({ centerFill = BG } = {}) => `
-  <g>
-    <path d="${PETAL}" fill="${BRAND_PURPLE}"/>
-    <path d="${PETAL}" fill="${BRAND_PURPLE}" opacity="0.66" transform="rotate(120 16 16)"/>
-    <path d="${PETAL}" fill="${BRAND_PURPLE}" opacity="0.4"  transform="rotate(240 16 16)"/>
-  </g>
-  <circle cx="16" cy="16" r="2.4" fill="${centerFill}"/>`
+// Four-node brand mark on a 64-unit viewBox: one solid lead square on
+// the right plus three smaller satellites at descending opacity
+// (0.72 / 0.72 / 0.42). Reads as a workflow graph / node mesh — the
+// product's defining shape.
+const MARK_RECTS = `
+  <rect x="38" y="24"   width="16" height="16" rx="5"   fill="${BRAND_PURPLE}"/>
+  <rect x="19" y="11"   width="13" height="13" rx="4.5" fill="${BRAND_PURPLE}" opacity="0.72"/>
+  <rect x="19" y="40"   width="13" height="13" rx="4.5" fill="${BRAND_PURPLE}" opacity="0.72"/>
+  <rect x="3"  y="25.5" width="11" height="11" rx="3.6" fill="${BRAND_PURPLE}" opacity="0.42"/>`
 
 // Transparent — for favicons, app-store icons, and any surface where
-// the host UI provides the background. The centre cap is the brand-bg
-// colour so the overlap of the three petal bases still reads as a
-// single accent dot on dark surfaces; on light surfaces it presents as
-// a small dark dot, which is consistent with the wordmark.
+// the host UI provides the background.
 const TRANSPARENT_SVG = (size) => `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="${size}" height="${size}" fill="none">
-${MARK_GROUP()}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${size}" height="${size}" fill="none">
+${MARK_RECTS}
 </svg>`.trim()
 
 // Maskable variant — REQUIRES an opaque background because Android
 // masks the icon to a circle / squircle / teardrop and any transparent
 // pixel inside the safe area shows the OS background. Safe-area scaled
-// to 87.5% per the maskable-icon spec.
+// to 87.5% per the maskable-icon spec, then re-centred.
 const MASKABLE_SVG = (size) => `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="${size}" height="${size}">
-  <rect width="32" height="32" fill="${BG}"/>
-  <g transform="translate(2 2) scale(0.875)">
-    <g>
-      <path d="${PETAL}" fill="${BRAND_PURPLE}"/>
-      <path d="${PETAL}" fill="${BRAND_PURPLE}" opacity="0.66" transform="rotate(120 16 16)"/>
-      <path d="${PETAL}" fill="${BRAND_PURPLE}" opacity="0.4"  transform="rotate(240 16 16)"/>
-    </g>
-    <circle cx="16" cy="16" r="2.4" fill="${BG}"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${size}" height="${size}">
+  <rect width="64" height="64" fill="${BG}"/>
+  <g transform="translate(4 4) scale(0.875)">
+${MARK_RECTS}
   </g>
 </svg>`.trim()
 
@@ -90,13 +76,13 @@ const OG_SVG = `
   <rect width="1200" height="630" fill="url(#bg)"/>
   <rect width="1200" height="630" fill="url(#glow)"/>
 
-  <!-- Brand mark, 140px tall, vertically centred at y≈315. The mark
-       SVG is 32 units across, so scale 4.375x to land at 140px. -->
-  <g transform="translate(120 245) scale(4.375)">
-    <path d="${PETAL}" fill="${BRAND_PURPLE}"/>
-    <path d="${PETAL}" fill="${BRAND_PURPLE}" opacity="0.66" transform="rotate(120 16 16)"/>
-    <path d="${PETAL}" fill="${BRAND_PURPLE}" opacity="0.4"  transform="rotate(240 16 16)"/>
-    <circle cx="16" cy="16" r="2.4" fill="${BG}"/>
+  <!-- Brand mark: 4-node graph, 140 px tall, centred at (120, 245).
+       Mark viewBox is 64 units across; scale 2.1875x for 140 px. -->
+  <g transform="translate(120 245) scale(2.1875)">
+    <rect x="38" y="24"   width="16" height="16" rx="5"   fill="${BRAND_PURPLE}"/>
+    <rect x="19" y="11"   width="13" height="13" rx="4.5" fill="${BRAND_PURPLE}" opacity="0.72"/>
+    <rect x="19" y="40"   width="13" height="13" rx="4.5" fill="${BRAND_PURPLE}" opacity="0.72"/>
+    <rect x="3"  y="25.5" width="11" height="11" rx="3.6" fill="${BRAND_PURPLE}" opacity="0.42"/>
   </g>
 
   <!-- Wordmark + tagline -->
