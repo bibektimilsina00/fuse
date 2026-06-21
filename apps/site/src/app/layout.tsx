@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     images: [
       {
-        url: '/og-default.png',
+        url: '/og-default.jpg',
         width: 1200,
         height: 630,
         alt: 'RunMyCrew — automation system for teams and agents',
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
     title: 'RunMyCrew — Build workflows in plain English',
     description:
       'Turn natural-language prompts into production workflows. Connect any app, ship in minutes, audit every run.',
-    images: ['/og-default.png'],
+    images: ['/og-default.jpg'],
   },
   icons: {
     icon: [
