@@ -55,8 +55,14 @@ export function ProfileCard({ profile, onSave, isSaving = false }: Props) {
       <div className="p-6 flex flex-col gap-6">
         {/* Avatar row */}
         <div className="flex items-center gap-4">
-          <div className="w-[52px] h-[52px] rounded-[12px] bg-[var(--text)] text-[var(--bg)] flex items-center justify-center text-[20px] font-bold tracking-tight shrink-0">
-            {initial}
+          <div
+            className={
+              'w-[52px] h-[52px] rounded-[12px] flex items-center justify-center text-[20px] font-bold tracking-tight shrink-0 bg-cover bg-center' +
+              (profile.avatar_url ? '' : ' bg-[var(--accent)] text-white')
+            }
+            style={{ backgroundImage: profile.avatar_url ? `url(${profile.avatar_url})` : undefined }}
+          >
+            {!profile.avatar_url && initial}
           </div>
           <div className="flex flex-col gap-1 min-w-0">
             <span className="text-[14px] font-semibold text-[var(--text)] tracking-tight truncate">
