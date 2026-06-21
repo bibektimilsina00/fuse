@@ -17,14 +17,19 @@ const mono = JetBrains_Mono({
   display: 'swap',
 })
 
-// Google Search Console + Meta Domain Verification tokens land here so we
-// can verify domain ownership without futzing with DNS round-trips. Override
-// at build time with `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` / `NEXT_PUBLIC_META_DOMAIN_VERIFICATION`
-// once the consoles emit the strings.
+// Google Search Console verification: handled via DNS TXT through the
+// Cloudflare integration — no meta tag needed. Override via
+// `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` if the property is ever re-keyed
+// to HTML-tag verification.
 const GOOGLE_VERIFICATION =
   process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined
+
+// Meta / Facebook Business Manager domain verification. The token is
+// not a secret — it only proves we control runmycrew.com. Override
+// with `NEXT_PUBLIC_META_DOMAIN_VERIFICATION` if we ever re-key.
 const META_VERIFICATION =
-  process.env.NEXT_PUBLIC_META_DOMAIN_VERIFICATION || undefined
+  process.env.NEXT_PUBLIC_META_DOMAIN_VERIFICATION ||
+  'gzi25gydwtitbm24a0mt4dwam2y0cn'
 
 export const viewport: Viewport = {
   themeColor: '#08090a',
