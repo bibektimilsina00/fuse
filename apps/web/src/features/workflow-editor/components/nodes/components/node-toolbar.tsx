@@ -9,14 +9,14 @@ interface NodeToolbarProps {
   selected: boolean
 }
 
-// Chip uses the accent (theme primary) as its surface so the toolbar
-// stays consistent across colour schemes — the variable retints with
-// the active palette automatically. White-ish foreground for contrast
-// against the saturated bg; alpha overlay on hover for press feedback.
+// Default state is quiet — transparent surface, subtle border, muted
+// glyph — so the toolbar reads as a hint rather than a loud bar.
+// Hover fills the chip with the theme accent so the active target
+// pops without compromising scannability.
 const BTN =
   'flex size-[24px] items-center justify-center rounded-[7px] ' +
-  'bg-[var(--accent)] border border-[color-mix(in_oklab,var(--accent)_70%,transparent)] text-white/90 ' +
-  'transition-colors hover:brightness-110 hover:text-white ' +
+  'bg-transparent border border-[var(--border-faint)] text-[var(--text-mute)] ' +
+  'transition-colors hover:bg-[var(--accent)] hover:border-[var(--accent)] hover:text-white ' +
   '[&_svg]:size-[12px] disabled:opacity-40 disabled:cursor-not-allowed'
 
 const NODE_HEIGHT_ESTIMATE = 30 // px above the node
