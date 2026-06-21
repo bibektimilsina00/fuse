@@ -9,10 +9,14 @@ interface NodeToolbarProps {
   selected: boolean
 }
 
+// Chip uses the accent (theme primary) as its surface so the toolbar
+// stays consistent across colour schemes — the variable retints with
+// the active palette automatically. White-ish foreground for contrast
+// against the saturated bg; alpha overlay on hover for press feedback.
 const BTN =
   'flex size-[24px] items-center justify-center rounded-[7px] ' +
-  'bg-[var(--surface)] border border-[var(--border-faint)] text-text-mute ' +
-  'transition-colors hover:bg-[var(--surface-3)] hover:border-[var(--border-soft)] hover:text-text ' +
+  'bg-[var(--accent)] border border-[color-mix(in_oklab,var(--accent)_70%,transparent)] text-white/90 ' +
+  'transition-colors hover:brightness-110 hover:text-white ' +
   '[&_svg]:size-[12px] disabled:opacity-40 disabled:cursor-not-allowed'
 
 const NODE_HEIGHT_ESTIMATE = 30 // px above the node
@@ -49,7 +53,9 @@ export const NodeToolbar = ({ id, selected }: NodeToolbarProps) => {
     <div
       ref={rootRef}
       className={cn(
-        'pointer-events-auto absolute left-1/2 -translate-x-1/2 flex items-center gap-[5px]',
+        // Right-aligned: anchor the toolbar to the node's right edge so
+        // the action chips never overlap the node title at the left.
+        'pointer-events-auto absolute right-0 flex items-center gap-[5px]',
         'transition-opacity duration-150',
         selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
         placeBelow ? '-bottom-[30px]' : '-top-[30px]',
