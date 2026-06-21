@@ -30,6 +30,11 @@ export function WorkflowNode({ id, type, data, selected }: NodeProps) {
   const properties: Record<string, unknown> = data.properties ?? {}
   const showAdvanced = nodeUI?.showAdvanced ?? false
   const diffMark = data?.__diff as 'new' | 'edited' | 'deleted' | undefined
+  // `_preview` is set by the canvas-overlay layer when a Copilot diff
+  // is active. Preview styling takes priority over diffMark + execution
+  // status + selection so the user sees a clear "proposed, not yet
+  // applied" treatment until they Reject or Apply.
+  const previewMark = data?._preview as 'added' | 'edited' | 'deleted' | undefined
 
   const visibleProps = getVisibleNodeProperties(definition.properties, properties, showAdvanced)
 
@@ -43,15 +48,20 @@ export function WorkflowNode({ id, type, data, selected }: NodeProps) {
         className={cn(
           'workflow-drag-handle relative z-[20] w-[240px] select-none rounded-[8px] border bg-bg2 transition-colors',
           !isLocked ? 'cursor-grab active:cursor-grabbing' : 'cursor-default',
-          // Copilot diff overlay takes precedence over normal state styling
-          diffMark === 'new'     && 'border-[var(--ok)] shadow-[0_0_0_1px_var(--ok)]',
-          diffMark === 'edited'  && 'border-[var(--warn)] shadow-[0_0_0_1px_var(--warn)]',
-          diffMark === 'deleted' && 'border-dashed border-[var(--err)] opacity-50',
-          !diffMark && executionStatus === 'completed' && 'node-status-completed',
-          !diffMark && executionStatus === 'failed'    && 'node-status-failed',
-          !diffMark && executionStatus === 'running'   && 'border-border',
-          !diffMark && !executionStatus && selected && !isLocked && 'border-[var(--text-dim)] shadow-[0_0_0_1px_var(--text-dim)]',
-          !diffMark && !executionStatus && (!selected || isLocked) && 'border-border',
+          // Copilot preview overlay (active diff, not yet applied) wins
+          // over everything below.
+          previewMark === 'added'   && 'border-dashed border-[var(--ok)] shadow-[0_0_0_2px_var(--ok)] ring-2 ring-[var(--ok)]/30 opacity-90',
+          previewMark === 'edited'  && 'border-dashed border-[var(--warn)] shadow-[0_0_0_2px_var(--warn)] ring-2 ring-[var(--warn)]/30 opacity-90',
+          previewMark === 'deleted' && 'border-dashed border-[var(--err)] opacity-40',
+          // Applied diff marker (no longer in preview overlay).
+          !previewMark && diffMark === 'new'     && 'border-[var(--ok)] shadow-[0_0_0_1px_var(--ok)]',
+          !previewMark && diffMark === 'edited'  && 'border-[var(--warn)] shadow-[0_0_0_1px_var(--warn)]',
+          !previewMark && diffMark === 'deleted' && 'border-dashed border-[var(--err)] opacity-50',
+          !previewMark && !diffMark && executionStatus === 'completed' && 'node-status-completed',
+          !previewMark && !diffMark && executionStatus === 'failed'    && 'node-status-failed',
+          !previewMark && !diffMark && executionStatus === 'running'   && 'border-border',
+          !previewMark && !diffMark && !executionStatus && selected && !isLocked && 'border-[var(--text-dim)] shadow-[0_0_0_1px_var(--text-dim)]',
+          !previewMark && !diffMark && !executionStatus && (!selected || isLocked) && 'border-border',
         )}
       >
         <NodeToolbar id={id} selected={!!selected} />

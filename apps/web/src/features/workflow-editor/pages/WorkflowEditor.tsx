@@ -59,21 +59,104 @@ export function WorkflowEditor() {
   const baseline   = useCopilotDiffStore(s => s.baseline)
   const summary    = useCopilotDiffStore(s => s.summary)
 
+  // ── Copilot preview overlay ───────────────────────────────────────
+  //
+  // When a Copilot diff is active we keep the user's existing graph as
+  // the base layer and OVERLAY the proposed changes on top — edited
+  // nodes swap in place (keeping the prior position if the LLM didn't
+  // emit one), added nodes append with a deterministic fallback
+  // position next to the existing cluster (no more 0,0 stacking),
+  // deleted nodes stay as ghosts so the user can see what's about to
+  // disappear. Every overlay node carries a `_preview` flag that
+  // `WorkflowNode` reads to render dashed-border + accent ring + ghost
+  // opacity, signalling "proposed, not yet applied".
+  //
+  // Preview nodes are individually `draggable:false / selectable:false`
+  // so the user can pan + zoom (interactive stays on) without
+  // accidentally mutating the proposal — that's also why `interactive`
+  // is no longer gated on `diffActive`.
   const canvasNodes = useMemo(() => {
     if (!diffActive || !proposed || !summary || !baseline) return nodes
     const added   = new Set(summary.added)
     const edited  = new Set(summary.edited)
-    const marked  = proposed.nodes.map(n => ({
-      ...n,
-      data: { ...n.data, __diff: added.has(n.id) ? 'new' : edited.has(n.id) ? 'edited' : undefined },
-    }))
-    const ghosts  = baseline.nodes
-      .filter(n => summary.deleted.includes(n.id))
-      .map(n => ({ ...n, draggable: false, selectable: false, data: { ...n.data, __diff: 'deleted' } }))
-    return [...marked, ...ghosts]
+    const deleted = new Set(summary.deleted)
+    const propById = new Map(proposed.nodes.map(n => [n.id, n] as const))
+
+    // Fallback layout: drop added nodes that arrived without coords to
+    // the right of the existing cluster, stacked vertically.
+    const xs = nodes.map(n => n.position?.x ?? 0)
+    const ys = nodes.map(n => n.position?.y ?? 0)
+    const maxX = xs.length ? Math.max(...xs) : 0
+    const avgY = ys.length ? ys.reduce((a, b) => a + b, 0) / ys.length : 0
+    let addedIdx = 0
+    const positionFor = (n: { position?: { x: number; y: number } }) => {
+      const p = n.position
+      const hasReal =
+        p && Number.isFinite(p.x) && Number.isFinite(p.y) && (p.x !== 0 || p.y !== 0)
+      if (hasReal) return p
+      const fallback = { x: maxX + 320, y: avgY + addedIdx * 140 }
+      addedIdx += 1
+      return fallback
+    }
+
+    const base = nodes.map(n => {
+      if (edited.has(n.id)) {
+        const prop = propById.get(n.id)
+        return {
+          ...n,
+          ...(prop ?? {}),
+          position: prop?.position ?? n.position,
+          data: {
+            ...n.data,
+            ...(prop?.data ?? {}),
+            __diff: 'edited' as const,
+            _preview: 'edited' as const,
+          },
+          draggable: false,
+          selectable: false,
+        }
+      }
+      if (deleted.has(n.id)) {
+        return {
+          ...n,
+          draggable: false,
+          selectable: false,
+          data: { ...n.data, __diff: 'deleted' as const, _preview: 'deleted' as const },
+        }
+      }
+      return n
+    })
+
+    const addedNodes = proposed.nodes
+      .filter(n => added.has(n.id))
+      .map(n => ({
+        ...n,
+        position: positionFor(n),
+        draggable: false,
+        selectable: false,
+        data: { ...n.data, __diff: 'new' as const, _preview: 'added' as const },
+      }))
+
+    return [...base, ...addedNodes]
   }, [diffActive, proposed, baseline, summary, nodes])
 
-  const canvasEdges = diffActive && proposed ? proposed.edges : edges
+  const canvasEdges = useMemo(() => {
+    if (!diffActive || !proposed) return edges
+    const liveById = new Map(edges.map(e => [e.id, e] as const))
+    const propIds  = new Set(proposed.edges.map(e => e.id))
+    const merged = proposed.edges.map(e =>
+      liveById.get(e.id) ?? {
+        ...e,
+        type: e.type ?? 'custom',
+        animated: true,
+        data: { ...e.data, _preview: 'added' as const },
+      },
+    )
+    for (const e of edges) {
+      if (!propIds.has(e.id)) merged.push(e)
+    }
+    return merged
+  }, [diffActive, proposed, edges])
 
   const hasPending = useCopilotPendingStore(s => !!s.prompt)
   useEffect(() => {
@@ -102,7 +185,7 @@ export function WorkflowEditor() {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onSelectNode={selectNode}
-                interactive={!diffActive}
+                interactive={true}
                 onToggleFullscreen={toggleZenMode}
                 isFullscreen={zenMode}
               />
