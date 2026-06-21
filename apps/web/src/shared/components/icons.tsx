@@ -250,9 +250,11 @@ export const Icons = {
     </svg>
   ),
   BrandMark: (props: IconProps) => (
-    <svg viewBox="0 0 32 32" fill="none" {...props}>
-      <rect x="4"  y="4"  width="17" height="17" rx="6" fill="currentColor" opacity="0.42" />
-      <rect x="11" y="11" width="17" height="17" rx="6" fill="currentColor" />
+    <svg viewBox="0 0 64 64" fill="none" {...props}>
+      <rect x="38" y="24"   width="16" height="16" rx="5"   fill="currentColor" />
+      <rect x="19" y="11"   width="13" height="13" rx="4.5" fill="currentColor" opacity="0.72" />
+      <rect x="19" y="40"   width="13" height="13" rx="4.5" fill="currentColor" opacity="0.72" />
+      <rect x="3"  y="25.5" width="11" height="11" rx="3.6" fill="currentColor" opacity="0.42" />
     </svg>
   ),
   Globe: (props: IconProps) => (

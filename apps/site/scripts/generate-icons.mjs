@@ -29,25 +29,32 @@ const BRAND_PURPLE = '#5e6ad2'
 const TEXT_PRIMARY = '#edeef0'
 const TEXT_MUTED = '#8a8f98'
 
-// Transparent brand mark — for favicons, app-store icons, and any
-// surface where the host UI provides the background. No fill behind
-// the rects so the wrapper bleeds through.
+// Four-node brand mark on a 64-unit viewBox: one solid lead square on
+// the right plus three smaller satellites at descending opacity
+// (0.72 / 0.72 / 0.42). Reads as a workflow graph / node mesh — the
+// product's defining shape.
+const MARK_RECTS = `
+  <rect x="38" y="24"   width="16" height="16" rx="5"   fill="${BRAND_PURPLE}"/>
+  <rect x="19" y="11"   width="13" height="13" rx="4.5" fill="${BRAND_PURPLE}" opacity="0.72"/>
+  <rect x="19" y="40"   width="13" height="13" rx="4.5" fill="${BRAND_PURPLE}" opacity="0.72"/>
+  <rect x="3"  y="25.5" width="11" height="11" rx="3.6" fill="${BRAND_PURPLE}" opacity="0.42"/>`
+
+// Transparent — for favicons, app-store icons, and any surface where
+// the host UI provides the background.
 const TRANSPARENT_SVG = (size) => `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="${size}" height="${size}">
-  <rect x="4"  y="4"  width="17" height="17" rx="6" fill="${BRAND_PURPLE}" opacity="0.45"/>
-  <rect x="11" y="11" width="17" height="17" rx="6" fill="${BRAND_PURPLE}"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${size}" height="${size}" fill="none">
+${MARK_RECTS}
 </svg>`.trim()
 
 // Maskable variant — REQUIRES an opaque background because Android
 // masks the icon to a circle / squircle / teardrop and any transparent
 // pixel inside the safe area shows the OS background. Safe-area scaled
-// to 87.5% per the maskable-icon spec.
+// to 87.5% per the maskable-icon spec, then re-centred.
 const MASKABLE_SVG = (size) => `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="${size}" height="${size}">
-  <rect width="32" height="32" fill="${BG}"/>
-  <g transform="translate(2 2) scale(0.875)">
-    <rect x="4"  y="4"  width="17" height="17" rx="6" fill="${BRAND_PURPLE}" opacity="0.45"/>
-    <rect x="11" y="11" width="17" height="17" rx="6" fill="${BRAND_PURPLE}"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${size}" height="${size}">
+  <rect width="64" height="64" fill="${BG}"/>
+  <g transform="translate(4 4) scale(0.875)">
+${MARK_RECTS}
   </g>
 </svg>`.trim()
 
@@ -69,10 +76,13 @@ const OG_SVG = `
   <rect width="1200" height="630" fill="url(#bg)"/>
   <rect width="1200" height="630" fill="url(#glow)"/>
 
-  <!-- Brand mark, centered vertically, 140px tall -->
-  <g transform="translate(120 245)">
-    <rect x="0"  y="0"  width="74" height="74" rx="26" fill="${BRAND_PURPLE}" opacity="0.45"/>
-    <rect x="32" y="32" width="74" height="74" rx="26" fill="${BRAND_PURPLE}"/>
+  <!-- Brand mark: 4-node graph, 140 px tall, centred at (120, 245).
+       Mark viewBox is 64 units across; scale 2.1875x for 140 px. -->
+  <g transform="translate(120 245) scale(2.1875)">
+    <rect x="38" y="24"   width="16" height="16" rx="5"   fill="${BRAND_PURPLE}"/>
+    <rect x="19" y="11"   width="13" height="13" rx="4.5" fill="${BRAND_PURPLE}" opacity="0.72"/>
+    <rect x="19" y="40"   width="13" height="13" rx="4.5" fill="${BRAND_PURPLE}" opacity="0.72"/>
+    <rect x="3"  y="25.5" width="11" height="11" rx="3.6" fill="${BRAND_PURPLE}" opacity="0.42"/>
   </g>
 
   <!-- Wordmark + tagline -->

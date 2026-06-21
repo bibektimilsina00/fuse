@@ -157,14 +157,19 @@
   }
 }
 
-/* Keyframes used by the dashboard mockup (status pulse + cursor blink). */
-@keyframes fusePulse {
+/* Keyframes used by the dashboard mockup (status pulse + cursor blink)
+ * and the brand-mark satellite drift. */
+@keyframes rmcPulse {
   0%, 100% { opacity: 1;   }
   50%      { opacity: 0.35; }
 }
-@keyframes fuseBlink {
+@keyframes rmcBlink {
   0%, 49%   { opacity: 1; }
   50%, 100% { opacity: 0; }
+}
+@keyframes rmcDrift {
+  0%, 100% { transform: translateX(0)    scale(1); }
+  50%      { transform: translateX(-2px) scale(0.94); }
 }
 
 /* ──────────────────────────────────────────────────────────────────────
