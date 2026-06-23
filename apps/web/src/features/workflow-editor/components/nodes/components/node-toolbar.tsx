@@ -9,20 +9,20 @@ interface NodeToolbarProps {
   selected: boolean
 }
 
-// Chip base = neutral surface so the toolbar reads as quiet glyphs at
-// rest. Accent (theme primary) only applies when the chip's underlying
-// state is active — Run while running, Lock while locked — surfaced via
-// the BTN_ACTIVE modifier below. Hover stays subtle (surface bump) so
-// it never looks like an "active" state on idle chips.
+// Chip base = transparent fill + visible soft border + muted glyph.
+// Pointer hover paints the accent (theme primary) so the action being
+// pointed at lights up; everything else stays quiet. The accent token
+// retints with the active palette automatically.
 const BTN =
   'flex size-[24px] items-center justify-center rounded-[7px] ' +
-  'bg-[var(--surface)]/80 border border-[var(--border-faint)] text-[var(--text-mute)] ' +
-  'backdrop-blur-sm transition-colors ' +
-  'hover:bg-[var(--surface-2)] hover:border-[var(--border-soft)] hover:text-[var(--text)] ' +
+  'bg-transparent border border-[var(--border-soft)] text-[var(--text-mute)] ' +
+  'transition-colors ' +
+  'hover:bg-[var(--accent)] hover:border-[color-mix(in_oklab,var(--accent)_70%,transparent)] hover:text-white ' +
   '[&_svg]:size-[12px] disabled:opacity-40 disabled:cursor-not-allowed'
 
-// Applied to a chip whose underlying state is currently "on". Uses the
-// accent token so the highlight retints with the active palette.
+// Applied to a chip whose underlying state is currently "on" (Lock when
+// locked). Persistent accent fill so the user can read the toggle state
+// even when not hovering.
 const BTN_ACTIVE =
   'bg-[var(--accent)] border-[color-mix(in_oklab,var(--accent)_70%,transparent)] text-white ' +
   'hover:bg-[var(--accent)] hover:text-white hover:brightness-110'
