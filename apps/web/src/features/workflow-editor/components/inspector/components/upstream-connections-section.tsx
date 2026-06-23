@@ -165,24 +165,23 @@ export function UpstreamConnectionsSection({ nodeId }: UpstreamConnectionsSectio
         />
       )}
 
-      {/* Header bar — clickable to toggle. ChevronDown flips when closed. */}
+      {/* Header bar — full row clickable. Label sits flush left; the
+          chevron toggle is pushed to the right. Count was removed at
+          design's request — the ancestor list itself shows the rows. */}
       <button
         type="button"
         onClick={toggleOpen}
         className="flex h-[36px] shrink-0 items-center justify-between px-4 text-left transition-colors hover:bg-[var(--surface)]"
       >
-        <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-mute)]">
-          <ChevronDown
-            className={cn(
-              'h-3.5 w-3.5 text-[var(--text-faint)] transition-transform duration-150',
-              !isOpen && '-rotate-90',
-            )}
-          />
+        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-mute)]">
           Inputs
         </span>
-        {ancestors.length > 0 && (
-          <span className="font-mono text-[10px] text-[var(--text-dim)]">{ancestors.length}</span>
-        )}
+        <ChevronDown
+          className={cn(
+            'h-3.5 w-3.5 text-[var(--text-faint)] transition-transform duration-150',
+            !isOpen && '-rotate-90',
+          )}
+        />
       </button>
 
       {/* Body — only mounted when open so collapsed state is genuinely
