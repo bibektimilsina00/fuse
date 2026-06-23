@@ -9,14 +9,15 @@ interface NodeToolbarProps {
   selected: boolean
 }
 
-// Chip base = transparent fill + visible soft border + muted glyph.
-// Pointer hover paints the accent (theme primary) so the action being
-// pointed at lights up; everything else stays quiet. The accent token
-// retints with the active palette automatically.
+// Chip base = subtle surface tint + soft border + muted glyph so the
+// chip reads as a real tappable surface even at rest. Pointer hover
+// paints the accent (theme primary) so the action being pointed at
+// lights up; everything else stays quiet. backdrop-blur keeps the
+// tint readable when the chip floats over a coloured node header.
 const BTN =
   'flex size-[24px] items-center justify-center rounded-[7px] ' +
-  'bg-transparent border border-[var(--border-soft)] text-[var(--text-mute)] ' +
-  'transition-colors ' +
+  'bg-[var(--surface)]/70 border border-[var(--border-soft)] text-[var(--text-mute)] ' +
+  'backdrop-blur-sm transition-colors ' +
   'hover:bg-[var(--accent)] hover:border-[color-mix(in_oklab,var(--accent)_70%,transparent)] hover:text-white ' +
   '[&_svg]:size-[12px] disabled:opacity-40 disabled:cursor-not-allowed'
 
