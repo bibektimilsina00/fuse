@@ -60,7 +60,7 @@ PIDS=()
 # prefix label is the process name; the colour distinguishes it visually.
 launch() {
   local name="$1" colour="$2"; shift 2
-  log "starting $name…"
+  log "starting ${name}…"
   (
     "$@" 2>&1 | while IFS= read -r line; do
       printf "${colour}[%s]${C_RESET} %s\n" "$name" "$line"
