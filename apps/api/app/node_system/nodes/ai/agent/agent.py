@@ -19,6 +19,48 @@ logger = get_logger(__name__)
 MemoryType = Literal["none", "workflow"]
 
 
+def _try_parse_json(s: str) -> Any:
+    """Best-effort: parse ``s`` as JSON for ``successWhen`` evaluation.
+
+    The agent's final response is often a plain string, sometimes a
+    JSON object, sometimes fenced markdown JSON. We:
+
+    1. Try to find the longest substring between matching braces and
+       parse THAT (handles fenced ```json blocks).
+    2. Fall back to parsing the whole string.
+    3. Fall back to returning the raw string.
+
+    ``successWhen`` JSONata can navigate either a dict or a bare
+    string, so we don't need to be perfect — just give the matcher
+    something useful when the agent did emit structured JSON.
+    """
+    if s is None:
+        return None
+    text = (s or "").strip()
+    if not text:
+        return None
+    # Common: agent fenced its JSON.
+    if text.startswith("```"):
+        # strip first fence + trailing fence
+        text = text.split("```", 2)[1] if "```" in text else text
+        if text.startswith("json\n") or text.startswith("json "):
+            text = text[5:]
+    # Try full parse
+    try:
+        return json.loads(text)
+    except (json.JSONDecodeError, ValueError):
+        pass
+    # Try to slice between outermost braces
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end > start:
+        try:
+            return json.loads(text[start : end + 1])
+        except (json.JSONDecodeError, ValueError):
+            pass
+    return s
+
+
 def _retry_from_dict(d: Any) -> Any:
     """Materialise a `ToolRetryConfig` from a saved user-override dict.
 
@@ -84,6 +126,34 @@ class AgentProperties(BaseModel):
     # truth Skill row keyed by `skillId`.
     skills: list[str | dict[str, Any]] | str | None = Field(default_factory=list)
     reasoningEffort: str = "auto"  # auto | low | medium | high
+
+    # ── Loop hardening (Phase 1 of loop-engineering plan) ─────────
+    # Hard budgets — runtime stops the ReAct loop the moment any of
+    # these are hit and the run finishes with
+    # ``status="budget_exhausted"``. Each is clamped to a system
+    # ceiling inside ``Budget`` so a workflow author can't set them
+    # to "infinity" by mistake.
+    maxSeconds: int = 600  # wall-clock cap
+    maxInputTokens: int = 100_000  # cumulative across all iterations
+    maxCostUsd: float = 0.50  # cumulative LLM spend
+
+    # Declarative success condition. JSONata expression evaluated
+    # against the agent's parsed final response. ``$.action_taken``
+    # or similar. Empty / missing → always satisfied.
+    successWhen: str | None = None
+
+    # What to do when the loop exits with ``status="failed"``.
+    # ``escalate`` posts to the workspace's escalation handler (Slack
+    # / email / webhook configured at Settings → Automations).
+    # ``retry`` re-fires the loop after backoff up to ``retryCount``
+    # times. ``silent`` only logs to the run record.
+    failurePolicy: str = "silent"  # silent | retry | escalate
+    retryCount: int = 1
+
+    # Lower bound on iterations even when ``successWhen`` matches
+    # early. Useful when the agent is too eager to call itself done
+    # (e.g. before checking all items in a queue).
+    minIterations: int = 0
 
 
 class AgentNode(BaseNode[AgentProperties]):
@@ -176,6 +246,69 @@ class AgentNode(BaseNode[AgentProperties]):
                     "default": 10,
                     "mode": "advanced",
                     "description": "Maximum number of agentic loop iterations.",
+                },
+                # ── Loop hardening — Phase 1 of loop-engineering plan ──
+                {
+                    "name": "maxSeconds",
+                    "label": "Max Wall-Clock (seconds)",
+                    "type": "number",
+                    "default": 600,
+                    "mode": "advanced",
+                    "description": "Hard cap on total time the agent loop may run. Runtime clamped to 3600.",
+                },
+                {
+                    "name": "maxInputTokens",
+                    "label": "Max Input Tokens",
+                    "type": "number",
+                    "default": 100000,
+                    "mode": "advanced",
+                    "description": "Cumulative input tokens across iterations. Runtime clamped to 5,000,000.",
+                },
+                {
+                    "name": "maxCostUsd",
+                    "label": "Max Cost (USD)",
+                    "type": "number",
+                    "default": 0.50,
+                    "mode": "advanced",
+                    "description": "Hard cap on LLM spend per loop fire. Runtime clamped to $50.",
+                },
+                {
+                    "name": "successWhen",
+                    "label": "Success Condition (JSONata)",
+                    "type": "string",
+                    "default": "",
+                    "mode": "advanced",
+                    "placeholder": "$.action_taken == true",
+                    "description": "JSONata expression evaluated against the agent's final response. Empty means the first final response always succeeds.",
+                },
+                {
+                    "name": "minIterations",
+                    "label": "Min Iterations Before Exit",
+                    "type": "number",
+                    "default": 0,
+                    "mode": "advanced",
+                    "description": "If set, the agent must iterate at least this many times even when the success condition matches earlier.",
+                },
+                {
+                    "name": "failurePolicy",
+                    "label": "On Failure",
+                    "type": "options",
+                    "default": "silent",
+                    "mode": "advanced",
+                    "options": [
+                        {"label": "Silent — log only", "value": "silent"},
+                        {"label": "Retry with backoff", "value": "retry"},
+                        {"label": "Escalate (workspace handler)", "value": "escalate"},
+                    ],
+                },
+                {
+                    "name": "retryCount",
+                    "label": "Retry Count",
+                    "type": "number",
+                    "default": 1,
+                    "mode": "advanced",
+                    "condition": {"field": "failurePolicy", "value": "retry"},
+                    "description": "How many times to re-fire the loop on failure before falling through to silent.",
                 },
                 {
                     "name": "memoryType",
@@ -413,8 +546,34 @@ class AgentNode(BaseNode[AgentProperties]):
             max_iterations_reached = False
             consecutive_blocked = 0
 
+            # ── Loop hardening: budget + success_when ─────────────
+            # Budget tracks tokens / time / cost across ALL iterations
+            # so the runtime can stop the loop the moment any cap is
+            # hit. Stored on the run record at the end so dashboards
+            # can show per-loop cost.
+            from .budget import Budget
+            from .stop_condition import evaluate_success_when
+
+            budget = Budget(
+                max_iterations=max(int(self.props.maxIterations or 1), 1),
+                max_seconds=int(self.props.maxSeconds or 600),
+                max_input_tokens=int(self.props.maxInputTokens or 100_000),
+                max_cost_usd=float(self.props.maxCostUsd or 0.50),
+            )
+            # Reason the loop stopped — surfaced on the run record so
+            # users see whether the agent hit iter cap vs cost cap.
+            budget_exhausted_reason: str | None = None
+
             try:
                 for _iteration in range(max(self.props.maxIterations, 1)):
+                    # Budget gate BEFORE the LLM call. Wall-clock and
+                    # cost may have moved past the cap because of the
+                    # previous iteration's tool latency / spend.
+                    exhausted, why = budget.any_exhausted(_iteration)
+                    if exhausted:
+                        budget_exhausted_reason = why
+                        max_iterations_reached = True
+                        break
                     # Determine tool_choice for this iteration
                     if remaining_forced:
                         next_forced = next(
@@ -536,8 +695,49 @@ class AgentNode(BaseNode[AgentProperties]):
                     final_raw = raw_data
                     final_tokens = tokens
 
+                    # ── Account this LLM call against the budget ────
+                    # Token shape was normalised above (prompt_tokens /
+                    # completion_tokens / total_tokens) regardless of
+                    # provider, so we can pass through uniformly.
+                    budget.add_llm_usage(
+                        provider=self.props.provider,
+                        model=model,
+                        input_tokens=int(tokens.get("prompt_tokens") or 0),
+                        output_tokens=int(tokens.get("completion_tokens") or 0),
+                    )
+
                     if not tool_calls:
-                        break
+                        # ── Success-condition gate ────────────────
+                        # If the user set ``successWhen``, parse the
+                        # final response as JSON and evaluate against
+                        # it. Falsy result means the loop should keep
+                        # going (we'll synthesise a "re-evaluate"
+                        # user-turn before the next LLM call).
+                        # Also honour ``minIterations``.
+                        below_min = (_iteration + 1) < int(self.props.minIterations or 0)
+                        if not below_min and evaluate_success_when(
+                            self.props.successWhen, _try_parse_json(content)
+                        ):
+                            break
+                        # Otherwise tell the LLM to re-evaluate and
+                        # keep looping. Use a system note so it
+                        # doesn't pollute the answer schema.
+                        nudge = (
+                            "Re-evaluate; you have not yet reached the "
+                            "success condition. Use your tools to make "
+                            "concrete progress, then respond again."
+                            if not below_min
+                            else "Re-evaluate; you have not yet reached the "
+                            "minimum required iterations. Use a tool "
+                            "to make further progress."
+                        )
+                        messages.append({"role": "user", "content": nudge})
+                        continue
+
+                    # Tool calls account: every call consumes a slot
+                    # in the budget's tool-call counter for the trace.
+                    for _tc in tool_calls:
+                        budget.add_tool_call()
 
                     # Track which forced tools were used this iteration.
                     # LLM-facing names get translated back to the saved
@@ -837,6 +1037,15 @@ class AgentNode(BaseNode[AgentProperties]):
             )
             output["provider"] = self.props.provider
             output["memory"] = await self._persist_memory_async(messages, final_content, context)
+
+            # ── Loop hardening: usage + status surface ───────────
+            # Always present so dashboards can rely on the shape.
+            # ``status`` lets the workflow consumer branch on
+            # ``budget_exhausted`` vs ``success`` without parsing.
+            output["agent_usage"] = budget.snapshot()
+            output["status"] = "budget_exhausted" if budget_exhausted_reason else "success"
+            if budget_exhausted_reason:
+                output["budget_exhausted_reason"] = budget_exhausted_reason
             return NodeResult(success=True, output_data=output)
 
         except httpx.HTTPStatusError as e:

@@ -1,6 +1,6 @@
 import type { RunLog } from '@/features/runs/store/runsStore'
 
-export type Tab = 'output' | 'input'
+export type Tab = 'output' | 'input' | 'trace'
 export type ViewMode = 'tree' | 'code'
 
 export interface NodeInfo {

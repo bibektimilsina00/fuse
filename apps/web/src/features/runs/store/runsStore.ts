@@ -24,11 +24,35 @@ export type RunStatus =
  *  so triggers + nodes that emit no logs still surface a running state. */
 export type NodeRunStatus = 'running' | 'completed' | 'failed'
 
+/** One step in an agent node's tool-call timeline. Updated in place as the
+ *  matching `tool_call_completed` event arrives — `status` flips from
+ *  `running` to `success` / `failed`, and `result` + `durationMs` get
+ *  populated. Keyed within a run by `(nodeId, iteration, toolId,
+ *  argsKey)` so duplicate fires of the same tool show as separate steps. */
+export interface AgentTraceStep {
+  id: string
+  nodeId: string
+  iteration: number
+  toolId: string
+  status: 'running' | 'success' | 'failed'
+  startedAt: string
+  endedAt: string | null
+  durationMs: number | null
+  arguments: Record<string, unknown> | null
+  result: Record<string, unknown> | null
+  errorMessage: string | null
+}
+
 export interface Run {
   executionId: string
   status: RunStatus
   logs: RunLog[]
   nodeStatuses: Record<string, NodeRunStatus>
+  /** Per-agent-node tool-call trace. Populated in real time from
+   *  `tool_call_started`/`tool_call_completed` socket events so the trace
+   *  panel can render a live timeline before the run terminates. Keyed
+   *  by agent node id; entries are in arrival order. */
+  agentTraces?: Record<string, AgentTraceStep[]>
   /** Human label shown while a listen slot waits for the next event. */
   waitingFor?: string | null
   /** Trigger node holding the listen slot — surfaced as the "waiting" row
@@ -83,6 +107,17 @@ interface RunsState {
   ) => string
   setSelectedLogId: (workflowId: string, id: string | null) => void
   clearRuns: (workflowId: string) => void
+  /** Append (or update) a step in the agent's tool-call trace.
+   *
+   *  `tool_call_started` → upsert a `running` step.
+   *  `tool_call_completed` → flip the matching step to success/failed and
+   *  fill in `result` + `durationMs`. Matching is by `(nodeId, iteration,
+   *  toolId, argsKey)` — same key the backend would derive for dedup. */
+  appendAgentTrace: (
+    workflowId: string,
+    executionId: string,
+    step: AgentTraceStep,
+  ) => void
 }
 
 export const EMPTY_SLICE: WorkflowRunsSlice = Object.freeze({
@@ -290,6 +325,31 @@ export const useRunsStore = create<RunsState>()(
     )
     return executionId
   },
+
+  appendAgentTrace: (workflowId, executionId, step) =>
+    set((s) =>
+      withSlice(s, workflowId, (slice) => ({
+        ...slice,
+        runs: slice.runs.map((r) => {
+          if (r.executionId !== executionId) return r
+          const tracesByNode = { ...(r.agentTraces ?? {}) }
+          const existing = tracesByNode[step.nodeId] ?? []
+          const idx = existing.findIndex((s) => s.id === step.id)
+          // Match-and-update so a `completed` event flips the running step
+          // in place; otherwise append the new step.
+          const next =
+            idx >= 0
+              ? [
+                  ...existing.slice(0, idx),
+                  { ...existing[idx], ...step },
+                  ...existing.slice(idx + 1),
+                ]
+              : [...existing, step]
+          tracesByNode[step.nodeId] = next
+          return { ...r, agentTraces: tracesByNode }
+        }),
+      })),
+    ),
 
   setSelectedLogId: (workflowId, selectedLogId) =>
     set((s) => withSlice(s, workflowId, (slice) => ({ ...slice, selectedLogId }))),

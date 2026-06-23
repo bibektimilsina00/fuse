@@ -44,6 +44,13 @@ interface Props {
    * payload, so they're hidden when an override is active.
    */
   bodyOverride?: React.ReactNode
+  /**
+   * Extra tab names rendered before the default `output`/`input` tabs.
+   * Used by agent nodes to surface a live tool-call `trace` tab without
+   * adding a second tab row. The caller is responsible for showing the
+   * matching body via `bodyOverride` when their custom tab is selected.
+   */
+  extraTabs?: Tab[]
 }
 
 /**
@@ -64,6 +71,7 @@ export function JsonInspector({
   headerBanner,
   footer,
   bodyOverride,
+  extraTabs,
 }: Props) {
   // Without a known label we don't have a stable reference style — leave the
   // tree non-draggable rather than emit a raw-uuid form the rest of the
@@ -174,20 +182,22 @@ export function JsonInspector({
       {/* Header */}
       <div className="flex h-[36px] shrink-0 items-center gap-1 border-b border-[var(--border-faint)] px-3">
         {tab && onTabChange ? (
-          (['output', 'input'] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => onTabChange(t)}
-              className={cn(
-                'rounded-[6px] px-2 py-1 text-[11.5px] capitalize transition-colors',
-                tab === t
-                  ? 'bg-[var(--surface-2)] text-[var(--text)]'
-                  : 'text-[var(--text-mute)] hover:text-[var(--text)]',
-              )}
-            >
-              {t}
-            </button>
-          ))
+          (extraTabs ? [...extraTabs, 'output', 'input'] : (['output', 'input'] as Tab[])).map(
+            (t) => (
+              <button
+                key={t}
+                onClick={() => onTabChange(t)}
+                className={cn(
+                  'rounded-[6px] px-2 py-1 text-[11.5px] capitalize transition-colors',
+                  tab === t
+                    ? 'bg-[var(--surface-2)] text-[var(--text)]'
+                    : 'text-[var(--text-mute)] hover:text-[var(--text)]',
+                )}
+              >
+                {t}
+              </button>
+            ),
+          )
         ) : title ? (
           <span className="px-1 text-[11.5px] font-medium text-[var(--text)]">{title}</span>
         ) : null}
