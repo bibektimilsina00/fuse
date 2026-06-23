@@ -57,7 +57,7 @@ export function WorkspaceSelector() {
         onClick={openDropdown}
         className="flex items-center gap-[9px] py-[7px] px-[8px] w-full text-left bg-[rgba(255,255,255,0.02)] border border-[var(--border-soft)] rounded-[8px] cursor-pointer transition-all duration-120 hover:bg-[rgba(255,255,255,0.05)] hover:border-[var(--border)] group-data-[collapsed=true]/shell:p-0 group-data-[collapsed=true]/shell:w-[36px] group-data-[collapsed=true]/shell:h-[36px] group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:mx-auto group-data-[collapsed=true]/shell:rounded-full"
       >
-        <span className="w-[24px] h-[24px] rounded-[6px] inline-flex items-center justify-center text-[12px] font-semibold text-[var(--text)] shrink-0 bg-[linear-gradient(135deg,var(--surface-3),var(--surface))] group-data-[collapsed=true]/shell:w-[28px] group-data-[collapsed=true]/shell:h-[28px] group-data-[collapsed=true]/shell:rounded-full transition-all duration-200">{initial}</span>
+        <span className="w-[24px] h-[24px] rounded-[6px] inline-flex items-center justify-center text-[12px] font-semibold text-white shrink-0 bg-[var(--accent)] group-data-[collapsed=true]/shell:w-[28px] group-data-[collapsed=true]/shell:h-[28px] group-data-[collapsed=true]/shell:rounded-full transition-all duration-200">{initial}</span>
         <span className="flex flex-col gap-0 min-w-0 flex-1 group-data-[collapsed=true]/shell:hidden leading-tight">
           <span className="text-[13px] font-medium text-[var(--text)] whitespace-nowrap overflow-hidden text-ellipsis tracking-tight">{label}</span>
           <span className="text-[10px] text-[var(--text-faint)] font-semibold tracking-[0.06em] uppercase">{isPersonal ? 'Personal' : 'Team'}</span>
@@ -77,7 +77,7 @@ export function WorkspaceSelector() {
           >
             {/* Current workspace header */}
             <div className="flex items-center gap-[10px] pt-[8px] px-[8px] pb-[10px]">
-              <span className="w-[32px] h-[32px] rounded-[8px] bg-[var(--text)] text-[var(--bg)] inline-flex items-center justify-center text-[13px] font-bold shrink-0 tracking-tight">{initial}</span>
+              <span className="w-[32px] h-[32px] rounded-[8px] bg-[var(--accent)] text-white inline-flex items-center justify-center text-[13px] font-bold shrink-0 tracking-tight">{initial}</span>
               <span className="flex flex-col gap-[2px] min-w-0">
                 <span className="text-[13px] font-semibold text-[var(--text)] tracking-tight truncate">{label}</span>
                 <span className="text-[10.5px] font-mono text-[var(--text-faint)] tracking-widest uppercase">
@@ -100,7 +100,7 @@ export function WorkspaceSelector() {
                     ws.id === currentWorkspaceId && 'text-[var(--text)] bg-[var(--surface)]'
                   )}
                 >
-                  <span className="w-[22px] h-[22px] rounded-[6px] bg-[var(--surface-3)] border border-[var(--border-soft)] inline-flex items-center justify-center text-[10px] font-bold text-[var(--text)] shrink-0">
+                  <span className="w-[22px] h-[22px] rounded-[6px] bg-[var(--accent)] inline-flex items-center justify-center text-[10px] font-bold text-white shrink-0">
                     {ws.name[0]?.toUpperCase()}
                   </span>
                   <span className="flex-1 min-w-0 truncate">{ws.name}</span>

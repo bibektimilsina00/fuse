@@ -31,8 +31,12 @@ export function AppTopBarActions({ controller }: AppTopBarActionsProps) {
       <div className="relative">
         <button
           className={cn(
-            'w-[28px] h-[28px] rounded-[8px] bg-[var(--surface-3)] border border-[var(--border-soft)] cursor-pointer inline-flex items-center justify-center text-[11px] font-semibold text-[var(--text)] tracking-tight bg-cover bg-center transition-colors duration-120 hover:border-[var(--border)]',
-            profileOpen && 'bg-[var(--surface-2)] text-[var(--text)]'
+            // Initial-fallback tile uses the live accent so it matches the
+            // primary CTA (e.g. "New automation"). Avatar image, when present,
+            // covers via backgroundImage and the accent fill is hidden.
+            'w-[28px] h-[28px] rounded-[8px] cursor-pointer inline-flex items-center justify-center text-[11px] font-semibold text-white tracking-tight bg-cover bg-center transition-[filter] duration-120 hover:brightness-110',
+            !user?.avatar_url && 'bg-[var(--accent)]',
+            profileOpen && 'ring-2 ring-[var(--accent)]/40 ring-offset-1 ring-offset-[var(--bg-2)]'
           )}
           onClick={() => setProfileOpen(value => !value)}
           aria-label="Account"
@@ -46,7 +50,7 @@ export function AppTopBarActions({ controller }: AppTopBarActionsProps) {
             <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
             <div className="absolute top-[calc(100%+8px)] right-0 w-[260px] bg-[var(--bg-2)] border border-[var(--border)] rounded-[11px] p-[6px] shadow-[0_24px_56px_-20px_oklch(0_0_0/0.7)] z-50 animate-in fade-in slide-in-from-top-2">
               <div className="flex items-center gap-[10px] pt-[8px] px-[8px] pb-[10px]">
-                <span className="w-[32px] h-[32px] rounded-[9px] bg-[var(--surface-3)] border border-[var(--border-soft)] inline-flex items-center justify-center text-[13px] font-semibold text-[var(--text)] shrink-0">
+                <span className="w-[32px] h-[32px] rounded-[9px] bg-[var(--accent)] inline-flex items-center justify-center text-[13px] font-semibold text-white shrink-0">
                   {userInitial}
                 </span>
                 <span className="flex flex-col gap-[1px] min-w-0">

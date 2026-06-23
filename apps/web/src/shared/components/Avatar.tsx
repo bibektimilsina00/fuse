@@ -29,7 +29,10 @@ export function Avatar({ name, src, fallback, size = 'md', className }: AvatarPr
     <div
       className={cn(
         'inline-flex items-center justify-center shrink-0 select-none overflow-hidden relative',
-        'bg-text text-bg font-semibold tracking-[-0.02em]',
+        // Accent fill matches the primary CTA so every initial tile in the
+        // app (workspace switcher, profile menu, member rows) reads as the
+        // same brand mark.
+        'bg-[var(--accent)] text-white font-semibold tracking-[-0.02em]',
         wrapper,
         className,
       )}
