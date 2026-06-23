@@ -11,6 +11,8 @@ export const APP_ROUTES = {
   SHOWCASE: '/showcase',
   AUTOMATIONS: '/automations',
   TEMPLATES: '/templates',
+  TEMPLATE_DETAIL: (slug: string) => `/templates/${slug}`,
+  MY_TEMPLATES: '/templates/mine',
   RUNS: '/runs',
   SCHEDULES: '/schedules',
   LOGS: '/logs',

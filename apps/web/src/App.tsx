@@ -8,7 +8,7 @@ import { Dashboard } from '@/features/dashboard'
 import { Settings } from '@/features/settings'
 import { Showcase } from '@/features/showcase'
 import { Automations } from '@/features/automations'
-import { Templates } from '@/features/templates'
+import { Templates, TemplateDetail, MyTemplates } from '@/features/templates'
 import { Runs } from '@/features/runs'
 import { Schedules } from '@/features/schedules'
 import { Logs } from '@/features/logs'
@@ -41,6 +41,8 @@ export default function App() {
             <Route path={APP_ROUTES.SETTINGS} element={<Settings />} />
             <Route path={APP_ROUTES.AUTOMATIONS} element={<Automations />} />
             <Route path={APP_ROUTES.TEMPLATES} element={<Templates />} />
+            <Route path="/templates/mine" element={<MyTemplates />} />
+            <Route path="/templates/:slug" element={<TemplateDetail />} />
             <Route path={APP_ROUTES.RUNS} element={<Runs />} />
             <Route path={APP_ROUTES.SCHEDULES} element={<Schedules />} />
             <Route path={APP_ROUTES.LOGS} element={<Logs />} />

@@ -1,11 +1,16 @@
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useParams } from 'react-router-dom'
 import {
   MoreHorizontal, MessageCircle, Send, Play, Loader2,
   LayoutDashboard, Lock, Download, Copy, Trash2, PanelRightClose,
+  Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/shared/components'
 import { useEditorActionBar } from '../../hooks/useEditorActionBar'
+import { useWorkflowEditorStore } from '../../stores/workflowEditorStore'
+import { PublishTemplateModal } from '@/features/templates/components/PublishTemplateModal'
 
 interface EditorActionBarProps {
   onRun: () => void
@@ -72,6 +77,9 @@ export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
     openMenu, closeMenu, openCopilot,
     exportWorkflow, autoLayout, deleteWorkflow, collapseRightPanel,
   } = useEditorActionBar()
+  const { id: workflowId } = useParams<{ id: string }>()
+  const workflowName = useWorkflowEditorStore((s) => s.workflow?.name ?? '')
+  const [publishOpen, setPublishOpen] = useState(false)
 
   const menuItems: DropdownItem[] = [
     { label: 'Auto layout',        icon: <LayoutDashboard />, onClick: autoLayout },
@@ -79,6 +87,7 @@ export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
     { label: 'Lock workflow',      icon: <Lock />,            onClick: () => {}, dividerBefore: true },
     { label: 'Export workflow',    icon: <Download />,        onClick: exportWorkflow },
     { label: 'Duplicate workflow', icon: <Copy />,            onClick: () => {} },
+    { label: 'Publish as template', icon: <Sparkles />,       onClick: () => setPublishOpen(true) },
     { label: 'Delete workflow',    icon: <Trash2 />,          onClick: deleteWorkflow, variant: 'danger', dividerBefore: true },
   ]
 
@@ -125,6 +134,13 @@ export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
       {anchorRect && (
         <OptionsDropdown anchorRect={anchorRect} items={menuItems} onClose={closeMenu} />
       )}
+
+      <PublishTemplateModal
+        open={publishOpen}
+        onClose={() => setPublishOpen(false)}
+        workflowId={workflowId ?? null}
+        defaultTitle={workflowName}
+      />
     </div>
   )
 }
