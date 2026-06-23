@@ -118,7 +118,7 @@ export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Deploy / Pause — toggles workflow.is_active. When active the
+        {/* Activate / Pause — toggles workflow.is_active. When active the
             cron / webhook triggers fire; pausing makes the runtime ignore
             them. Same control as the topbar's Active pill, surfaced here
             as a primary action next to Run. */}
@@ -138,7 +138,7 @@ export function EditorActionBar({ onRun, isRunning }: EditorActionBarProps) {
             ? 'Workflow is live. Click to pause and ignore triggers.'
             : 'Activate the workflow so its triggers start firing.'}
         >
-          {isToggling ? '…' : isActive ? 'Deployed' : 'Deploy'}
+          {isToggling ? '…' : isActive ? 'Active' : 'Activate'}
         </Button>
         <Button
           variant="primary"

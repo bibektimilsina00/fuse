@@ -39,11 +39,11 @@ export function useEditorActionBar() {
     mutationFn: () => editorAPI.toggleActive(workflowId ?? ''),
     onSuccess: (res) => {
       if (workflow) setWorkflow({ ...workflow, is_active: res.is_active })
-      toast(res.is_active ? 'Workflow deployed — triggers are live' : 'Workflow paused', {
+      toast(res.is_active ? 'Workflow activated — triggers are live' : 'Workflow paused', {
         variant: 'ok',
       })
     },
-    onError: () => toast('Failed to update deployment state', { variant: 'err' }),
+    onError: () => toast('Failed to update workflow state', { variant: 'err' }),
   })
 
   const openMenu = () => setAnchorRect(btnRef.current?.getBoundingClientRect() ?? null)

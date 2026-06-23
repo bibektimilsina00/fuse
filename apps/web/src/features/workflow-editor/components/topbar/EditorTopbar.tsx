@@ -206,7 +206,7 @@ export function EditorTopbar({
           </div>
 
           <div className="flex items-center gap-2 ml-1">
-            {/* Deploy / Pause — same control as the right-panel ActionBar.
+            {/* Activate / Pause — same control as the right-panel ActionBar.
                 When active, triggers fire; pausing makes the runtime ignore
                 them. Toggles workflow.is_active via the parent's onToggleActive. */}
             <Button
@@ -226,7 +226,7 @@ export function EditorTopbar({
                 ? 'Workflow is live. Click to pause and ignore triggers.'
                 : 'Activate the workflow so its triggers start firing.'}
             >
-              {isActive ? 'Deployed' : 'Deploy'}
+              {isActive ? 'Active' : 'Activate'}
             </Button>
             <Button
               variant="primary"
