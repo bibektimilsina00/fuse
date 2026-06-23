@@ -7,6 +7,7 @@ import { useRunsStore, useWorkflowRuns, type Run, type RunLog } from '@/features
 import { useRunStream } from '@/features/runs/hooks/useRunStream'
 import { useWorkflowEditorStore } from '../../../stores/workflowEditorStore'
 import {
+  AgentTraceView,
   ErrorView,
   JsonInspector,
   LogRow,
@@ -15,6 +16,7 @@ import {
   type NodeInfo,
   type Tab,
 } from './logs'
+import type { AgentTraceStep } from '@/features/runs/store/runsStore'
 
 /**
  * Logs panel — split view: a `Runs` list on the left, an inspector on the
@@ -143,8 +145,22 @@ export function LogsPanel() {
     if (tab === 'output') {
       return (selectedLog.payload?.output as unknown) ?? (selectedLog.payload?.error as unknown) ?? null
     }
+    if (tab === 'trace') return null
     return (selectedLog.payload?.input as unknown) ?? (selectedLog.payload?.data_in as unknown) ?? null
   }, [selectedLog, tab])
+
+  // Resolve the trace for the run + node the selected log belongs to.
+  // We surface a Trace tab when the node has at least one recorded step
+  // so non-agent nodes never see an empty tab.
+  const agentTraceForSelected = useMemo<AgentTraceStep[] | null>(() => {
+    if (!selectedLog?.nodeId) return null
+    for (const r of runs) {
+      if (!r.logs.some((l) => l.id === selectedLog.id)) continue
+      const steps = r.agentTraces?.[selectedLog.nodeId]
+      return steps && steps.length > 0 ? steps : null
+    }
+    return null
+  }, [selectedLog, runs])
 
   if (runs.length === 0) {
     return (
@@ -180,6 +196,7 @@ export function LogsPanel() {
         tab={tab}
         setTab={setTab}
         payload={visible}
+        agentTrace={agentTraceForSelected}
       />
     </div>
   )
@@ -354,10 +371,11 @@ interface SelectedLogViewProps {
   tab: Tab
   setTab: (t: Tab) => void
   payload: unknown
+  agentTrace: AgentTraceStep[] | null
 }
 
 function SelectedLogView({
-  selectedLog, nodeInfoById, tab, setTab, payload,
+  selectedLog, nodeInfoById, tab, setTab, payload, agentTrace,
 }: SelectedLogViewProps) {
   if (!selectedLog) {
     return (
@@ -393,6 +411,17 @@ function SelectedLogView({
     )
   }
 
+  // Render the trace body when:
+  //  1. the agent node has any recorded steps, AND
+  //  2. the user has switched to the Trace tab.
+  // The tab itself is only shown when (1) is true so non-agent nodes
+  // don't get an empty Trace tab.
+  const showTraceTab = agentTrace !== null && agentTrace.length > 0
+  const traceBody =
+    tab === 'trace' && showTraceTab ? (
+      <AgentTraceView steps={agentTrace} nodeLabel={info.label} />
+    ) : undefined
+
   return (
     <div className="flex min-w-0 flex-1 flex-col">
       <JsonInspector
@@ -402,6 +431,8 @@ function SelectedLogView({
         tab={tab}
         onTabChange={setTab}
         downloadName={`${selectedLog.nodeId || 'log'}-${tab}`}
+        extraTabs={showTraceTab ? (['trace'] as Tab[]) : undefined}
+        bodyOverride={traceBody}
       />
     </div>
   )

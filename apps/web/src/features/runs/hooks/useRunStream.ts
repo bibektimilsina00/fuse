@@ -1,6 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { useAuthStore } from '@/features/auth/store/authStore'
-import { useRunsStore, normalizeLevel, type RunLog } from '../store/runsStore'
+import {
+  useRunsStore,
+  normalizeLevel,
+  type AgentTraceStep,
+  type RunLog,
+} from '../store/runsStore'
 
 // React StrictMode runs effect mount → cleanup → mount in dev, which
 // would otherwise spawn two WebSockets for the same execution. The
@@ -34,6 +39,7 @@ export function useRunStream(workflowId: string | null, executionId: string | nu
   const startRun = useRunsStore((s) => s.startRun)
   const setNodeStatus = useRunsStore((s) => s.setNodeStatus)
   const setWaiting = useRunsStore((s) => s.setWaiting)
+  const appendAgentTrace = useRunsStore((s) => s.appendAgentTrace)
 
   // Persisted across StrictMode mount-cleanup-mount cycles for the
   // same component instance. Carries the live socket + a pending-close
@@ -118,18 +124,21 @@ export function useRunStream(workflowId: string | null, executionId: string | nu
         }
         appendLog(workflowId, executionId, log)
       } else if (type === 'tool_call_started' || type === 'tool_call_completed') {
-        // Agent tool-call timeline (PR7). Surfaced as synthetic RunLog
-        // entries scoped to the agent's node id so they appear inline
-        // with the rest of that node's logs.
+        // Agent tool-call timeline (PR7). Dual-write:
+        //  1. A synthetic RunLog so the runs list keeps the inline event.
+        //  2. A structured `AgentTraceStep` so the dedicated Trace tab
+        //     can render a live stepper with args/result/duration.
         const toolId = String(data.tool_id ?? 'tool')
         const args = (data.arguments as Record<string, unknown> | null) ?? null
         const started = type === 'tool_call_started'
         const success = data.success === true
         const durationMs = typeof data.duration_ms === 'number' ? data.duration_ms : null
         const result = (data.result as Record<string, unknown> | null) ?? null
+        const nodeId = typeof data.node_id === 'string' ? data.node_id : null
+        const iteration = typeof data.iteration === 'number' ? data.iteration : 0
         appendLog(workflowId, executionId, {
           id: `live-${executionId}-${++liveCounter}`,
-          nodeId: typeof data.node_id === 'string' ? data.node_id : null,
+          nodeId,
           level: started ? 'info' : success ? 'info' : 'error',
           message: started
             ? `▶ ${toolId} running`
@@ -139,6 +148,46 @@ export function useRunStream(workflowId: string | null, executionId: string | nu
           payload: started ? { arguments: args } : { result, duration_ms: durationMs },
           timestamp: new Date().toISOString(),
         })
+
+        // Stable step id = nodeId|iteration|toolId|argsKey. The completed
+        // event re-derives the same id so we update in place rather than
+        // appending a second step.
+        if (nodeId) {
+          const argsKey = args ? JSON.stringify(args) : ''
+          const stepId = `${nodeId}|${iteration}|${toolId}|${argsKey}`
+          const now = new Date().toISOString()
+          const step: AgentTraceStep = started
+            ? {
+                id: stepId,
+                nodeId,
+                iteration,
+                toolId,
+                status: 'running',
+                startedAt: now,
+                endedAt: null,
+                durationMs: null,
+                arguments: args,
+                result: null,
+                errorMessage: null,
+              }
+            : {
+                id: stepId,
+                nodeId,
+                iteration,
+                toolId,
+                status: success ? 'success' : 'failed',
+                startedAt: now,
+                endedAt: now,
+                durationMs,
+                arguments: args,
+                result,
+                errorMessage:
+                  !success && result && typeof result.error === 'string'
+                    ? (result.error as string)
+                    : null,
+              }
+          appendAgentTrace(workflowId, executionId, step)
+        }
       } else if (type === 'node_started' || type === 'node_completed' || type === 'node_failed') {
         // Per-node lifecycle stream. Drives canvas status indicators
         // independent of whether the node also emits logs — triggers and
@@ -198,5 +247,14 @@ export function useRunStream(workflowId: string | null, executionId: string | nu
         ws.close()
       }
     }
-  }, [workflowId, executionId, appendLog, setStatus, startRun, setNodeStatus, setWaiting])
+  }, [
+    workflowId,
+    executionId,
+    appendLog,
+    setStatus,
+    startRun,
+    setNodeStatus,
+    setWaiting,
+    appendAgentTrace,
+  ])
 }
