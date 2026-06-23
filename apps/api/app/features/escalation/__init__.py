@@ -14,7 +14,21 @@ workspace shares one escalation endpoint. Configured via
 See ``docs/loop-engineering-plan.md`` section 8.8.
 """
 
+from .models import WorkspaceEscalationConfig
+from .repository import EscalationConfigRepository
 from .schemas import EscalationConfig, EscalationPayload
-from .service import EscalationService
+from .service import (
+    EscalationService,
+    escalate_from_run,
+    load_workspace_config,
+)
 
-__all__ = ["EscalationConfig", "EscalationPayload", "EscalationService"]
+__all__ = [
+    "EscalationConfig",
+    "EscalationConfigRepository",
+    "EscalationPayload",
+    "EscalationService",
+    "WorkspaceEscalationConfig",
+    "escalate_from_run",
+    "load_workspace_config",
+]

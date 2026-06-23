@@ -99,3 +99,20 @@ async def root():
 
 
 app.include_router(api_router)
+
+
+@app.on_event("startup")
+async def _wire_tool_rate_limiter() -> None:
+    """Install the Redis-backed tool rate limiter at app boot.
+
+    Wired here (not at module import) so worker boots that never
+    serve HTTP — pure Celery containers — don't trip Redis-pool
+    initialisation in the import path. Idempotent; safe to re-run
+    across reloads.
+    """
+    from apps.api.app.node_system.tools.rate_limit import (
+        install_default_rate_limiter,
+    )
+
+    install_default_rate_limiter()
+    logger.info("Tool rate limiter installed (Redis-backed, per-(workspace, tool))")

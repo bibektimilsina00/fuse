@@ -230,3 +230,78 @@ def _short(value: Any, max_len: int = 80) -> str:
         return ""
     s = json.dumps(value) if not isinstance(value, str) else value
     return s if len(s) <= max_len else (s[: max_len - 1] + "…")
+
+
+async def escalate_from_run(
+    *,
+    db: Any,
+    workspace_id: Any,
+    workflow_id: Any,
+    workflow_name: str,
+    run_id: Any,
+    status: str,
+    failure_reason: str | None,
+    started_at: Any,
+    ended_at: Any,
+    trace: list[dict[str, Any]] | None,
+    usage: dict[str, Any] | None,
+    agent_label: str | None = None,
+    base_url: str = "https://app.runmycrew.com",
+) -> dict[str, Any]:
+    """End-to-end escalation entry-point for the agent runtime.
+
+    Loads the workspace's escalation config (if any), builds the payload
+    from raw run state, dispatches to the configured channel, and
+    returns the dispatch result dict. Never raises — the loop already
+    failed, and the escalation must not turn one failure into two.
+
+    The agent node calls this in its terminal-failure paths when
+    ``failurePolicy == 'escalate'``. Centralising the wiring here keeps
+    the agent loop unaware of channel mechanics, and means tests can
+    swap a fake ``EscalationService`` without touching agent code.
+    """
+    try:
+        cfg = await load_workspace_config(db, workspace_id)
+    except Exception as exc:
+        logger.exception("escalation: config load failed for workspace=%s", workspace_id)
+        return {"sent": False, "channel": None, "error": f"config_load_failed:{exc}"}
+    if cfg is None or not cfg.enabled:
+        return {"sent": False, "channel": None, "error": "no_config"}
+
+    service = EscalationService()
+    payload = service.build_payload_from_run(
+        workflow_id=workflow_id,
+        workflow_name=workflow_name,
+        run_id=run_id,
+        status=status,
+        failure_reason=failure_reason,
+        started_at=started_at,
+        ended_at=ended_at,
+        trace=trace,
+        usage=usage,
+        agent_label=agent_label,
+        base_url=base_url,
+    )
+    return await service.dispatch(cfg, payload)
+
+
+async def load_workspace_config(db: Any, workspace_id: Any) -> EscalationConfig | None:
+    """Load the workspace's escalation config from Postgres → ``EscalationConfig``.
+
+    Returns ``None`` when no row exists for the workspace; the runtime
+    treats that as the silent default. Disabled rows still return a
+    config; ``dispatch()`` short-circuits on ``enabled=False``.
+    """
+    from .repository import EscalationConfigRepository
+
+    repo = EscalationConfigRepository(db)
+    row = await repo.get_for_workspace(workspace_id)
+    if row is None:
+        return None
+    return EscalationConfig(
+        workspace_id=row.workspace_id,
+        slack_webhook_url=row.slack_webhook_url,
+        email_to=row.email_to,
+        webhook_url=row.webhook_url,
+        enabled=row.enabled,
+    )
