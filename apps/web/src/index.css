@@ -583,11 +583,14 @@ select:-webkit-autofill {
 }
 
 /* ============ TEMPLATES GRID ============ */
-/* grid-auto-rows: 1fr + .inspo-card height: 100% gives every card the
-   same height regardless of title length. The CardContainer (Aceternity
-   3D wrapper) chain has been removed — the card is now a plain button
-   straight into the grid cell. */
+/* grid-auto-rows: 1fr + child height: 100% gives every card the same
+   height regardless of title length. The chain reaches through the
+   Aceternity CardContainer + CardBody wrappers so the cards line up
+   even though the wrappers don't natively pass height through. */
 .tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; grid-auto-rows: 1fr; }
+.tpl-grid > * { height: 100%; display: flex; }
+.tpl-grid > * > div,
+.tpl-grid > * > div > div { width: 100%; height: 100%; }
 .inspo-card {
   position: relative; border-radius: 12px; overflow: hidden;
   border: 1px solid var(--border-faint); background: var(--bg); cursor: pointer;
