@@ -41,6 +41,10 @@ class TemplateListOut(SQLModel):
     steps: int
     featured: bool
     creator: CreatorOut | None
+    # Exposed in the list payload too so the card can render an actual
+    # "what this uses" preview instead of a static striped graphic. Kept
+    # short — the card preview only needs the head of the list.
+    tools_required: list[str] = []
     created_at: datetime
     updated_at: datetime
 

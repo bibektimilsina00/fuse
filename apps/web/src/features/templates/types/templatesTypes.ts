@@ -28,6 +28,7 @@ export interface TemplateListItem {
   steps: number
   featured: boolean
   creator: TemplateCreator | null
+  tools_required: string[]
   created_at: string
   updated_at: string
 }

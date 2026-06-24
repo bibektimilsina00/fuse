@@ -284,6 +284,7 @@ class TemplateService:
             steps=_count_steps(t.graph),
             featured=t.featured,
             creator=_creator_to_out(creator) if not t.is_official else None,
+            tools_required=list(t.tools_required or []),
             created_at=t.created_at,
             updated_at=t.updated_at,
         )
