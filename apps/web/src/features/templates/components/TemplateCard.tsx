@@ -1,8 +1,13 @@
 import { Icons } from '@/shared/components/icons'
-import type { Template, TemplateCreator } from '../types/templatesTypes'
+import type {
+  Template,
+  TemplateCreator,
+  TemplateGraph,
+} from '../types/templatesTypes'
 import { CreatorChip } from './CreatorChip'
 import { PremiumBadge } from './PremiumBadge'
 import { TemplatePreview } from './TemplatePreview'
+import { WorkflowMiniPreview } from './WorkflowMiniPreview'
 
 /**
  * Plain card (no 3D tilt). The Aceternity CardContainer used to wrap
@@ -19,9 +24,12 @@ interface Props {
   priceCents?: number
   creator?: TemplateCreator | null
   downloadCount?: number
-  // Live preview data — drives the new TemplatePreview card-art inset
-  // instead of the static inspo-mock striped graphic.
+  // Live preview data — drives the new card-art inset instead of the
+  // static inspo-mock striped graphic. `graph` paints a real workflow
+  // mini-preview; `toolsRequired` is the fallback chip preview for
+  // templates that ship without graph data.
   toolsRequired?: string[]
+  graph?: TemplateGraph
   onClick?: () => void
 }
 
@@ -33,8 +41,12 @@ export function TemplateCard({
   creator,
   downloadCount,
   toolsRequired = [],
+  graph,
   onClick,
 }: Props) {
+  // Real workflow mini-preview wins when the template ships graph data;
+  // fall back to the tool-chip preview for legacy / placeholder rows.
+  const hasGraph = (graph?.nodes?.length ?? 0) > 0
   return (
     <button
       type="button"
@@ -44,11 +56,15 @@ export function TemplateCard({
       <div className={`inspo-art ${template.bg}`}>
         <div className="index">{template.idx}</div>
         {isPremium && <PremiumBadge priceCents={priceCents} />}
-        <TemplatePreview
-          tools={toolsRequired}
-          steps={template.steps}
-          kind={template.kind}
-        />
+        {hasGraph ? (
+          <WorkflowMiniPreview graph={graph!} />
+        ) : (
+          <TemplatePreview
+            tools={toolsRequired}
+            steps={template.steps}
+            kind={template.kind}
+          />
+        )}
         <div className="label">{template.label}</div>
       </div>
       <div className="inspo-meta">

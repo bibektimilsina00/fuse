@@ -88,6 +88,8 @@ export function MyTemplates() {
                 priceCents={item.price_cents}
                 creator={item.creator}
                 downloadCount={item.download_count}
+                toolsRequired={item.tools_required}
+                graph={item.graph}
                 onClick={() => navigate(APP_ROUTES.TEMPLATE_DETAIL(item.slug))}
               />
               {/* Creator-only delete affordance, floating on the card so

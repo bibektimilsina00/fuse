@@ -285,18 +285,20 @@ class TemplateService:
             featured=t.featured,
             creator=_creator_to_out(creator) if not t.is_official else None,
             tools_required=list(t.tools_required or []),
+            graph=t.graph or {"nodes": [], "edges": []},
             created_at=t.created_at,
             updated_at=t.updated_at,
         )
 
     def _to_detail_out(self, t: Template, creator: User | None = None) -> TemplateDetailOut:
+        # graph + tools_required live on the base list payload now, so
+        # don't pass them again — would crash with "multiple values for
+        # keyword argument".
         base = self._to_list_out(t, creator)
         return TemplateDetailOut(
             **base.model_dump(),
             description=t.description,
-            graph=t.graph,
             credentials_required=t.credentials_required,
-            tools_required=t.tools_required,
         )
 
 

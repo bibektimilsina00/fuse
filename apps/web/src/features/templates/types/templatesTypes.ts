@@ -13,6 +13,24 @@ export interface TemplateCreator {
   avatar_url: string | null
 }
 
+export interface TemplateGraphNode {
+  id: string
+  type?: string
+  position?: { x: number; y: number }
+  data?: Record<string, unknown>
+}
+
+export interface TemplateGraphEdge {
+  id?: string
+  source: string
+  target: string
+}
+
+export interface TemplateGraph {
+  nodes?: TemplateGraphNode[]
+  edges?: TemplateGraphEdge[]
+}
+
 export interface TemplateListItem {
   id: string
   slug: string
@@ -29,15 +47,14 @@ export interface TemplateListItem {
   featured: boolean
   creator: TemplateCreator | null
   tools_required: string[]
+  graph: TemplateGraph
   created_at: string
   updated_at: string
 }
 
 export interface TemplateDetail extends TemplateListItem {
   description: string
-  graph: Record<string, unknown>
   credentials_required: string[]
-  tools_required: string[]
 }
 
 export interface TemplateListResponse {

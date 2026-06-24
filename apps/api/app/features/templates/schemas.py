@@ -45,18 +45,23 @@ class TemplateListOut(SQLModel):
     # "what this uses" preview instead of a static striped graphic. Kept
     # short — the card preview only needs the head of the list.
     tools_required: list[str] = []
+    # Minimal graph snapshot shipped on the list payload so the card can
+    # paint a real workflow mini-preview. Lighter than fetching the full
+    # detail per card; just the bits the SVG renderer needs (id, type,
+    # position, edges). For convenience we just send the full graph dict
+    # — payload size is bounded by the seeded set today and we paginate.
+    graph: dict[str, Any] = {}
     created_at: datetime
     updated_at: datetime
 
 
 class TemplateDetailOut(TemplateListOut):
-    """Detail page payload — extends list with the full graph + requirement
-    lists. The graph is needed for the read-only React Flow preview."""
+    """Detail page payload — extends list with the long-form description
+    + the credentials list. `graph` + `tools_required` already live on
+    the base list payload (the marketplace card preview needs them)."""
 
     description: str
-    graph: dict[str, Any]
     credentials_required: list[str]
-    tools_required: list[str]
 
 
 class TemplateListResponse(SQLModel):
