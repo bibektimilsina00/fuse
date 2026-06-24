@@ -7,6 +7,9 @@
   "schedule_human": "every 30 minutes",
   "credentials_required": ["linear", "slack"],
   "tags": ["triage", "linear", "slack", "loop"],
+  "is_premium": true,
+  "price_cents": 900,
+  "featured": true,
   "workflow": {
     "name": "Triage new Linear bugs",
     "graph": {

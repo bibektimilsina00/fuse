@@ -27,7 +27,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 from uuid import UUID, uuid4
 
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 LOCK_KEY_PREFIX = "runmycrew:concurrency:workflow:"
 
 
-class ConcurrencyPolicy(str, Enum):
+class ConcurrencyPolicy(StrEnum):
     """How the mutex should behave when a fire collides with an in-flight run."""
 
     SKIP = "skip"  # default — drop the new fire, log skipped_concurrent

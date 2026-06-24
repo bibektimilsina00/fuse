@@ -116,3 +116,22 @@ async def _wire_tool_rate_limiter() -> None:
 
     install_default_rate_limiter()
     logger.info("Tool rate limiter installed (Redis-backed, per-(workspace, tool))")
+
+
+@app.on_event("startup")
+async def _seed_official_templates() -> None:
+    """Import on-disk seed JSON templates into the `template` table.
+
+    Idempotent — the seeder upserts by slug, so existing rows are
+    untouched. Runs against a short-lived session created off the
+    same engine the API uses; failures are logged but never raised so
+    a bad seed file can't take down the API boot.
+    """
+    from apps.api.app.core.database import AsyncSessionLocal
+    from apps.api.app.features.templates.seeder import seed_official_templates
+
+    try:
+        async with AsyncSessionLocal() as db:
+            await seed_official_templates(db)
+    except Exception as exc:
+        logger.warning("template seeder skipped: %s", exc)

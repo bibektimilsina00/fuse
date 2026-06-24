@@ -1,14 +1,83 @@
-import type { Template } from '../types/templatesTypes'
+import apiClient from '@/shared/utils/apiClient'
+import type {
+  InstallTemplateResponse,
+  PublishTemplateInput,
+  TemplateCategoryListResponse,
+  TemplateDetail,
+  TemplateListItem,
+  TemplateListResponse,
+  TemplateSort,
+  UpdateTemplateInput,
+} from '../types/templatesTypes'
 
-const MOCK_TEMPLATES: Template[] = [
-  { idx: '01', label: 'Revenue ops', title: 'Stripe refund — Slack approval', kind: 'flow', steps: 4, bg: 'inspo-bg-1' },
-  { idx: '02', label: 'Sales', title: 'Lead enrichment — Clearbit → HubSpot', kind: 'flow', steps: 5, bg: 'inspo-bg-2' },
-  { idx: '03', label: 'Engineering', title: 'Daily brief from Linear + GitHub', kind: 'agent', steps: 6, bg: 'inspo-bg-3' },
-  { idx: '04', label: 'Inbox', title: 'Inbound RFP classifier', kind: 'agent', steps: 3, bg: 'inspo-bg-1' },
-  { idx: '05', label: 'Reporting', title: 'Weekly metrics digest', kind: 'schedule', steps: 7, bg: 'inspo-bg-2' },
-  { idx: '06', label: 'Revenue ops', title: 'Churn-risk watchlist alert', kind: 'agent', steps: 5, bg: 'inspo-bg-3' },
-]
+export interface ListTemplatesParams {
+  category?: string
+  kind?: string
+  q?: string
+  sort?: TemplateSort
+  limit?: number
+  offset?: number
+}
 
 export const templatesAPI = {
-  getAll: async (): Promise<Template[]> => MOCK_TEMPLATES,
+  list: async (params: ListTemplatesParams = {}): Promise<TemplateListResponse> => {
+    const res = await apiClient.get<TemplateListResponse>('/templates/', {
+      params: {
+        category: params.category || undefined,
+        kind: params.kind || undefined,
+        q: params.q || undefined,
+        sort: params.sort,
+        limit: params.limit,
+        offset: params.offset,
+      },
+    })
+    return res.data
+  },
+
+  categories: async (): Promise<TemplateCategoryListResponse> => {
+    const res = await apiClient.get<TemplateCategoryListResponse>(
+      '/templates/categories',
+    )
+    return res.data
+  },
+
+  mine: async (): Promise<TemplateListItem[]> => {
+    const res = await apiClient.get<TemplateListItem[]>('/templates/mine')
+    return res.data
+  },
+
+  detail: async (slugOrId: string): Promise<TemplateDetail> => {
+    const res = await apiClient.get<TemplateDetail>(`/templates/${slugOrId}`)
+    return res.data
+  },
+
+  publish: async (data: PublishTemplateInput): Promise<TemplateListItem> => {
+    const res = await apiClient.post<TemplateListItem>('/templates/publish', data)
+    return res.data
+  },
+
+  update: async (
+    id: string,
+    data: UpdateTemplateInput,
+  ): Promise<TemplateListItem> => {
+    const res = await apiClient.put<TemplateListItem>(`/templates/${id}`, data)
+    return res.data
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/templates/${id}`)
+  },
+
+  install: async (slugOrId: string): Promise<InstallTemplateResponse> => {
+    const res = await apiClient.post<InstallTemplateResponse>(
+      `/templates/${slugOrId}/install`,
+    )
+    return res.data
+  },
+
+  purchase: async (slugOrId: string): Promise<void> => {
+    // Endpoint returns 501 Not Implemented; the caller catches and shows
+    // the "Coming soon" toast. Stripe wiring lands in a follow-up.
+    await apiClient.post(`/templates/${slugOrId}/purchase`)
+  },
 }

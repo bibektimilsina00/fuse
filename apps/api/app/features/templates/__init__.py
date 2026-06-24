@@ -9,6 +9,18 @@ loops from the loop-engineering plan (Linear triage, Dependabot
 auto-merger, Sentry → GitHub).
 """
 
+from .models import Template, TemplatePurchase
 from .registry import TemplateRegistry, get_template, list_templates
+from .repository import TemplatePurchaseRepository, TemplateRepository
+from .service import TemplateService
 
-__all__ = ["TemplateRegistry", "get_template", "list_templates"]
+__all__ = [
+    "Template",
+    "TemplatePurchase",
+    "TemplatePurchaseRepository",
+    "TemplateRegistry",
+    "TemplateRepository",
+    "TemplateService",
+    "get_template",
+    "list_templates",
+]

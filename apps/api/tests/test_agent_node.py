@@ -344,7 +344,7 @@ async def test_agent_node_sends_google_request_with_response_schema_and_memory()
     assert captured_payloads[0]["generationConfig"]["responseMimeType"] == "application/json"
     assert captured_payloads[0]["tools"][0]["functionDeclarations"][0]["name"] == "search_docs"
     assert result.output_data["provider"] == "google"
-    assert result.output_data["status"] == "ok"
+    assert result.output_data["status"] == "success"
     # Strip the non-deterministic `duration_ms` added by PR7.
     google_actual = [
         {k: v for k, v in tc.items() if k != "duration_ms"}

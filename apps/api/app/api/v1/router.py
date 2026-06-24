@@ -22,6 +22,7 @@ from apps.api.app.features.nodes.router import router as nodes_router
 from apps.api.app.features.secrets.router import router as secrets_router
 from apps.api.app.features.skills.router import router as skills_router
 from apps.api.app.features.tables.router import router as tables_router
+from apps.api.app.features.templates.router import router as templates_router
 from apps.api.app.features.tools.router import router as tools_router
 from apps.api.app.features.triggers.router import router as triggers_router
 from apps.api.app.features.users.router import router as users_router
@@ -60,3 +61,4 @@ router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 router.include_router(tables_router, prefix="/tables", tags=["tables"])
 router.include_router(logs_router, prefix="/logs", tags=["logs"])
 router.include_router(tools_router, prefix="/tools", tags=["tools"])
+router.include_router(templates_router, prefix="/templates", tags=["templates"])

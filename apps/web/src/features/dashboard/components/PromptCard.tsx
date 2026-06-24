@@ -1,7 +1,8 @@
 import { useState, type KeyboardEvent } from 'react'
-import { Mic, ArrowUp, Loader2, X, ChevronDown, Paperclip, LayoutGrid, Sparkles } from 'lucide-react'
+import { Mic, ArrowUp, Loader2, X, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useVoiceInput } from '@/shared/hooks/useVoiceInput'
+import { Icons } from '@/shared/components/icons'
 
 interface PromptCardProps {
   prompt: string
@@ -46,10 +47,10 @@ export function PromptCard({
     >
       {/* Header */}
       <div className="flex items-center gap-[9px] px-[20px] py-[14px]">
-        <span className="w-[24px] h-[24px] rounded-[7px] bg-[var(--accent-soft)] text-[var(--accent)] inline-flex items-center justify-center shrink-0">
-          <Sparkles className="w-[14px] h-[14px]" />
+        <span className="w-[26px] h-[26px] inline-flex items-center justify-center shrink-0 text-[var(--accent)]">
+          <Icons.BrandMark className="w-[22px] h-[22px]" />
         </span>
-        <span className="text-[13.5px] font-semibold text-[var(--text)]">Build with Crew AI</span>
+        <span className="text-[13.5px] font-semibold text-[var(--text)]">Build with AI</span>
         <span className="ml-auto inline-flex items-center gap-[6px] text-[12px] font-medium text-[var(--text-mute)] border border-[var(--border-soft)] rounded-[7px] px-[9px] py-[4px] cursor-pointer transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]">
           <span className="w-[6px] h-[6px] rounded-full bg-[var(--ok)]" />
           Claude Sonnet
@@ -90,22 +91,7 @@ export function PromptCard({
             </div>
           ) : (
             <>
-              <div className="flex items-center gap-[6px]">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-[6px] py-[6px] px-[11px] rounded-[8px] border border-[var(--border-soft)] bg-transparent text-[var(--text-mute)] text-[12.5px] font-medium transition-colors hover:bg-[rgba(255,255,255,0.05)] hover:text-[var(--text)]"
-                >
-                  <Paperclip className="w-[14px] h-[14px]" /> Attach
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-[6px] py-[6px] px-[11px] rounded-[8px] border border-[var(--border-soft)] bg-transparent text-[var(--text-mute)] text-[12.5px] font-medium transition-colors hover:bg-[rgba(255,255,255,0.05)] hover:text-[var(--text)]"
-                >
-                  <LayoutGrid className="w-[14px] h-[14px]" /> Browse apps
-                </button>
-              </div>
-
-              <div className="flex items-center gap-[10px]">
+              <div className="ml-auto flex items-center gap-[10px]">
                 <span className="hidden sm:inline-flex items-center gap-[5px] text-[11.5px] text-[var(--text-dim)]">
                   <kbd className="kbd">↵</kbd> to send
                 </span>

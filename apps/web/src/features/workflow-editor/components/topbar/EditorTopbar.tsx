@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   ChevronDown, Pencil, Activity, Check, MoreHorizontal, Bot, Loader2, Send, Play,
-  LayoutDashboard, Lock, Download, Copy, Trash2, PanelRightClose
+  LayoutDashboard, Lock, Download, Copy, Trash2, PanelRightClose, Sparkles
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem, Button } from '@/shared/components'
@@ -10,6 +10,7 @@ import { APP_ROUTES } from '@/shared/constants/routes'
 import { AppTopBarActions } from '@/shared/layouts/app-layout/app-top-bar-actions'
 import type { AppLayoutController } from '@/shared/layouts/app-layout/use-app-layout-controller'
 import { useEditorActionBar } from '../../hooks/useEditorActionBar'
+import { PublishTemplateModal } from '@/features/templates/components/PublishTemplateModal'
 
 interface EditorTopbarProps {
   controller: AppLayoutController
@@ -33,9 +34,11 @@ export function EditorTopbar({
   className,
 }: EditorTopbarProps) {
   const navigate = useNavigate()
+  const { id: workflowId } = useParams<{ id: string }>()
   const [renaming, setRenaming] = useState(false)
   const [nameValue, setNameValue] = useState(workflowName)
   const [stateOpen, setStateOpen] = useState(false)
+  const [publishOpen, setPublishOpen] = useState(false)
 
   const {
     openCopilot,
@@ -181,6 +184,12 @@ export function EditorTopbar({
                 <DropdownItem onClick={() => {}} leftIcon={<Copy className="w-3.5 h-3.5" />}>
                   Duplicate workflow
                 </DropdownItem>
+                <DropdownItem
+                  onClick={() => setPublishOpen(true)}
+                  leftIcon={<Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />}
+                >
+                  Publish as template
+                </DropdownItem>
                 <DropdownItem onClick={deleteWorkflow} leftIcon={<Trash2 className="w-3.5 h-3.5 text-[var(--err)]" />} className="border-t border-[var(--border-faint)] pt-2 mt-1 text-[var(--err)] hover:bg-[oklch(0.70_0.18_22/0.10)]">
                   Delete workflow
                 </DropdownItem>
@@ -224,6 +233,17 @@ export function EditorTopbar({
 
         <AppTopBarActions controller={controller} />
       </div>
+
+      {/* App-level publish modal — mounted next to the topbar so the
+          editor's React Flow canvas doesn't host it. Modal is portalled
+          via DialogPortal so the z-index escapes the topbar's stacking
+          context. */}
+      <PublishTemplateModal
+        open={publishOpen}
+        onClose={() => setPublishOpen(false)}
+        workflowId={workflowId ?? null}
+        defaultTitle={workflowName}
+      />
     </header>
   )
 }

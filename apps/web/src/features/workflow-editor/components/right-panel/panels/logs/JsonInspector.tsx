@@ -182,7 +182,7 @@ export function JsonInspector({
       {/* Header */}
       <div className="flex h-[36px] shrink-0 items-center gap-1 border-b border-[var(--border-faint)] px-3">
         {tab && onTabChange ? (
-          (extraTabs ? [...extraTabs, 'output', 'input'] : (['output', 'input'] as Tab[])).map(
+          ((extraTabs ? [...extraTabs, 'output', 'input'] : ['output', 'input']) as Tab[]).map(
             (t) => (
               <button
                 key={t}

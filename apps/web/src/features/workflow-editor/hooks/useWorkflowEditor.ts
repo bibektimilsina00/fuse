@@ -51,7 +51,7 @@ function conflictVersion(err: unknown): number | undefined {
   return typeof detail?.current_version === 'number' ? detail.current_version : undefined
 }
 
-function normalizeDefinition(d: ApiNodeDefinition): NodeDefinition {
+export function normalizeDefinition(d: ApiNodeDefinition): NodeDefinition {
   return {
     ...d,
     allowError: d.allow_error,
