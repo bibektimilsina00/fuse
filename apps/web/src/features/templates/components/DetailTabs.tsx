@@ -1,0 +1,199 @@
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Workflow as WorkflowIcon, Plug, Wrench, BookText } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components'
+import { editorAPI } from '@/features/workflow-editor/services/editorAPI'
+import { getIcon } from '@/features/workflow-editor/utils/icon-map'
+import type { NodeDefinition } from '@/features/workflow-editor/types/editorTypes'
+import type { TemplateDetail } from '../types/templatesTypes'
+import { MissingCredentialsAlert } from './MissingCredentialsAlert'
+import { WorkflowMiniPreview } from './WorkflowMiniPreview'
+
+/**
+ * Main content area on the detail page — shadcn Tabs (already styled
+ * with active-underline at apps/web/src/components/ui/tabs.tsx).
+ *
+ * Tabs: Overview · Workflow · Requirements · Instructions.
+ */
+
+interface DetailTabsProps {
+  template: TemplateDetail
+  missingCredentials: string[]
+}
+
+export function DetailTabs({ template, missingCredentials }: DetailTabsProps) {
+  return (
+    <Tabs defaultValue="overview" className="flex flex-col gap-[20px]">
+      <TabsList className="!justify-start gap-1 border-b border-[var(--border-faint)]">
+        <TabsTrigger value="overview">
+          <BookText className="h-3.5 w-3.5" /> Overview
+        </TabsTrigger>
+        <TabsTrigger value="workflow">
+          <WorkflowIcon className="h-3.5 w-3.5" /> Workflow
+        </TabsTrigger>
+        <TabsTrigger value="requirements">
+          <Plug className="h-3.5 w-3.5" /> Requirements
+        </TabsTrigger>
+        <TabsTrigger value="instructions">
+          <Wrench className="h-3.5 w-3.5" /> Instructions
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="overview" className="flex flex-col gap-3 m-0">
+        <SectionHeading>Overview</SectionHeading>
+        {template.summary && (
+          <p className="m-0 text-[14px] leading-[1.6] font-medium text-[var(--text)]">
+            {template.summary}
+          </p>
+        )}
+        <p className="m-0 whitespace-pre-wrap text-[13px] leading-[1.7] text-[var(--text-mute)]">
+          {template.description || 'No long-form description provided yet.'}
+        </p>
+      </TabsContent>
+
+      <TabsContent value="workflow" className="flex flex-col gap-3 m-0">
+        <SectionHeading>Workflow graph</SectionHeading>
+        <div
+          className={`relative aspect-[2/1] w-full overflow-hidden rounded-[10px] border border-[var(--border-faint)] ${template.bg_variant}`}
+        >
+          {template.graph?.nodes?.length ? (
+            <WorkflowMiniPreview graph={template.graph} density="comfortable" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-[12px] text-[var(--text-faint)]">
+              No graph data
+            </div>
+          )}
+        </div>
+        <NodeList template={template} />
+      </TabsContent>
+
+      <TabsContent value="requirements" className="flex flex-col gap-4 m-0">
+        <SectionHeading>Integrations required</SectionHeading>
+        {template.credentials_required.length === 0 ? (
+          <span className="text-[12.5px] italic text-[var(--text-faint)]">
+            No integrations required.
+          </span>
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {template.credentials_required.map((c) => (
+              <Chip key={c}>{c}</Chip>
+            ))}
+          </div>
+        )}
+
+        {missingCredentials.length > 0 && (
+          <MissingCredentialsAlert missing={missingCredentials} />
+        )}
+
+        <SectionHeading className="mt-3">Tools used</SectionHeading>
+        {template.tools_required.length === 0 ? (
+          <span className="text-[12.5px] italic text-[var(--text-faint)]">
+            No tools used.
+          </span>
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {template.tools_required.map((t) => (
+              <Chip key={t}>{t}</Chip>
+            ))}
+          </div>
+        )}
+      </TabsContent>
+
+      <TabsContent value="instructions" className="flex flex-col gap-3 m-0">
+        <SectionHeading>Getting started</SectionHeading>
+        <ol className="m-0 flex flex-col gap-2 pl-4 text-[13px] leading-[1.65] text-[var(--text-mute)]">
+          <li>
+            Click <span className="font-semibold text-[var(--text)]">Install</span> to add this
+            template as a new workflow in your workspace.
+          </li>
+          {template.credentials_required.length > 0 && (
+            <li>
+              Connect the required integrations in{' '}
+              <span className="font-semibold text-[var(--text)]">Settings → Connections</span> so
+              the workflow's tool calls can authenticate.
+            </li>
+          )}
+          <li>
+            Open the workflow editor, review the nodes, and tweak any property defaults to suit
+            your data shape.
+          </li>
+          <li>
+            Hit <span className="font-semibold text-[var(--text)]">Activate</span> in the editor
+            topbar to enable triggers.
+          </li>
+        </ol>
+      </TabsContent>
+    </Tabs>
+  )
+}
+
+function SectionHeading({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <h2
+      className={`m-0 text-[13.5px] font-semibold text-[var(--text)] ${className ?? ''}`.trim()}
+    >
+      {children}
+    </h2>
+  )
+}
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-[6px] border border-[var(--border-faint)] bg-[var(--bg)] px-2 py-1 font-mono text-[11px] text-[var(--text-mute)]">
+      {children}
+    </span>
+  )
+}
+
+function NodeList({ template }: { template: TemplateDetail }) {
+  const { data: definitions = [] } = useQuery({
+    queryKey: ['node-definitions'],
+    queryFn: ({ signal }) => editorAPI.getNodeDefinitions(signal),
+    staleTime: 1000 * 60 * 10,
+  })
+
+  const defByType = useMemo(() => {
+    const map = new Map<string, NodeDefinition>()
+    for (const d of definitions) map.set(d.type, d)
+    return map
+  }, [definitions])
+
+  const nodes = template.graph?.nodes ?? []
+  if (nodes.length === 0) return null
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <SectionHeading>Nodes ({nodes.length})</SectionHeading>
+      <div className="flex flex-col divide-y divide-[var(--border-faint)] rounded-[8px] border border-[var(--border-faint)] bg-[var(--surface)]">
+        {nodes.map((n, idx) => {
+          const def = defByType.get(n.type ?? '')
+          const colour = def?.color ?? '#5e6ad2'
+          return (
+            <div key={n.id ?? idx} className="flex items-center gap-3 px-3 py-2.5">
+              <div
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] text-white [&_svg]:h-3.5 [&_svg]:w-3.5"
+                style={{ background: colour }}
+              >
+                {def ? getIcon(def.icon) : null}
+              </div>
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate text-[12.5px] font-medium text-[var(--text)]">
+                  {def?.name ?? n.type ?? 'Node'}
+                </span>
+                <span className="truncate font-mono text-[10.5px] uppercase tracking-[0.06em] text-[var(--text-faint)]">
+                  {n.type}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
