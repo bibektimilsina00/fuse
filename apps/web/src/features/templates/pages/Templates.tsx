@@ -153,13 +153,6 @@ export function Templates() {
               <TemplateCard
                 key={item.id}
                 template={toCardShape(item, idx)}
-                isOfficial={item.is_official}
-                isPremium={item.is_premium}
-                priceCents={item.price_cents}
-                creator={item.creator}
-                downloadCount={item.download_count}
-                toolsRequired={item.tools_required}
-                graph={item.graph}
                 onClick={() => navigate(APP_ROUTES.TEMPLATE_DETAIL(item.slug))}
               />
             ))}
