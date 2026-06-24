@@ -88,39 +88,38 @@ export function Templates() {
           </div>
         </div>
 
-        {/* Filter / search row */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-faint)] pb-4">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <FilterChip
-              active={cat === 'all'}
+        {/* Filter / search row — uses the project's standard .filter-bar /
+            .filter-tabs vocabulary so the templates page matches the rest
+            of the product. */}
+        <div className="filter-bar">
+          <div className="filter-tabs">
+            <button
+              className={`filter-tab${cat === 'all' ? ' active' : ''}`}
               onClick={() => setCat('all')}
-              count={data?.total}
             >
-              All
-            </FilterChip>
+              All <span className="filter-count">{data?.total ?? 0}</span>
+            </button>
             {categories.map((c) => (
-              <FilterChip
+              <button
                 key={c.id}
-                active={cat === c.id}
+                className={`filter-tab${cat === c.id ? ' active' : ''}`}
                 onClick={() => setCat(c.id)}
-                count={c.count}
               >
-                {c.label}
-              </FilterChip>
+                {c.label} <span className="filter-count">{c.count}</span>
+              </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-faint)]" />
+          <div className="filter-tools">
+            <div className="cmd-search inline-search">
+              <Search className="h-3.5 w-3.5" />
               <input
                 placeholder="Search templates"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-[32px] w-[200px] rounded-[7px] border border-[var(--border-faint)] bg-[var(--bg-2)] pl-7 pr-3 text-[12.5px] text-[var(--text)] placeholder:text-[var(--text-faint)] outline-none transition-colors hover:border-[var(--border-soft)] focus:border-[var(--border)]"
               />
             </div>
             <select
-              className="h-[32px] rounded-[7px] border border-[var(--border-faint)] bg-[var(--bg-2)] px-2.5 text-[12.5px] text-[var(--text)] outline-none transition-colors hover:border-[var(--border-soft)] focus:border-[var(--border)]"
+              className="h-[30px] rounded-[7px] border border-[var(--border-faint)] bg-[var(--bg-2)] px-2.5 text-[12px] text-[var(--text)] outline-none transition-colors hover:border-[var(--border-soft)] focus:border-[var(--border)]"
               value={sort}
               onChange={(e) => setSort(e.target.value as TemplateSort)}
             >
@@ -167,47 +166,6 @@ export function Templates() {
         )}
       </div>
     </div>
-  )
-}
-
-/**
- * Pill-style filter chip — narrower + more on-brand than the legacy
- * `.filter-tab` shape so the marketplace reads as part of the dashboard.
- */
-function FilterChip({
-  active,
-  onClick,
-  count,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  count?: number
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={
-        active
-          ? 'inline-flex items-center gap-1.5 rounded-[7px] border border-[var(--border-soft)] bg-[var(--surface)] px-2.5 py-1.5 text-[12px] font-semibold text-[var(--text)]'
-          : 'inline-flex items-center gap-1.5 rounded-[7px] border border-transparent bg-transparent px-2.5 py-1.5 text-[12px] font-medium text-[var(--text-mute)] transition-colors hover:bg-[var(--surface)]/40 hover:text-[var(--text)]'
-      }
-    >
-      {children}
-      {count != null && (
-        <span
-          className={
-            active
-              ? 'rounded-[4px] bg-[var(--surface-2)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-mute)]'
-              : 'rounded-[4px] bg-[var(--bg-2)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-faint)]'
-          }
-        >
-          {count}
-        </span>
-      )}
-    </button>
   )
 }
 
