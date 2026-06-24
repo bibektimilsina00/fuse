@@ -1,7 +1,5 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Workflow as WorkflowIcon, Plug, Wrench, BookText } from 'lucide-react'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components'
 import { editorAPI } from '@/features/workflow-editor/services/editorAPI'
 import { getIcon } from '@/features/workflow-editor/utils/icon-map'
 import type { NodeDefinition } from '@/features/workflow-editor/types/editorTypes'
@@ -10,10 +8,14 @@ import { MissingCredentialsAlert } from './MissingCredentialsAlert'
 import { WorkflowMiniPreview } from './WorkflowMiniPreview'
 
 /**
- * Main content area on the detail page — shadcn Tabs (already styled
- * with active-underline at apps/web/src/components/ui/tabs.tsx).
+ * Stacked content sections for the main column.
  *
- * Tabs: Overview · Workflow · Requirements · Instructions.
+ * Replaces the previous Tabs UI — the user prefers a single scrollable
+ * page with every section visible. Order: Overview → Workflow (graph
+ * + node list) → Requirements (integrations + tools + missing-creds
+ * alert) → Instructions.
+ *
+ * Component name kept as `DetailTabs` so existing imports don't churn.
  */
 
 interface DetailTabsProps {
@@ -23,23 +25,8 @@ interface DetailTabsProps {
 
 export function DetailTabs({ template, missingCredentials }: DetailTabsProps) {
   return (
-    <Tabs defaultValue="overview" className="flex flex-col gap-[20px]">
-      <TabsList className="!justify-start gap-1 border-b border-[var(--border-faint)]">
-        <TabsTrigger value="overview">
-          <BookText className="h-3.5 w-3.5" /> Overview
-        </TabsTrigger>
-        <TabsTrigger value="workflow">
-          <WorkflowIcon className="h-3.5 w-3.5" /> Workflow
-        </TabsTrigger>
-        <TabsTrigger value="requirements">
-          <Plug className="h-3.5 w-3.5" /> Requirements
-        </TabsTrigger>
-        <TabsTrigger value="instructions">
-          <Wrench className="h-3.5 w-3.5" /> Instructions
-        </TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="overview" className="flex flex-col gap-3 m-0">
+    <div className="flex flex-col gap-[40px]">
+      <section className="flex flex-col gap-3">
         <SectionHeading>Overview</SectionHeading>
         {template.summary && (
           <p className="m-0 text-[14px] leading-[1.6] font-medium text-[var(--text)]">
@@ -49,9 +36,11 @@ export function DetailTabs({ template, missingCredentials }: DetailTabsProps) {
         <p className="m-0 whitespace-pre-wrap text-[13px] leading-[1.7] text-[var(--text-mute)]">
           {template.description || 'No long-form description provided yet.'}
         </p>
-      </TabsContent>
+      </section>
 
-      <TabsContent value="workflow" className="flex flex-col gap-3 m-0">
+      <Divider />
+
+      <section className="flex flex-col gap-3">
         <SectionHeading>Workflow graph</SectionHeading>
         <div
           className={`relative aspect-[2/1] w-full overflow-hidden rounded-[10px] border border-[var(--border-faint)] ${template.bg_variant}`}
@@ -65,9 +54,11 @@ export function DetailTabs({ template, missingCredentials }: DetailTabsProps) {
           )}
         </div>
         <NodeList template={template} />
-      </TabsContent>
+      </section>
 
-      <TabsContent value="requirements" className="flex flex-col gap-4 m-0">
+      <Divider />
+
+      <section className="flex flex-col gap-4">
         <SectionHeading>Integrations required</SectionHeading>
         {template.credentials_required.length === 0 ? (
           <span className="text-[12.5px] italic text-[var(--text-faint)]">
@@ -97,9 +88,11 @@ export function DetailTabs({ template, missingCredentials }: DetailTabsProps) {
             ))}
           </div>
         )}
-      </TabsContent>
+      </section>
 
-      <TabsContent value="instructions" className="flex flex-col gap-3 m-0">
+      <Divider />
+
+      <section className="flex flex-col gap-3">
         <SectionHeading>Getting started</SectionHeading>
         <ol className="m-0 flex flex-col gap-2 pl-4 text-[13px] leading-[1.65] text-[var(--text-mute)]">
           <li>
@@ -109,8 +102,8 @@ export function DetailTabs({ template, missingCredentials }: DetailTabsProps) {
           {template.credentials_required.length > 0 && (
             <li>
               Connect the required integrations in{' '}
-              <span className="font-semibold text-[var(--text)]">Settings → Connections</span> so
-              the workflow's tool calls can authenticate.
+              <span className="font-semibold text-[var(--text)]">Settings → Connections</span>{' '}
+              so the workflow's tool calls can authenticate.
             </li>
           )}
           <li>
@@ -122,8 +115,8 @@ export function DetailTabs({ template, missingCredentials }: DetailTabsProps) {
             topbar to enable triggers.
           </li>
         </ol>
-      </TabsContent>
-    </Tabs>
+      </section>
+    </div>
   )
 }
 
@@ -141,6 +134,10 @@ function SectionHeading({
       {children}
     </h2>
   )
+}
+
+function Divider() {
+  return <div className="h-px bg-[var(--border-faint)]" />
 }
 
 function Chip({ children }: { children: React.ReactNode }) {
