@@ -97,7 +97,7 @@ export function Templates() {
               className={`filter-tab${cat === 'all' ? ' active' : ''}`}
               onClick={() => setCat('all')}
             >
-              All <span className="filter-count">{data?.total ?? 0}</span>
+              All
             </button>
             {categories.map((c) => (
               <button
@@ -105,7 +105,7 @@ export function Templates() {
                 className={`filter-tab${cat === c.id ? ' active' : ''}`}
                 onClick={() => setCat(c.id)}
               >
-                {c.label} <span className="filter-count">{c.count}</span>
+                {c.label}
               </button>
             ))}
           </div>
