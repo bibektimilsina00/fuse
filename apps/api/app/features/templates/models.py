@@ -19,7 +19,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, Text
 from sqlmodel import Field
 
 from apps.api.app.shared.sqlmodel import SQLModelBase, created_at_field, updated_at_field
@@ -43,10 +43,10 @@ class Template(SQLModelBase, table=True):
         default=None, foreign_key="workspace.id", ondelete="CASCADE", index=True
     )
 
-    slug: str = Field(max_length=160, unique=True, index=True)
+    slug: str = Field(max_length=160, unique=True)
     title: str = Field(max_length=160)
     summary: str = Field(default="", max_length=500)
-    description: str = Field(default="")
+    description: str = Field(default="", sa_column=Column(Text, nullable=False, server_default=""))
     category: str = Field(max_length=40, index=True)
     kind: str = Field(default="flow", max_length=20)
 

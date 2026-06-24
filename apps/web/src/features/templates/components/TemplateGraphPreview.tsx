@@ -35,7 +35,7 @@ function PreviewInner({ graph, static: isStatic = false }: Props) {
 
   useEffect(() => {
     if (rawDefinitions && rawDefinitions.length > 0 && nodeDefinitions.length === 0) {
-      setNodeDefinitions(rawDefinitions.map(normalizeDefinition))
+      queueMicrotask(() => setNodeDefinitions(rawDefinitions.map(normalizeDefinition)))
     }
   }, [rawDefinitions, nodeDefinitions.length, setNodeDefinitions])
 
