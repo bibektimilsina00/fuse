@@ -40,6 +40,7 @@ export interface TemplateListItem {
   kind: string
   bg_variant: string
   is_official: boolean
+  is_published: boolean
   is_premium: boolean
   price_cents: number
   download_count: number

@@ -57,12 +57,10 @@ function PreviewInner({ graph, static: isStatic = false }: Props) {
 
   const edges: Edge[] = useMemo(
     () =>
-      (graph?.edges ?? []).map((e) => ({
-        id: e.id,
+      (graph?.edges ?? []).map((e, i) => ({
+        id: e.id ?? `e${i}`,
         source: e.source,
         target: e.target,
-        sourceHandle: e.sourceHandle,
-        targetHandle: e.targetHandle,
         type: 'custom',
         animated: false,
       })),

@@ -146,14 +146,6 @@ function Divider() {
   return <div className="h-px bg-[var(--border-faint)]" />
 }
 
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-[6px] border border-[var(--border-faint)] bg-[var(--bg)] px-2.5 py-1.5 font-mono text-[12px] text-[var(--text-mute)]">
-      {children}
-    </span>
-  )
-}
-
 function NodeList({ template }: { template: TemplateDetail }) {
   const { data: definitions = [] } = useQuery({
     queryKey: ['node-definitions'],

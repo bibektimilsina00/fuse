@@ -278,6 +278,7 @@ class TemplateService:
             kind=t.kind,
             bg_variant=t.bg_variant,
             is_official=t.is_official,
+            is_published=t.is_published,
             is_premium=t.is_premium,
             price_cents=t.price_cents,
             download_count=t.download_count,

@@ -35,6 +35,7 @@ class TemplateListOut(SQLModel):
     kind: str
     bg_variant: str
     is_official: bool
+    is_published: bool
     is_premium: bool
     price_cents: int
     download_count: int
