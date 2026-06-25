@@ -70,10 +70,23 @@ export interface NodePropertyOption {
   description?: string
 }
 
-// Property visibility condition: a leaf (field equals value, or is one of value[])
-// or a composite of nested conditions joined by `all` (every) / `any` (some).
+// Property visibility condition.
+//
+// Leaf shape `{ field, value }` (optionally with `operator`) matches against
+// one named field. `value: T` matches `=== T`; `value: T[]` matches
+// "is one of". The optional `operator` flips that into negative matches:
+//   - `eq`    → equals (default for scalar values)
+//   - `notEq` → not equal
+//   - `in`    → array includes (default for array values)
+//   - `notIn` → array does NOT include
+// Composite shapes join nested conditions via `all` (every) / `any` (some).
+//
+// Keep this in lockstep with `matchesCondition` in utils/nodeUtils.ts and
+// the backend `condition` shape on `NodeMetadata.properties`.
+export type ConditionOperator = 'eq' | 'notEq' | 'in' | 'notIn'
+
 export type PropertyCondition =
-  | { field: string; value: unknown }
+  | { field: string; value: unknown; operator?: ConditionOperator }
   | { all: PropertyCondition[] }
   | { any: PropertyCondition[] }
 
@@ -125,7 +138,11 @@ export interface NodeDefinition {
 
 const ConditionSchema: z.ZodType<PropertyCondition> = z.lazy(() =>
   z.union([
-    z.object({ field: z.string(), value: z.any() }),
+    z.object({
+      field: z.string(),
+      value: z.any(),
+      operator: z.enum(['eq', 'notEq', 'in', 'notIn']).optional(),
+    }),
     z.object({ all: z.array(ConditionSchema) }),
     z.object({ any: z.array(ConditionSchema) }),
   ])

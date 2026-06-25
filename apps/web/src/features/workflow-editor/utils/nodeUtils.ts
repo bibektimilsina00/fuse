@@ -78,8 +78,22 @@ function matchesCondition(condition: PropertyCondition, values: Record<string, u
   if ('all' in condition) return condition.all.every(c => matchesCondition(c, values))
   if ('any' in condition) return condition.any.some(c => matchesCondition(c, values))
   const current = values[condition.field]
-  if (Array.isArray(condition.value)) return condition.value.includes(current)
-  return current === condition.value
+  // Operator-aware leaf eval. `operator` is optional — when absent we
+  // pick the historical default (`in` for array values, `eq` for
+  // scalars) so existing conditions keep working unchanged.
+  const op =
+    condition.operator ??
+    (Array.isArray(condition.value) ? 'in' : 'eq')
+  switch (op) {
+    case 'eq':
+      return current === condition.value
+    case 'notEq':
+      return current !== condition.value
+    case 'in':
+      return Array.isArray(condition.value) && condition.value.includes(current)
+    case 'notIn':
+      return Array.isArray(condition.value) && !condition.value.includes(current)
+  }
 }
 
 // Single source of truth for property visibility, shared by the canvas node and

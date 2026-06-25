@@ -26,6 +26,10 @@ dependencies = [
     "sentry-sdk>=2.61.0",
     "jsonata-python>=0.6.2",
     "websockets<17",
+    # Public-video reads on the YouTube node: oEmbed for metadata, this
+    # for captions/transcripts. No API key + no OAuth required — both
+    # scrape the public response.
+    "youtube-transcript-api>=0.6.2",
 ]
 
 [tool.uv]

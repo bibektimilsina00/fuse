@@ -29,6 +29,7 @@ GoogleOAuthProvider).
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import httpx
@@ -140,6 +141,12 @@ class GoogleYouTubeProperties(BaseModel):
     # list_playlist_items / list_comments
     page_size: int = 50
 
+    # public video reads — accept full URL, short URL, or bare ID
+    video_url_or_id: str | None = None
+    # transcript language preference (BCP-47); falls back to auto-translated
+    # or any available track if the preferred one is missing.
+    transcript_language: str = "en"
+
     @field_validator(
         "video_id",
         "channel_id",
@@ -180,6 +187,11 @@ _VIDEO_PICKER_OPS = (
     "post_top_comment",
     "add_video_to_playlist",
 )
+
+# Operations that read public-only data — no OAuth needed. The
+# inspector hides the credential picker on these and `execute()` skips
+# the access-token check.
+_PUBLIC_OPS = ("get_public_video", "get_video_transcript")
 _PLAYLIST_PICKER_OPS = (
     "update_playlist",
     "delete_playlist",
@@ -214,6 +226,17 @@ class GoogleYouTubeNode(BaseNode[GoogleYouTubeProperties]):
                     "type": "credential",
                     "credentialType": "google_oauth",
                     "required": True,
+                    # Public-read operations don't need OAuth — hide the
+                    # picker so users can transcribe/summarise any
+                    # YouTube video without signing in. The inspector
+                    # treats the field as "not required" too because
+                    # `shouldShowProperty` short-circuits validation
+                    # when the condition hides it.
+                    "condition": {
+                        "field": "operation",
+                        "operator": "notIn",
+                        "value": list(_PUBLIC_OPS),
+                    },
                 },
                 {
                     "name": "operation",
@@ -221,6 +244,14 @@ class GoogleYouTubeNode(BaseNode[GoogleYouTubeProperties]):
                     "type": "options",
                     "default": "list_my_videos",
                     "options": [
+                        {
+                            "label": "Get Public Video (no auth)",
+                            "value": "get_public_video",
+                        },
+                        {
+                            "label": "Get Video Transcript (no auth)",
+                            "value": "get_video_transcript",
+                        },
                         {"label": "List My Videos", "value": "list_my_videos"},
                         {"label": "Get Video", "value": "get_video"},
                         {"label": "Get Video Rating", "value": "get_video_rating"},
@@ -256,6 +287,31 @@ class GoogleYouTubeNode(BaseNode[GoogleYouTubeProperties]):
                             "value": "unsubscribe_from_channel",
                         },
                     ],
+                },
+                # ── public video — URL or bare ID ──────────────────────
+                {
+                    "name": "video_url_or_id",
+                    "label": "Video URL or ID",
+                    "type": "string",
+                    "required": True,
+                    "placeholder": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                    "description": (
+                        "Paste a YouTube URL (regular, shorts, or youtu.be) or "
+                        "just the 11-character video ID. No sign-in required."
+                    ),
+                    "condition": _cond_any(*_PUBLIC_OPS),
+                },
+                {
+                    "name": "transcript_language",
+                    "label": "Transcript language",
+                    "type": "string",
+                    "default": "en",
+                    "description": (
+                        "BCP-47 code (en, es, fr…). Falls back to any "
+                        "available track if the preferred one is missing."
+                    ),
+                    "condition": _cond("get_video_transcript"),
+                    "mode": "advanced",
                 },
                 # ── video picker ───────────────────────────────────────
                 {
@@ -565,17 +621,22 @@ class GoogleYouTubeNode(BaseNode[GoogleYouTubeProperties]):
         return self.credential.get("access_token")
 
     async def execute(self, input_data: dict[str, Any], context: NodeContext) -> NodeResult:
-        token = self._get_token()
-        if not token:
-            return NodeResult(success=False, error="Google OAuth credential required.")
         op = self.props.operation
         handler = _HANDLERS.get(op)
         if handler is None:
             return NodeResult(success=False, error=f"Unknown operation: {op}")
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        }
+        # Public ops bypass OAuth — they read youtube.com / oEmbed directly
+        # and never call the authenticated Data API.
+        if op in _PUBLIC_OPS:
+            headers: dict[str, str] = {}
+        else:
+            token = self._get_token()
+            if not token:
+                return NodeResult(success=False, error="Google OAuth credential required.")
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            }
         try:
             async with httpx.AsyncClient(timeout=60) as client:
                 return await handler(self, client, headers)
@@ -1394,6 +1455,150 @@ async def _unsubscribe_from_channel(
     return NodeResult(success=True, output_data={"id": sid, "deleted": True})
 
 
+# ── public (no-auth) video helpers ────────────────────────────────────────
+
+_YT_ID_RE = re.compile(r"(?:v=|youtu\.be/|/shorts/|/embed/)([A-Za-z0-9_-]{11})")
+
+
+def _extract_video_id(raw: str | None) -> str | None:
+    """Accept a YouTube URL (any common form) or a bare 11-char video ID,
+    return the canonical video ID. Returns None if it can't parse one out
+    of the input so the caller can produce a friendly error.
+    """
+    if not raw:
+        return None
+    s = raw.strip()
+    # Bare ID — YouTube IDs are exactly 11 chars, [A-Za-z0-9_-].
+    if len(s) == 11 and re.fullmatch(r"[A-Za-z0-9_-]{11}", s):
+        return s
+    m = _YT_ID_RE.search(s)
+    return m.group(1) if m else None
+
+
+async def _get_public_video(
+    node: GoogleYouTubeNode, client: httpx.AsyncClient, headers: dict[str, str]
+) -> NodeResult:
+    """Fetch public metadata for any video — no OAuth, no API key.
+
+    Uses YouTube's oEmbed endpoint, which returns title, channel name,
+    thumbnail, and (importantly) does NOT require authentication. Trade-off:
+    no view count / duration / publish date. Callers who need those
+    should reach for the authenticated `get_video` op instead.
+    """
+    vid = _extract_video_id(node.props.video_url_or_id)
+    if not vid:
+        return NodeResult(
+            success=False,
+            error="Could not parse a video ID out of `video_url_or_id`.",
+        )
+    watch_url = f"https://www.youtube.com/watch?v={vid}"
+    r = await client.get(
+        "https://www.youtube.com/oembed",
+        params={"url": watch_url, "format": "json"},
+    )
+    if r.status_code == 404:
+        return NodeResult(success=False, error=f"Video {vid} is unavailable or private.")
+    r.raise_for_status()
+    data = r.json()
+    return NodeResult(
+        success=True,
+        output_data={
+            "id": vid,
+            "url": watch_url,
+            "title": data.get("title"),
+            "channel": {
+                "name": data.get("author_name"),
+                "url": data.get("author_url"),
+            },
+            "thumbnail": data.get("thumbnail_url"),
+            "embed_html": data.get("html"),
+            "width": data.get("width"),
+            "height": data.get("height"),
+        },
+    )
+
+
+async def _get_video_transcript(
+    node: GoogleYouTubeNode, client: httpx.AsyncClient, headers: dict[str, str]
+) -> NodeResult:
+    """Fetch the captions track for any public video. No OAuth, no API key.
+
+    Uses `youtube-transcript-api` which scrapes the public timedtext
+    endpoint. Returns the full transcript as a single string plus the
+    per-segment list with timestamps so downstream nodes can do
+    summarisation or chapter detection.
+    """
+    # Imported lazily so the rest of the YouTube node still loads if the
+    # optional dep ever drops out of the image.
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+        from youtube_transcript_api._errors import (
+            NoTranscriptFound,
+            TranscriptsDisabled,
+            VideoUnavailable,
+        )
+    except ImportError:
+        return NodeResult(
+            success=False,
+            error=(
+                "youtube-transcript-api is not installed in this environment. "
+                "Add it to apps/api/pyproject.toml dependencies."
+            ),
+        )
+
+    vid = _extract_video_id(node.props.video_url_or_id)
+    if not vid:
+        return NodeResult(
+            success=False,
+            error="Could not parse a video ID out of `video_url_or_id`.",
+        )
+
+    preferred = (node.props.transcript_language or "en").strip() or "en"
+
+    # `youtube-transcript-api` is sync — push it to a thread so we don't
+    # block the event loop on the network round trip.
+    import asyncio
+
+    def _fetch() -> tuple[list[dict[str, Any]], str]:
+        try:
+            api = YouTubeTranscriptApi()
+            transcript_list = api.list(vid)
+            try:
+                transcript = transcript_list.find_transcript([preferred])
+            except NoTranscriptFound:
+                # Fall back to the first generated/translated track that
+                # claims to be in the preferred language; otherwise grab
+                # whatever the first available track is.
+                try:
+                    transcript = transcript_list.find_generated_transcript([preferred])
+                except NoTranscriptFound:
+                    transcript = next(iter(transcript_list))
+            fetched = transcript.fetch()
+            segments = [{"text": s.text, "start": s.start, "duration": s.duration} for s in fetched]
+            return segments, transcript.language_code
+        except VideoUnavailable as exc:
+            raise RuntimeError(f"Video {vid} is unavailable.") from exc
+        except TranscriptsDisabled as exc:
+            raise RuntimeError(f"Transcripts are disabled for video {vid}.") from exc
+
+    try:
+        segments, language = await asyncio.to_thread(_fetch)
+    except RuntimeError as exc:
+        return NodeResult(success=False, error=str(exc))
+
+    full_text = " ".join(seg["text"] for seg in segments).strip()
+    return NodeResult(
+        success=True,
+        output_data={
+            "id": vid,
+            "language": language,
+            "text": full_text,
+            "segments": segments,
+            "segment_count": len(segments),
+        },
+    )
+
+
 _HANDLERS: dict[str, Any] = {
     "list_my_videos": _list_my_videos,
     "get_video": _get_video,
@@ -1423,4 +1628,6 @@ _HANDLERS: dict[str, Any] = {
     "list_subscriptions": _list_subscriptions,
     "subscribe_to_channel": _subscribe_to_channel,
     "unsubscribe_from_channel": _unsubscribe_from_channel,
+    "get_public_video": _get_public_video,
+    "get_video_transcript": _get_video_transcript,
 }

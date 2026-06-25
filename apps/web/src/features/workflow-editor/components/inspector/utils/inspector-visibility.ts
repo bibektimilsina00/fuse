@@ -47,16 +47,53 @@ export function splitPropertyGroups(
   properties: Record<string, unknown>,
 ): { basicGroups: InspectorPropertyGroup[]; advancedGroups: InspectorPropertyGroup[] } {
   const merged = valuesWithDefaults(definitionProperties, properties)
-  const visible = definitionProperties.filter(p =>
+  const ordered = reorderActionFirst(definitionProperties)
+  const visible = ordered.filter(p =>
     p.visibility !== 'hidden' && p.mode !== 'advanced' && shouldShowProperty(p, merged),
   )
-  const advanced = definitionProperties.filter(p =>
+  const advanced = ordered.filter(p =>
     p.visibility !== 'hidden' && p.mode === 'advanced' && shouldShowProperty(p, merged),
   )
   return {
     basicGroups: groupProperties(visible),
     advancedGroups: groupProperties(advanced),
   }
+}
+
+/**
+ * Stable reorder of a node definition's properties for inspector display.
+ *
+ *   action-ish select (operation / resource / action / method)  →  first
+ *   credential field                                            →  next
+ *   everything else                                             →  declared order
+ *
+ * Why this and not "fix every node's property order at definition time"?
+ * 31 integration nodes today, and each declares `credential` first
+ * because that matches the OAuth-setup mental model. The inspector knows
+ * what the *user* should see first (the verb being chosen), which is a
+ * presentation concern — exactly the kind of rule CLAUDE.md says belongs
+ * in this file rather than in the renderers or per-node definitions.
+ *
+ * The list of action-ish names is intentionally small and exact. A
+ * fuzzy match (e.g. anything ending in "operation") would lift unrelated
+ * fields like `cron_expression` or `update_operation_id` up the panel.
+ */
+const ACTION_FIELD_NAMES = new Set(['operation', 'resource', 'action', 'method'])
+
+function propertyPriority(prop: NodeProperty): number {
+  if (prop.type === 'options' && ACTION_FIELD_NAMES.has(prop.name)) return 0
+  if (prop.type === 'credential') return 1
+  return 2
+}
+
+function reorderActionFirst(props: NodeProperty[]): NodeProperty[] {
+  // Pair with original index so equal-priority items keep their declared
+  // order — Array.prototype.sort is stable in modern engines, but doing
+  // the pairing makes the contract explicit.
+  return props
+    .map((prop, index) => ({ prop, index, priority: propertyPriority(prop) }))
+    .sort((a, b) => a.priority - b.priority || a.index - b.index)
+    .map(({ prop }) => prop)
 }
 
 function groupProperties(props: NodeProperty[]): InspectorPropertyGroup[] {
