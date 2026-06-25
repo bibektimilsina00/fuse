@@ -19,7 +19,7 @@ _INPUT_TYPE_OPTIONS: list[dict[str, str]] = [
 ]
 
 _DEFAULT_INPUTS: list[dict[str, Any]] = [
-    {"name": "input1", "type": "string", "description": "", "value": ""},
+    {"name": "input1", "type": "string", "value": ""},
 ]
 
 
@@ -27,7 +27,7 @@ class TriggerProperties(BaseModel):
     startWorkflow: str = "manual"
     # User-defined input schema. The inspector renders this as the
     # editable list of fields shown in the design mock — each row has
-    # name + type + description + default value.
+    # name + type + default value.
     inputs: list[dict[str, Any]] = Field(
         # Start node ships with one ready-to-edit row so a fresh
         # workflow doesn't open a totally blank inputs panel.
@@ -95,12 +95,6 @@ class TriggerNode(BaseNode[TriggerProperties]):
                             "type": "options",
                             "default": "string",
                             "options": _INPUT_TYPE_OPTIONS,
-                        },
-                        {
-                            "name": "description",
-                            "label": "Description",
-                            "type": "string",
-                            "placeholder": "Describe this field",
                         },
                         {
                             "name": "value",
