@@ -106,8 +106,33 @@ export function CollaborationLayer() {
 
   return (
     <>
+      <OwnCursorStyle />
       <PeerSelectionStyles />
       <PeerCursors />
     </>
+  )
+}
+
+/**
+ * Replaces the React Flow pane's pointer with a colored arrow that
+ * matches the one peers see on their screen — so the user looks
+ * "as nice" to themselves as they do to everyone else. Renders nothing
+ * before `session.ready` lands; falls back to the OS pointer outside
+ * the canvas surface so inputs and buttons keep their normal cursors.
+ */
+function OwnCursorStyle() {
+  const own = useCollaborationStore((s) => s.own)
+  if (!own) return null
+  const svg =
+    `<svg xmlns='http://www.w3.org/2000/svg' width='22' height='26' viewBox='0 0 22 26'>` +
+    `<path d='M3 2.4L18.6 11.2C19.5 11.7 19.4 13 18.4 13.3L11.6 15.1L8.4 21.3C7.9 22.2 6.6 22 6.4 21L3 2.4Z' ` +
+    `fill='${own.color}' stroke='%23ffffff' stroke-width='1.5' stroke-linejoin='round'/></svg>`
+  const url = `data:image/svg+xml;utf8,${svg.replace(/#/g, '%23').replace(/'/g, '%22')}`
+  const cursorRule = `url("${url}") 4 4, default`
+  return (
+    <style>
+      {`.react-flow__pane { cursor: ${cursorRule}; }
+        .react-flow__node:not(.dragging) .react-flow__handle { cursor: crosshair; }`}
+    </style>
   )
 }
