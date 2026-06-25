@@ -1653,7 +1653,18 @@ def _coerce_rapidapi_segments(payload: Any) -> list[dict[str, Any]] | None:
     if direct is not None:
         return direct
     if isinstance(payload, dict):
-        for key in ("transcript", "captions", "data", "segments", "transcriptionAsText"):
+        # `transcription` is what `youtube-transcriptor.p.rapidapi.com`
+        # returns; other providers favour `transcript` / `captions` /
+        # `data` / `segments`. `transcriptionAsText` is the
+        # whole-blob fallback when no segmented track is available.
+        for key in (
+            "transcription",
+            "transcript",
+            "captions",
+            "data",
+            "segments",
+            "transcriptionAsText",
+        ):
             if key not in payload:
                 continue
             value = payload[key]
