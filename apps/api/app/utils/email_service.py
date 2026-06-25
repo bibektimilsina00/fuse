@@ -203,83 +203,162 @@ class EmailService:
 
 
 # ── Templates ─────────────────────────────────────────────────────────────────
+#
+# Transactional email design notes:
+# - Light theme by default — Gmail/Outlook treat dark-themed HTML
+#   inconsistently (some strip backgrounds, some auto-invert).
+# - Table-based + inline styles only — Outlook ignores most CSS.
+# - 600px max width — universal safe width across clients.
+# - Preheader text — short hidden line that previews in inbox listings.
+# - Bulletproof CTA — solid color, big tap target, fallback URL printed
+#   below the button so users can copy/paste when buttons are stripped.
+
+BRAND_ACCENT = "#5e6ad2"  # Linear-style indigo, matches default app theme
+BRAND_ACCENT_HOVER = "#4a55c2"
+TEXT_PRIMARY = "#0e1116"
+TEXT_BODY = "#4a5060"
+TEXT_MUTED = "#8b909c"
+BORDER = "#e6e8ec"
+CARD_BG = "#ffffff"
+PAGE_BG = "#f6f7f9"
+FONT_STACK = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+
+
+def _layout(*, preheader: str, heading: str, body_html: str) -> str:
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>{heading}</title>
+</head>
+<body style="margin:0;padding:0;background:{PAGE_BG};font-family:{FONT_STACK};color:{TEXT_PRIMARY};-webkit-font-smoothing:antialiased">
+<!-- Inbox preview text -->
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:{PAGE_BG};opacity:0">
+{preheader}
+</div>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:{PAGE_BG}">
+  <tr>
+    <td align="center" style="padding:40px 16px">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;width:100%">
+        <!-- Wordmark -->
+        <tr>
+          <td style="padding:0 4px 24px">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="vertical-align:middle">
+                  <span style="display:inline-block;width:28px;height:28px;border-radius:7px;background:{BRAND_ACCENT};vertical-align:middle"></span>
+                </td>
+                <td style="padding-left:10px;vertical-align:middle">
+                  <span style="font-size:16px;font-weight:600;color:{TEXT_PRIMARY};letter-spacing:-.01em">RunMyCrew</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Card -->
+        <tr>
+          <td style="background:{CARD_BG};border:1px solid {BORDER};border-radius:14px;box-shadow:0 1px 2px rgba(15,17,22,.04);padding:40px 40px 36px">
+            <h1 style="margin:0 0 20px;font-size:24px;line-height:1.25;font-weight:600;color:{TEXT_PRIMARY};letter-spacing:-.01em">{heading}</h1>
+            {body_html}
+          </td>
+        </tr>
+        <!-- Footer -->
+        <tr>
+          <td style="padding:24px 8px 0;text-align:center">
+            <p style="margin:0;font-size:12px;line-height:1.6;color:{TEXT_MUTED}">
+              Sent by RunMyCrew · <a href="https://runmycrew.com" style="color:{TEXT_MUTED};text-decoration:underline">runmycrew.com</a><br>
+              If you weren't expecting this email you can safely ignore it.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>"""
+
+
+def _button(label: str, href: str) -> str:
+    return f"""
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 24px">
+        <tr>
+          <td style="border-radius:8px;background:{BRAND_ACCENT}">
+            <a href="{href}" style="display:inline-block;padding:13px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;background:{BRAND_ACCENT};letter-spacing:-.005em">{label}</a>
+          </td>
+        </tr>
+      </table>"""
+
+
+def _fallback_url(url: str) -> str:
+    return f"""
+      <p style="margin:0 0 8px;font-size:13px;color:{TEXT_MUTED}">Or paste this link into your browser:</p>
+      <p style="margin:0 0 28px;font-size:13px;line-height:1.5;word-break:break-all">
+        <a href="{url}" style="color:{BRAND_ACCENT};text-decoration:underline">{url}</a>
+      </p>"""
 
 
 def _invite_text(e: InviteEmail) -> str:
     return (
-        f"{e.inviter_email} has invited you to join {e.workspace_name} on RunMyCrew as {e.role}.\n\n"
+        f"You've been invited to {e.workspace_name} on RunMyCrew\n\n"
+        f"{e.inviter_email} added you as {e.role}.\n\n"
         f"Accept the invite (expires in 7 days):\n{e.invite_url}\n\n"
-        "If you don't have a RunMyCrew account you'll be asked to create one first.\n"
+        "If you don't have a RunMyCrew account yet you'll be asked to create one.\n"
         "If you weren't expecting this email you can safely ignore it."
     )
 
 
 def _invite_html(e: InviteEmail) -> str:
-    return f"""<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#fff;margin:0;padding:40px 20px">
-  <div style="max-width:520px;margin:0 auto;background:#1a1a1a;border-radius:12px;border:1px solid #2a2a2a;overflow:hidden">
-    <div style="padding:32px 32px 24px;border-bottom:1px solid #2a2a2a">
-      <p style="font-size:13px;color:#666;margin:0 0 8px;letter-spacing:.05em;text-transform:uppercase">RunMyCrew</p>
-      <h1 style="font-size:22px;font-weight:700;margin:0;color:#fff">You're invited</h1>
-    </div>
-    <div style="padding:32px">
-      <p style="color:#aaa;line-height:1.6;margin:0 0 8px">
-        <strong style="color:#fff">{e.inviter_email}</strong> has invited you to join
+    body = f"""
+      <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:{TEXT_BODY}">
+        <strong style="color:{TEXT_PRIMARY}">{e.inviter_email}</strong> invited you to join
       </p>
-      <p style="font-size:20px;font-weight:700;color:#fff;margin:0 0 24px">{e.workspace_name}</p>
-      <p style="color:#888;font-size:13px;margin:0 0 28px">
-        You'll join as <span style="color:#fff;font-weight:600">{e.role}</span>.
+      <p style="margin:0 0 6px;font-size:20px;line-height:1.3;font-weight:600;color:{TEXT_PRIMARY};letter-spacing:-.01em">
+        {e.workspace_name}
       </p>
-      <a href="{e.invite_url}"
-         style="display:inline-block;background:#fff;color:#000;font-weight:600;font-size:14px;
-                padding:13px 32px;border-radius:8px;text-decoration:none;letter-spacing:.01em">
-        Accept Invite →
-      </a>
-      <p style="color:#444;font-size:12px;margin:28px 0 0;line-height:1.6">
-        This invite expires in 7 days.<br>
-        If you don't have a RunMyCrew account you'll be prompted to create one.<br>
-        If you weren't expecting this you can safely ignore it.
+      <p style="margin:0 0 24px;font-size:14px;color:{TEXT_MUTED}">
+        Role · <span style="color:{TEXT_PRIMARY};font-weight:500">{e.role}</span>
       </p>
-    </div>
-  </div>
-</body>
-</html>"""
+      {_button("Accept invite", e.invite_url)}
+      {_fallback_url(e.invite_url)}
+      <p style="margin:0;padding:14px 16px;border:1px solid {BORDER};border-radius:8px;background:#fafbfc;font-size:13px;line-height:1.5;color:{TEXT_MUTED}">
+        This invite expires in <strong style="color:{TEXT_PRIMARY}">7 days</strong>.
+        If you don't have a RunMyCrew account yet you'll be prompted to create one.
+      </p>"""
+    return _layout(
+        preheader=f"{e.inviter_email} invited you to {e.workspace_name} on RunMyCrew",
+        heading="You've been invited",
+        body_html=body,
+    )
 
 
 def _password_reset_text(e: PasswordResetEmail) -> str:
     return (
-        "You requested a password reset for your RunMyCrew account.\n\n"
+        "Reset your RunMyCrew password\n\n"
+        "We received a request to reset the password on your RunMyCrew account.\n\n"
         f"Reset your password (expires in {e.expires_minutes} minutes):\n{e.reset_url}\n\n"
-        "If you didn't request this you can safely ignore this email — your password won't change."
+        "If you didn't request this you can safely ignore this email — "
+        "your password won't change."
     )
 
 
 def _password_reset_html(e: PasswordResetEmail) -> str:
-    return f"""<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#fff;margin:0;padding:40px 20px">
-  <div style="max-width:520px;margin:0 auto;background:#1a1a1a;border-radius:12px;border:1px solid #2a2a2a;overflow:hidden">
-    <div style="padding:32px 32px 24px;border-bottom:1px solid #2a2a2a">
-      <p style="font-size:13px;color:#666;margin:0 0 8px;letter-spacing:.05em;text-transform:uppercase">RunMyCrew</p>
-      <h1 style="font-size:22px;font-weight:700;margin:0;color:#fff">Reset your password</h1>
-    </div>
-    <div style="padding:32px">
-      <p style="color:#aaa;line-height:1.6;margin:0 0 24px">
-        You requested a password reset for your RunMyCrew account. Click below to set a new password.
+    body = f"""
+      <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:{TEXT_BODY}">
+        We received a request to reset the password on your RunMyCrew account.
+        Click the button below to choose a new one.
       </p>
-      <a href="{e.reset_url}"
-         style="display:inline-block;background:#fff;color:#000;font-weight:600;font-size:14px;
-                padding:13px 32px;border-radius:8px;text-decoration:none;letter-spacing:.01em">
-        Reset Password →
-      </a>
-      <p style="color:#444;font-size:12px;margin:28px 0 0;line-height:1.6">
-        This link expires in {e.expires_minutes} minutes.<br>
-        If you didn't request this you can safely ignore this email — your password won't change.
-      </p>
-    </div>
-  </div>
-</body>
-</html>"""
+      {_button("Reset password", e.reset_url)}
+      {_fallback_url(e.reset_url)}
+      <p style="margin:0;padding:14px 16px;border:1px solid {BORDER};border-radius:8px;background:#fafbfc;font-size:13px;line-height:1.5;color:{TEXT_MUTED}">
+        This link expires in <strong style="color:{TEXT_PRIMARY}">{e.expires_minutes} minutes</strong>.
+        If you didn't request a password reset you can safely ignore this email — your password won't change.
+      </p>"""
+    return _layout(
+        preheader=f"Reset your RunMyCrew password (expires in {e.expires_minutes} minutes)",
+        heading="Reset your password",
+        body_html=body,
+    )
