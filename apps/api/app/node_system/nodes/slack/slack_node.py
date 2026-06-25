@@ -49,7 +49,7 @@ class SlackNode(BaseNode[SlackProperties]):
             name="Slack",
             category="integration",
             description="Complete Slack integration: messaging, channels, users, reactions, and modals.",
-            icon="MessageSquare",
+            icon="si:SiSlack",
             color="#4a154b",
             properties=[
                 {
