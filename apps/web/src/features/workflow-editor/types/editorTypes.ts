@@ -61,6 +61,12 @@ export interface TypeOptions {
   multipleValues?: boolean
   addButtonText?: string
   sortable?: boolean
+  // When set on a `collection` with `multipleValues`, each new row's
+  // named sub-field is pre-filled with `<prefix><N+1>` where N is the
+  // highest current numeric suffix on that field. Lets generic
+  // collections expose "auto-numbered name" UX without per-node code.
+  autoIncrementField?: string
+  autoIncrementPrefix?: string
   [key: string]: unknown
 }
 
