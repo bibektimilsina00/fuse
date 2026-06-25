@@ -72,11 +72,6 @@ export function AuthForm({ mode }: AuthFormProps) {
     }
   }
 
-  const ssoSoon = () =>
-    toast('Coming soon', {
-      variant: 'warn',
-      description: 'OAuth providers are wired but not enabled yet — use email below.',
-    })
 
   // Full-page redirect so the backend can set the session in its own
   // response — we never see the provider consent page inside an AJAX call.
@@ -190,15 +185,6 @@ export function AuthForm({ mode }: AuthFormProps) {
           {!isLoading && <ArrowRight className="h-[15px] w-[15px]" strokeWidth={2.2} />}
         </button>
       </form>
-
-      <button
-        type="button"
-        onClick={ssoSoon}
-        className="mt-2.5 inline-flex h-[40px] w-full items-center justify-center gap-2 rounded-[8px] border border-white/[0.14] bg-white/[0.05] px-3 text-[13px] font-medium text-[var(--text)] transition-colors hover:border-white/[0.22] hover:bg-white/[0.09]"
-      >
-        <Lock className="h-[14px] w-[14px]" strokeWidth={1.8} />
-        Single sign-on (SAML)
-      </button>
 
       <div className="mt-[26px] text-center text-[13.5px] text-[var(--text-faint)]">
         {copy.togglePrompt}{' '}
