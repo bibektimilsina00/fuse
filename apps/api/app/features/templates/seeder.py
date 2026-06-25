@@ -30,14 +30,18 @@ _BG_VARIANTS = ["inspo-bg-1", "inspo-bg-2", "inspo-bg-3"]
 async def seed_official_templates(db: AsyncSession) -> int:
     """Sync `seeds/**/*.json` into the `template` table.
 
-    Returns the number of rows inserted on this run (existing rows are
-    left untouched). Safe to call repeatedly.
+    Insert new seeds, resync existing official rows, AND delete official
+    rows whose seed JSON was removed from disk (so a renamed/dropped
+    seed file doesn't leave an orphan in the marketplace). Returns the
+    insert count on this run.
     """
     registry = TemplateRegistry()
     inserted = 0
+    seen_slugs: set[str] = set()
 
     for idx, raw in enumerate(registry.all()):
         slug = _slug_for(raw)
+        seen_slugs.add(slug)
         result = await db.execute(select(Template).where(Template.slug == slug))
         existing = result.scalar_one_or_none()
         graph = _extract_graph(raw)
@@ -90,9 +94,23 @@ async def seed_official_templates(db: AsyncSession) -> int:
         )
         inserted += 1
 
+    # Drop official rows whose seed JSON is gone from disk — keeps the
+    # marketplace mirror of seeds/ exact. Community-published rows
+    # (is_official=False) are never touched.
+    stale = await db.execute(
+        select(Template).where(Template.is_official.is_(True))  # type: ignore[union-attr]
+    )
+    removed = 0
+    for row in stale.scalars().all():
+        if row.slug not in seen_slugs:
+            await db.delete(row)
+            removed += 1
+
     await db.commit()
     if inserted:
         logger.info("template seeder: imported %d official template(s)", inserted)
+    if removed:
+        logger.info("template seeder: pruned %d orphan official row(s)", removed)
     return inserted
 
 
