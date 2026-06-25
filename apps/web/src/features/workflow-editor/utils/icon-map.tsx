@@ -3,44 +3,65 @@ import { Icon as IconifyIcon } from '@iconify/react'
 import * as LucideIcons from 'lucide-react'
 
 /**
- * Two icon registries, one entry point.
+ * Three-tier icon resolver, one entry point.
  *
- * - **Iconify-prefixed names** (anything containing `:`, e.g. `si:youtube`,
- *   `mdi:home`) load on-demand from the Iconify CDN and cache in
- *   localStorage. That's where every integration node's brand icon
- *   comes from — Simple Icons via the `si:` prefix.
- * - **Bare names** fall through to lucide-react, which is bundled into
- *   the SPA. Used for trigger / logic / UI nodes (`Play`, `Clock`,
- *   `Database`, etc).
+ * 1. **Iconify-prefixed names** (`si:youtube`, `mdi:home`, etc.) go
+ *    straight to `@iconify/react` — CDN-loaded, localStorage-cached.
+ *    Backend nodes use this for every official integration.
+ * 2. **Bare names** are tried against lucide-react first (bundled,
+ *    instant). Used for trigger / logic / UI nodes (`Play`, `Clock`,
+ *    `Database`).
+ * 3. **Bare brand names not in Lucide** (`Slack`, `Facebook`, …)
+ *    fall through to Iconify with a `simple-icons:` prefix so they
+ *    still resolve as the brand logo instead of the Globe fallback.
  *
- * Backend node metadata spells brand icons in react-icons casing
- * (`si:SiYoutube`, `si:SiGooglesheets`), but Iconify's Simple Icons
- * collection uses kebab-case slugs (`youtube`, `google-sheets`).
- * `SI_BRAND_ALIASES` maps the names we actually ship to the slugs
- * Iconify expects so we don't have to rewrite every node's metadata.
+ * All Iconify renders use the canonical white-on-brand-bg styling
+ * via the `text-current` CSS color, so the SVG inherits whatever
+ * color the parent sets. Simple Icons ship paths using `currentColor`,
+ * matching how every Lucide icon already paints itself.
  */
 export const getIcon = (iconName: string): React.ReactNode => {
   if (iconName.includes(':')) {
-    return <IconifyIcon icon={normaliseIconifyName(iconName)} />
+    return (
+      <IconifyIcon
+        icon={normaliseIconifyName(iconName)}
+        // Iconify's `color` prop forces `style.color` on the wrapper
+        // span; we inherit it from the parent (`text-white` on node
+        // headers) so brand-bg + brand-logo always stays legible.
+        color="currentColor"
+      />
+    )
   }
-  const Component =
-    (LucideIcons as unknown as Record<string, React.ElementType>)[iconName] ??
-    LucideIcons.Globe
-  return <Component />
+  const LucideComponent = (LucideIcons as unknown as Record<string, React.ElementType | undefined>)[iconName]
+  if (LucideComponent) {
+    return <LucideComponent />
+  }
+  // Brand-name fallback: backend metadata still ships bare names like
+  // `"Slack"` / `"Facebook"` / `"Instagram"` from before the `si:`
+  // convention. Treat any bare name as a Simple Icons slug rather than
+  // dumping into the Globe fallback. Iconify simply renders nothing
+  // when the slug doesn't exist, which is no worse than today.
+  const slug = brandNameToSlug(iconName)
+  if (slug) {
+    return <IconifyIcon icon={`simple-icons:${slug}`} color="currentColor" />
+  }
+  return <LucideIcons.Globe />
 }
 
 /**
  * Curated map of react-icons-style identifiers → Simple Icons slug.
- * Listed explicitly because the lossy "lowercase Si<brand>" form
- * backend uses can't be deterministically un-mashed back to its
- * compound kebab form (`Googlesheets` could in theory be `goog-le-sheets`).
- * Add an entry here whenever a new integration ships.
+ * The lossy "lowercase Si<brand>" form backend uses can't be
+ * deterministically un-mashed back to kebab — so add new integrations
+ * here when they ship.
  */
 const SI_BRAND_ALIASES: Record<string, string> = {
   airtable: 'airtable',
+  anthropic: 'anthropic',
   discord: 'discord',
+  facebook: 'facebook',
   github: 'github',
   gmail: 'gmail',
+  google: 'google',
   googleanalytics: 'googleanalytics',
   googlecalendar: 'googlecalendar',
   googlechat: 'googlechat',
@@ -54,24 +75,32 @@ const SI_BRAND_ALIASES: Record<string, string> = {
   googleslides: 'googleslides',
   googletasks: 'googletasks',
   hubspot: 'hubspot',
+  instagram: 'instagram',
   jira: 'jira',
   linear: 'linear',
+  linkedin: 'linkedin',
+  meta: 'meta',
   mongodb: 'mongodb',
   mysql: 'mysql',
-  neo: 'neo4j',
+  neo4j: 'neo4j',
   notion: 'notion',
+  openai: 'openai',
   perplexity: 'perplexity',
   postgresql: 'postgresql',
   salesforce: 'salesforce',
   slack: 'slack',
   stripe: 'stripe',
   telegram: 'telegram',
+  twitter: 'twitter',
+  x: 'x',
   youtube: 'youtube',
-  // Common aliases other folders may use as the integration evolves.
-  google: 'google',
-  meta: 'meta',
-  anthropic: 'anthropic',
-  openai: 'openai',
+  whatsapp: 'whatsapp',
+  zapier: 'zapier',
+}
+
+function brandNameToSlug(name: string): string | null {
+  const lowered = name.toLowerCase()
+  return SI_BRAND_ALIASES[lowered] ?? null
 }
 
 function normaliseIconifyName(raw: string): string {
@@ -79,9 +108,6 @@ function normaliseIconifyName(raw: string): string {
   if (colon === -1) return raw
   const prefix = raw.slice(0, colon)
   let tail = raw.slice(colon + 1)
-  // Strip react-icons' `Si` prefix on Simple-Icons slugs so the lookup
-  // sees `youtube` / `googlesheets` rather than `siYoutube` /
-  // `siGooglesheets`.
   if (prefix === 'si' && tail.startsWith('Si') && tail.length > 2 && tail[2] === tail[2].toUpperCase()) {
     tail = tail.slice(2)
   }
@@ -89,8 +115,6 @@ function normaliseIconifyName(raw: string): string {
   if (prefix === 'si' && SI_BRAND_ALIASES[lowered]) {
     return `simple-icons:${SI_BRAND_ALIASES[lowered]}`
   }
-  // Best-effort kebab-case for anything not in the alias table — keeps
-  // `mdi:HomeAccount` -> `mdi:home-account` working too.
   const kebab = tail
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
     .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
