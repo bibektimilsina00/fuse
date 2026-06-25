@@ -13,7 +13,13 @@ _INPUT_TYPE_OPTIONS: list[dict[str, str]] = [
     {"label": "String", "value": "string"},
     {"label": "Number", "value": "number"},
     {"label": "Boolean", "value": "boolean"},
-    {"label": "JSON", "value": "json"},
+    {"label": "Object", "value": "object"},
+    {"label": "Array", "value": "array"},
+    {"label": "Files", "value": "files"},
+]
+
+_DEFAULT_INPUTS: list[dict[str, Any]] = [
+    {"name": "input1", "type": "string", "description": "", "value": ""},
 ]
 
 
@@ -22,7 +28,11 @@ class TriggerProperties(BaseModel):
     # User-defined input schema. The inspector renders this as the
     # editable list of fields shown in the design mock — each row has
     # name + type + description + default value.
-    inputs: list[dict[str, Any]] = Field(default_factory=list)
+    inputs: list[dict[str, Any]] = Field(
+        # Start node ships with one ready-to-edit row so a fresh
+        # workflow doesn't open a totally blank inputs panel.
+        default_factory=lambda: [dict(row) for row in _DEFAULT_INPUTS]
+    )
 
 
 class TriggerNode(BaseNode[TriggerProperties]):
@@ -60,17 +70,23 @@ class TriggerNode(BaseNode[TriggerProperties]):
                     "name": "inputs",
                     "label": "Inputs",
                     "type": "collection",
-                    "default": [],
+                    "default": [dict(row) for row in _DEFAULT_INPUTS],
                     "typeOptions": {
                         "multipleValues": True,
                         "addButtonText": "Add input",
+                        # CollectionRenderer reads these to auto-fill the
+                        # `name` sub-field with `input1`, `input2`, …
+                        # each time the user adds a row. Generic — any
+                        # collection can opt in.
+                        "autoIncrementField": "name",
+                        "autoIncrementPrefix": "input",
                     },
                     "properties": [
                         {
                             "name": "name",
                             "label": "Name",
                             "type": "string",
-                            "placeholder": "firstName",
+                            "placeholder": "input1",
                             "required": True,
                         },
                         {
@@ -159,7 +175,10 @@ def _coerce(value: Any, declared_type: str) -> Any:
             return False
         return value
 
-    if declared_type == "json":
+    # "json" is the legacy alias used before the type catalog gained the
+    # object / array / files split — coerce identically so saved graphs
+    # from the previous PR don't break.
+    if declared_type in {"object", "array", "files", "json"}:
         if isinstance(value, dict | list):
             return value
         import json

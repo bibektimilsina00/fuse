@@ -15,6 +15,30 @@ function toItemArray(value: unknown): CollectionItem[] {
   return []
 }
 
+/** Find the next free `<prefix><N>` value for `field` across existing
+ *  rows. Walks each row, parses the numeric suffix (if any), and
+ *  returns `prefix(maxFound + 1)` — defaulting to 1 if no row matches.
+ *  Returns the new value as a string so the caller can drop it into
+ *  the new row unchanged.
+ */
+function nextIncrementedName(
+  items: CollectionItem[],
+  field: string,
+  prefix: string,
+): string {
+  const suffixRe = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\d+)$`)
+  let highest = 0
+  for (const item of items) {
+    const v = item[field]
+    if (typeof v !== 'string') continue
+    const match = suffixRe.exec(v)
+    if (!match) continue
+    const n = parseInt(match[1], 10)
+    if (Number.isFinite(n) && n > highest) highest = n
+  }
+  return `${prefix}${highest + 1}`
+}
+
 export function CollectionRenderer({ prop, definition, value, onChange, properties }: RendererProps) {
   const opts = prop.typeOptions ?? {}
   const multipleValues = opts.multipleValues ?? false
@@ -48,6 +72,16 @@ export function CollectionRenderer({ prop, definition, value, onChange, properti
     const defaults: CollectionItem = {}
     for (const p of subProps) {
       if (p.default !== undefined) defaults[p.name] = p.default
+    }
+    // Auto-numbered names: opt-in via `typeOptions.autoIncrementField`
+    // + optional `autoIncrementPrefix`. Walks existing rows, finds the
+    // highest `<prefix><N>` value, returns the next one. Solves the
+    // "Start node: each new input should be input1, input2, …" UX
+    // without hardcoding the Start-node case into this renderer.
+    const incField = typeof opts.autoIncrementField === 'string' ? opts.autoIncrementField : null
+    if (incField) {
+      const prefix = typeof opts.autoIncrementPrefix === 'string' ? opts.autoIncrementPrefix : incField
+      defaults[incField] = nextIncrementedName(items, incField, prefix)
     }
     onChange([...items, defaults])
   }
