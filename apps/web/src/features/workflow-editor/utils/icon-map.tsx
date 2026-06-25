@@ -1,123 +1,142 @@
 import React from 'react'
-import { Icon as IconifyIcon } from '@iconify/react'
 import * as LucideIcons from 'lucide-react'
+import { BrandIcon } from './BrandIcon'
+
+import airtable from '@thesvg/icons/airtable'
+import discord from '@thesvg/icons/discord'
+import facebook from '@thesvg/icons/facebook'
+import github from '@thesvg/icons/github'
+import gmail from '@thesvg/icons/gmail'
+import google from '@thesvg/icons/google'
+import googleAnalytics from '@thesvg/icons/google-analytics'
+import googleCalendar from '@thesvg/icons/google-calendar'
+import googleChat from '@thesvg/icons/google-chat'
+import googleCloud from '@thesvg/icons/google-cloud'
+import googleCloudStorage from '@thesvg/icons/google-cloud-storage'
+import googleDocs from '@thesvg/icons/google-docs'
+import googleDrive from '@thesvg/icons/google-drive'
+import googleForms from '@thesvg/icons/google-forms'
+import googleSearchConsole from '@thesvg/icons/google-search-console'
+import googleSheets from '@thesvg/icons/google-sheets'
+import googleSlides from '@thesvg/icons/google-slides'
+import googleTasks from '@thesvg/icons/google-tasks'
+import hubspot from '@thesvg/icons/hubspot'
+import instagram from '@thesvg/icons/instagram'
+import jira from '@thesvg/icons/jira'
+import linear from '@thesvg/icons/linear'
+import meta from '@thesvg/icons/meta'
+import mongodb from '@thesvg/icons/mongodb'
+import mysql from '@thesvg/icons/mysql'
+import neo4j from '@thesvg/icons/neo4j'
+import notion from '@thesvg/icons/notion'
+import openai from '@thesvg/icons/openai'
+import perplexity from '@thesvg/icons/perplexity'
+import postgresql from '@thesvg/icons/postgresql'
+import salesforce from '@thesvg/icons/salesforce'
+import slack from '@thesvg/icons/slack'
+import stripe from '@thesvg/icons/stripe'
+import telegram from '@thesvg/icons/telegram'
+import whatsapp from '@thesvg/icons/whatsapp'
+import youtube from '@thesvg/icons/youtube'
 
 /**
- * Three-tier icon resolver, one entry point.
+ * Brand icon registry. Tree-shaken per-import so the bundle only
+ * carries the integrations we actually ship — each entry is ~1-3KB of
+ * raw SVG string from `@thesvg/icons`. Adding a new integration is one
+ * import + one entry in `BRAND_REGISTRY`.
  *
- * 1. **Iconify-prefixed names** (`si:youtube`, `mdi:home`, etc.) go
- *    straight to `@iconify/react` — CDN-loaded, localStorage-cached.
- *    Backend nodes use this for every official integration.
- * 2. **Bare names** are tried against lucide-react first (bundled,
- *    instant). Used for trigger / logic / UI nodes (`Play`, `Clock`,
- *    `Database`).
- * 3. **Bare brand names not in Lucide** (`Slack`, `Facebook`, …)
- *    fall through to Iconify with a `simple-icons:` prefix so they
- *    still resolve as the brand logo instead of the Globe fallback.
+ * Keys cover every spelling the backend has historically used:
+ *   - kebab-case slug (`youtube`, `google-sheets`)
+ *   - react-icons style (`SiYoutube`, `SiGooglesheets`)
+ *   - bare brand name (`Slack`, `Facebook`)
+ * That way no node metadata has to change to pick up the new icons.
+ */
+interface IconModule {
+  variants: Record<string, string>
+}
+
+const BRAND_REGISTRY: Record<string, IconModule> = {}
+
+function register(slug: string, module: IconModule, ...aliases: string[]) {
+  BRAND_REGISTRY[slug.toLowerCase()] = module
+  for (const alias of aliases) {
+    BRAND_REGISTRY[alias.toLowerCase()] = module
+  }
+}
+
+register('airtable', airtable, 'SiAirtable')
+register('discord', discord, 'SiDiscord')
+register('facebook', facebook, 'SiFacebook', 'Facebook')
+register('github', github, 'SiGithub')
+register('gmail', gmail, 'SiGmail')
+register('google', google, 'SiGoogle')
+register('google-analytics', googleAnalytics, 'SiGoogleanalytics', 'googleanalytics')
+register('google-calendar', googleCalendar, 'SiGooglecalendar', 'googlecalendar')
+register('google-chat', googleChat, 'SiGooglechat', 'googlechat')
+register('google-cloud', googleCloud, 'SiGooglecloud', 'googlecloud')
+register('google-cloud-storage', googleCloudStorage, 'SiGooglecloudstorage', 'googlecloudstorage')
+// Google Contacts isn't in theSVG yet — alias to the generic Google mark.
+register('google-contacts', google, 'SiGooglecontacts', 'googlecontacts')
+register('google-docs', googleDocs, 'SiGoogledocs', 'googledocs')
+register('google-drive', googleDrive, 'SiGoogledrive', 'googledrive')
+register('google-forms', googleForms, 'SiGoogleforms', 'googleforms')
+register('google-search-console', googleSearchConsole, 'SiGooglesearchconsole', 'googlesearchconsole')
+register('google-sheets', googleSheets, 'SiGooglesheets', 'googlesheets')
+register('google-slides', googleSlides, 'SiGoogleslides', 'googleslides')
+register('google-tasks', googleTasks, 'SiGoogletasks', 'googletasks')
+register('hubspot', hubspot, 'SiHubspot')
+register('instagram', instagram, 'SiInstagram', 'Instagram')
+register('jira', jira, 'SiJira')
+register('linear', linear, 'SiLinear')
+register('meta', meta, 'SiMeta', 'Meta')
+register('mongodb', mongodb, 'SiMongodb')
+register('mysql', mysql, 'SiMysql')
+register('neo4j', neo4j, 'SiNeo4j', 'SiNeo')
+register('notion', notion, 'SiNotion')
+register('openai', openai, 'SiOpenai')
+register('perplexity', perplexity, 'SiPerplexity')
+register('postgresql', postgresql, 'SiPostgresql')
+register('salesforce', salesforce, 'SiSalesforce')
+register('slack', slack, 'SiSlack', 'Slack')
+register('stripe', stripe, 'SiStripe')
+register('telegram', telegram, 'SiTelegram')
+register('whatsapp', whatsapp, 'SiWhatsapp', 'Whatsapp')
+register('youtube', youtube, 'SiYoutube')
+
+/**
+ * Three-tier icon resolver:
  *
- * All Iconify renders use the canonical white-on-brand-bg styling
- * via the `text-current` CSS color, so the SVG inherits whatever
- * color the parent sets. Simple Icons ship paths using `currentColor`,
- * matching how every Lucide icon already paints itself.
+ * 1. **Brand registry** — every theSVG entry above. Matches both the
+ *    canonical kebab slug and the legacy `si:Si<Brand>` / bare-name
+ *    forms backend metadata still ships. Renders the `mono` variant
+ *    (single-color silhouette) so the parent's `text-*` colour can
+ *    drive the silhouette on a brand-coloured tile. Falls back to
+ *    `default` (full-color) for icons that don't ship a mono variant
+ *    (e.g. Slack — its identity is the 4-color logo).
+ * 2. **Lucide** — bundled UI icons (`Play`, `Clock`, `Database`, …).
+ * 3. **Globe** — last-resort fallback so the node card always renders
+ *    something rather than an empty box.
  */
 export const getIcon = (iconName: string): React.ReactNode => {
-  if (iconName.includes(':')) {
-    return (
-      <IconifyIcon
-        icon={normaliseIconifyName(iconName)}
-        // Iconify's `color` prop forces `style.color` on the wrapper
-        // span; we inherit it from the parent (`text-white` on node
-        // headers) so brand-bg + brand-logo always stays legible.
-        color="currentColor"
-      />
-    )
+  const brand = resolveBrand(iconName)
+  if (brand) {
+    return <BrandIcon module={brand} />
   }
   const LucideComponent = (LucideIcons as unknown as Record<string, React.ElementType | undefined>)[iconName]
   if (LucideComponent) {
     return <LucideComponent />
   }
-  // Brand-name fallback: backend metadata still ships bare names like
-  // `"Slack"` / `"Facebook"` / `"Instagram"` from before the `si:`
-  // convention. Treat any bare name as a Simple Icons slug rather than
-  // dumping into the Globe fallback. Iconify simply renders nothing
-  // when the slug doesn't exist, which is no worse than today.
-  const slug = brandNameToSlug(iconName)
-  if (slug) {
-    return <IconifyIcon icon={`simple-icons:${slug}`} color="currentColor" />
-  }
   return <LucideIcons.Globe />
 }
 
-/**
- * Curated map of react-icons-style identifiers → Simple Icons slug.
- * The lossy "lowercase Si<brand>" form backend uses can't be
- * deterministically un-mashed back to kebab — so add new integrations
- * here when they ship.
- */
-const SI_BRAND_ALIASES: Record<string, string> = {
-  airtable: 'airtable',
-  anthropic: 'anthropic',
-  discord: 'discord',
-  facebook: 'facebook',
-  github: 'github',
-  gmail: 'gmail',
-  google: 'google',
-  googleanalytics: 'googleanalytics',
-  googlecalendar: 'googlecalendar',
-  googlechat: 'googlechat',
-  googlecloudstorage: 'googlecloud',
-  googlecontacts: 'googlecontacts',
-  googledocs: 'googledocs',
-  googledrive: 'googledrive',
-  googleforms: 'googleforms',
-  googlesearchconsole: 'googlesearchconsole',
-  googlesheets: 'googlesheets',
-  googleslides: 'googleslides',
-  googletasks: 'googletasks',
-  hubspot: 'hubspot',
-  instagram: 'instagram',
-  jira: 'jira',
-  linear: 'linear',
-  linkedin: 'linkedin',
-  meta: 'meta',
-  mongodb: 'mongodb',
-  mysql: 'mysql',
-  neo4j: 'neo4j',
-  notion: 'notion',
-  openai: 'openai',
-  perplexity: 'perplexity',
-  postgresql: 'postgresql',
-  salesforce: 'salesforce',
-  slack: 'slack',
-  stripe: 'stripe',
-  telegram: 'telegram',
-  twitter: 'twitter',
-  x: 'x',
-  youtube: 'youtube',
-  whatsapp: 'whatsapp',
-  zapier: 'zapier',
-}
-
-function brandNameToSlug(name: string): string | null {
-  const lowered = name.toLowerCase()
-  return SI_BRAND_ALIASES[lowered] ?? null
-}
-
-function normaliseIconifyName(raw: string): string {
-  const colon = raw.indexOf(':')
-  if (colon === -1) return raw
-  const prefix = raw.slice(0, colon)
-  let tail = raw.slice(colon + 1)
-  if (prefix === 'si' && tail.startsWith('Si') && tail.length > 2 && tail[2] === tail[2].toUpperCase()) {
-    tail = tail.slice(2)
+function resolveBrand(name: string): IconModule | null {
+  const direct = BRAND_REGISTRY[name.toLowerCase()]
+  if (direct) return direct
+  // Strip the `si:` prefix the backend uses on Iconify-style names so
+  // `si:SiYoutube` and `youtube` both resolve from the same map.
+  if (name.includes(':')) {
+    const tail = name.slice(name.indexOf(':') + 1).toLowerCase()
+    return BRAND_REGISTRY[tail] ?? null
   }
-  const lowered = tail.toLowerCase()
-  if (prefix === 'si' && SI_BRAND_ALIASES[lowered]) {
-    return `simple-icons:${SI_BRAND_ALIASES[lowered]}`
-  }
-  const kebab = tail
-    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
-    .toLowerCase()
-  return `${prefix}:${kebab}`
+  return null
 }
