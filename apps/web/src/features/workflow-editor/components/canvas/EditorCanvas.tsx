@@ -277,9 +277,10 @@ function Flow({
         isAddNodeOpen={addNodeOpen}
       />
 
-      {/* Realtime collaborators — avatar pile pinned top-left so it
-          never collides with the floating action stack on the right. */}
-      <div className="pointer-events-auto absolute left-4 top-4 z-[100]">
+      {/* Realtime collaborators — compact pill pinned bottom-right,
+          out of the way of the top floating actions and the bottom
+          panel run controls. */}
+      <div className="pointer-events-auto absolute bottom-4 right-4 z-[100]">
         <PresenceStack />
       </div>
 
