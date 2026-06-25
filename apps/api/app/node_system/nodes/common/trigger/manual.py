@@ -130,11 +130,25 @@ class TriggerNode(BaseNode[TriggerProperties]):
         # one. Anything that the workflow run-dialog passes in via
         # ``input_data`` wins — that's how "run with values" overrides
         # the defaults set in the editor.
+        #
+        # Defensive: rows with an empty or whitespace-only `name` (user
+        # added the row but never typed) and rows whose name collides
+        # with one already used are auto-recovered to `inputN` instead
+        # of being silently dropped. Dropping rows was the cause of the
+        # "only my first input shows up" report from the editor.
         out: dict[str, Any] = {}
-        for row in self.props.inputs or []:
-            name = (row.get("name") or "").strip()
-            if not name:
-                continue
+        used: set[str] = set()
+        for idx, row in enumerate(self.props.inputs or [], start=1):
+            raw_name = row.get("name")
+            name = (raw_name if isinstance(raw_name, str) else "").strip()
+            if not name or name in used:
+                candidate = f"input{idx}"
+                bump = idx
+                while candidate in used:
+                    bump += 1
+                    candidate = f"input{bump}"
+                name = candidate
+            used.add(name)
             declared_type = (row.get("type") or "string").lower()
             raw_value = row.get("value")
             out[name] = _coerce(raw_value, declared_type)
