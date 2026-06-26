@@ -1279,6 +1279,263 @@
     "tools": null,
     "type": "action.apify"
   },
+  "action.asana": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "asana_oauth",
+    "default_height": null,
+    "default_width": null,
+    "description": "Asana \u2014 projects, tasks, sections, teams.",
+    "dynamic_outputs_from": null,
+    "icon": "asana",
+    "inputs": 1,
+    "name": "Asana",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "data",
+        "type": "object"
+      },
+      {
+        "label": "gid",
+        "type": "string"
+      },
+      {
+        "label": "name",
+        "type": "string"
+      },
+      {
+        "label": "next_page",
+        "type": "object"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "asana_oauth",
+        "label": "Asana Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "list_workspaces",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "List Workspaces",
+            "value": "list_workspaces"
+          },
+          {
+            "label": "List Projects",
+            "value": "list_projects"
+          },
+          {
+            "label": "Get Project",
+            "value": "get_project"
+          },
+          {
+            "label": "List Tasks in Project",
+            "value": "list_tasks"
+          },
+          {
+            "label": "Get Task",
+            "value": "get_task"
+          },
+          {
+            "label": "Create Task",
+            "value": "create_task"
+          },
+          {
+            "label": "Update Task",
+            "value": "update_task"
+          },
+          {
+            "label": "Delete Task",
+            "value": "delete_task"
+          },
+          {
+            "label": "Add Comment",
+            "value": "add_comment"
+          },
+          {
+            "label": "List Sections",
+            "value": "list_sections"
+          },
+          {
+            "label": "Get Authenticated User",
+            "value": "get_me"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_projects"
+          ]
+        },
+        "label": "Workspace ID",
+        "name": "workspace_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_project",
+            "list_tasks",
+            "create_task",
+            "list_sections"
+          ]
+        },
+        "label": "Project ID",
+        "name": "project_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_task",
+            "update_task",
+            "delete_task",
+            "add_comment"
+          ]
+        },
+        "label": "Task ID",
+        "name": "task_id",
+        "type": "string"
+      },
+      {
+        "label": "Section ID",
+        "mode": "advanced",
+        "name": "section_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_task",
+            "update_task"
+          ]
+        },
+        "label": "Name",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_task",
+            "update_task"
+          ]
+        },
+        "label": "Notes",
+        "mode": "advanced",
+        "name": "notes",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_task",
+            "update_task"
+          ]
+        },
+        "label": "Assignee (user ID or email)",
+        "mode": "advanced",
+        "name": "assignee",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_task",
+            "update_task"
+          ]
+        },
+        "label": "Due date (YYYY-MM-DD)",
+        "mode": "advanced",
+        "name": "due_on",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "update_task"
+          ]
+        },
+        "label": "Completed",
+        "mode": "advanced",
+        "name": "completed",
+        "type": "boolean"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_projects",
+            "list_tasks"
+          ]
+        },
+        "default": 50,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_comment"
+          ]
+        },
+        "label": "Comment",
+        "name": "comment_text",
+        "type": "string"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.asana"
+  },
   "action.attio": {
     "allow_error": true,
     "category": "integration",
@@ -1495,6 +1752,251 @@
     ],
     "tools": null,
     "type": "action.attio"
+  },
+  "action.box": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "box_oauth",
+    "default_height": null,
+    "default_width": null,
+    "description": "Box \u2014 cloud file storage, folders, share links.",
+    "dynamic_outputs_from": null,
+    "icon": "box",
+    "inputs": 1,
+    "name": "Box",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "id",
+        "type": "string"
+      },
+      {
+        "label": "name",
+        "type": "string"
+      },
+      {
+        "label": "type",
+        "type": "string"
+      },
+      {
+        "label": "shared_link",
+        "type": "object"
+      },
+      {
+        "label": "entries",
+        "type": "array"
+      },
+      {
+        "label": "total_count",
+        "type": "number"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "box_oauth",
+        "label": "Box Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "get_me",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Get Current User",
+            "value": "get_me"
+          },
+          {
+            "label": "List Folder Items",
+            "value": "list_folder"
+          },
+          {
+            "label": "Get Folder",
+            "value": "get_folder"
+          },
+          {
+            "label": "Create Folder",
+            "value": "create_folder"
+          },
+          {
+            "label": "Delete Folder",
+            "value": "delete_folder"
+          },
+          {
+            "label": "Get File",
+            "value": "get_file"
+          },
+          {
+            "label": "Rename File",
+            "value": "rename_file"
+          },
+          {
+            "label": "Delete File",
+            "value": "delete_file"
+          },
+          {
+            "label": "Create Share Link",
+            "value": "create_share_link"
+          },
+          {
+            "label": "Search",
+            "value": "search"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_folder",
+            "get_folder",
+            "delete_folder"
+          ]
+        },
+        "label": "Folder ID",
+        "name": "folder_id",
+        "placeholder": "0 (root)",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_file",
+            "rename_file",
+            "delete_file",
+            "create_share_link"
+          ]
+        },
+        "label": "File ID",
+        "name": "file_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_folder",
+            "rename_file"
+          ]
+        },
+        "label": "Name",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_folder"
+          ]
+        },
+        "default": "0",
+        "label": "Parent Folder ID",
+        "name": "parent_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_share_link"
+          ]
+        },
+        "default": "open",
+        "label": "Share Access",
+        "mode": "advanced",
+        "name": "access",
+        "options": [
+          {
+            "label": "Open (anyone with link)",
+            "value": "open"
+          },
+          {
+            "label": "Company",
+            "value": "company"
+          },
+          {
+            "label": "Collaborators only",
+            "value": "collaborators"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "search"
+          ]
+        },
+        "label": "Search Query",
+        "name": "search_query",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_folder",
+            "search"
+          ]
+        },
+        "default": 100,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_folder"
+          ]
+        },
+        "default": 0,
+        "label": "Offset",
+        "mode": "advanced",
+        "name": "offset",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.box"
   },
   "action.brandfetch": {
     "allow_error": true,
@@ -1808,6 +2310,255 @@
     ],
     "tools": null,
     "type": "action.browser_use"
+  },
+  "action.calendly": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "calendly_oauth",
+    "default_height": null,
+    "default_width": null,
+    "description": "Calendly \u2014 scheduled events, invitees, event types, webhooks.",
+    "dynamic_outputs_from": null,
+    "icon": "calendly",
+    "inputs": 1,
+    "name": "Calendly",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "resource",
+        "type": "object"
+      },
+      {
+        "label": "collection",
+        "type": "array"
+      },
+      {
+        "label": "uri",
+        "type": "string"
+      },
+      {
+        "label": "pagination",
+        "type": "object"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "calendly_oauth",
+        "label": "Calendly Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "get_me",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Get Current User",
+            "value": "get_me"
+          },
+          {
+            "label": "List Event Types",
+            "value": "list_event_types"
+          },
+          {
+            "label": "List Scheduled Events",
+            "value": "list_events"
+          },
+          {
+            "label": "Get Scheduled Event",
+            "value": "get_event"
+          },
+          {
+            "label": "List Invitees",
+            "value": "list_invitees"
+          },
+          {
+            "label": "Cancel Event",
+            "value": "cancel_event"
+          },
+          {
+            "label": "Create Webhook Subscription",
+            "value": "create_webhook"
+          },
+          {
+            "label": "Delete Webhook",
+            "value": "delete_webhook"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_event_types",
+            "list_events",
+            "create_webhook"
+          ]
+        },
+        "label": "Organization URI",
+        "name": "organization",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_event_types",
+            "list_events"
+          ]
+        },
+        "label": "User URI",
+        "name": "user_uri",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_event",
+            "list_invitees",
+            "cancel_event"
+          ]
+        },
+        "label": "Event UUID",
+        "name": "event_uuid",
+        "type": "string"
+      },
+      {
+        "label": "Event URI",
+        "name": "event_uri",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_events"
+          ]
+        },
+        "label": "Status",
+        "mode": "advanced",
+        "name": "status",
+        "options": [
+          {
+            "label": "active",
+            "value": "active"
+          },
+          {
+            "label": "canceled",
+            "value": "canceled"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_events"
+          ]
+        },
+        "label": "Min Start Time (ISO)",
+        "mode": "advanced",
+        "name": "min_start_time",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_events"
+          ]
+        },
+        "label": "Max Start Time (ISO)",
+        "mode": "advanced",
+        "name": "max_start_time",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_webhook"
+          ]
+        },
+        "label": "Webhook URL",
+        "name": "webhook_url",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "delete_webhook"
+          ]
+        },
+        "label": "Webhook UUID",
+        "name": "webhook_uuid",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_webhook"
+          ]
+        },
+        "label": "Webhook events (JSON array)",
+        "mode": "advanced",
+        "name": "events",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_event_types",
+            "list_events"
+          ]
+        },
+        "default": 20,
+        "label": "Count",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.calendly"
   },
   "action.cloudflare": {
     "allow_error": true,
@@ -11270,7 +12021,10 @@
     "allow_error": true,
     "category": "integration",
     "color": "#1c1c1c",
-    "credential_type": "hubspot_api_key",
+    "credential_type": [
+      "hubspot_oauth",
+      "hubspot_api_key"
+    ],
     "default_height": null,
     "default_width": null,
     "description": "Manage contacts, deals, and companies in HubSpot CRM.",
@@ -11300,8 +12054,11 @@
     ],
     "properties": [
       {
-        "credentialType": "hubspot_api_key",
-        "label": "HubSpot Token",
+        "credentialType": [
+          "hubspot_oauth",
+          "hubspot_api_key"
+        ],
+        "label": "HubSpot Account",
         "name": "credential",
         "required": true,
         "type": "credential"
@@ -24194,6 +24951,316 @@
     ],
     "tools": null,
     "type": "action.wikipedia"
+  },
+  "action.zoom": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#ffffff",
+    "credential_type": "zoom_oauth",
+    "default_height": null,
+    "default_width": null,
+    "description": "Zoom \u2014 meetings, users, recordings.",
+    "dynamic_outputs_from": null,
+    "icon": "zoom",
+    "inputs": 1,
+    "name": "Zoom",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "id",
+        "type": "number"
+      },
+      {
+        "label": "topic",
+        "type": "string"
+      },
+      {
+        "label": "join_url",
+        "type": "string"
+      },
+      {
+        "label": "start_url",
+        "type": "string"
+      },
+      {
+        "label": "meetings",
+        "type": "array"
+      },
+      {
+        "label": "recording_files",
+        "type": "array"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "zoom_oauth",
+        "label": "Zoom Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "get_user",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Get User",
+            "value": "get_user"
+          },
+          {
+            "label": "List Meetings",
+            "value": "list_meetings"
+          },
+          {
+            "label": "Get Meeting",
+            "value": "get_meeting"
+          },
+          {
+            "label": "Create Meeting",
+            "value": "create_meeting"
+          },
+          {
+            "label": "Update Meeting",
+            "value": "update_meeting"
+          },
+          {
+            "label": "Delete Meeting",
+            "value": "delete_meeting"
+          },
+          {
+            "label": "List User Recordings",
+            "value": "list_recordings"
+          },
+          {
+            "label": "Get Meeting Recordings",
+            "value": "get_meeting_recordings"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_user",
+            "list_meetings",
+            "create_meeting",
+            "list_recordings"
+          ]
+        },
+        "default": "me",
+        "label": "User ID or 'me'",
+        "name": "user_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_meeting",
+            "update_meeting",
+            "delete_meeting",
+            "get_meeting_recordings"
+          ]
+        },
+        "label": "Meeting ID",
+        "name": "meeting_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_meeting",
+            "update_meeting"
+          ]
+        },
+        "label": "Topic",
+        "name": "topic",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_meeting"
+          ]
+        },
+        "default": "2",
+        "label": "Type",
+        "mode": "advanced",
+        "name": "meeting_type",
+        "options": [
+          {
+            "label": "Instant",
+            "value": "1"
+          },
+          {
+            "label": "Scheduled",
+            "value": "2"
+          },
+          {
+            "label": "Recurring (no fixed time)",
+            "value": "3"
+          },
+          {
+            "label": "Recurring (fixed time)",
+            "value": "8"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_meeting",
+            "update_meeting"
+          ]
+        },
+        "label": "Start Time (ISO)",
+        "name": "start_time",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_meeting",
+            "update_meeting"
+          ]
+        },
+        "label": "Duration (minutes)",
+        "mode": "advanced",
+        "name": "duration",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_meeting"
+          ]
+        },
+        "default": "UTC",
+        "label": "Timezone",
+        "mode": "advanced",
+        "name": "timezone",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_meeting",
+            "update_meeting"
+          ]
+        },
+        "label": "Agenda",
+        "mode": "advanced",
+        "name": "agenda",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_meeting"
+          ]
+        },
+        "label": "Password",
+        "mode": "advanced",
+        "name": "password",
+        "secret": true,
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_meeting",
+            "update_meeting"
+          ]
+        },
+        "label": "Settings (JSON)",
+        "mode": "advanced",
+        "name": "settings",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_meetings"
+          ]
+        },
+        "default": "scheduled",
+        "label": "Meeting Status",
+        "mode": "advanced",
+        "name": "meeting_status",
+        "options": [
+          {
+            "label": "scheduled",
+            "value": "scheduled"
+          },
+          {
+            "label": "live",
+            "value": "live"
+          },
+          {
+            "label": "upcoming",
+            "value": "upcoming"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_meetings",
+            "list_recordings"
+          ]
+        },
+        "default": 30,
+        "label": "Page Size",
+        "mode": "advanced",
+        "name": "page_size",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.zoom"
   },
   "logic.code": {
     "allow_error": false,
