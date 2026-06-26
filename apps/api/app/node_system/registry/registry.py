@@ -95,11 +95,15 @@ from apps.api.app.node_system.nodes.meta.lead_action import LeadActionNode
 from apps.api.app.node_system.nodes.meta.lead_trigger import LeadTriggerNode
 from apps.api.app.node_system.nodes.meta.whatsapp_action import WhatsAppActionNode
 from apps.api.app.node_system.nodes.meta.whatsapp_trigger import WhatsAppTriggerNode
+from apps.api.app.node_system.nodes.microsoft_excel.microsoft_excel_node import MicrosoftExcelNode
+from apps.api.app.node_system.nodes.microsoft_teams.microsoft_teams_node import MicrosoftTeamsNode
 from apps.api.app.node_system.nodes.mixpanel.mixpanel_node import MixpanelNode
 from apps.api.app.node_system.nodes.monday.monday_node import MondayNode
 from apps.api.app.node_system.nodes.newsapi.newsapi_node import NewsAPINode
 from apps.api.app.node_system.nodes.notion.notion_node import NotionNode
+from apps.api.app.node_system.nodes.onedrive.onedrive_node import OneDriveNode
 from apps.api.app.node_system.nodes.openalex.openalex_node import OpenAlexNode
+from apps.api.app.node_system.nodes.outlook.outlook_node import OutlookNode
 from apps.api.app.node_system.nodes.pinecone.pinecone_node import PineconeNode
 from apps.api.app.node_system.nodes.pipedrive.pipedrive_node import PipedriveNode
 from apps.api.app.node_system.nodes.plivo.plivo_node import PlivoNode
@@ -112,6 +116,7 @@ from apps.api.app.node_system.nodes.sendblue.sendblue_node import SendblueNode
 from apps.api.app.node_system.nodes.sendgrid.sendgrid_node import SendGridNode
 from apps.api.app.node_system.nodes.sentry.sentry_node import SentryNode
 from apps.api.app.node_system.nodes.serper.serper_node import SerperNode
+from apps.api.app.node_system.nodes.sharepoint.sharepoint_node import SharePointNode
 from apps.api.app.node_system.nodes.shopify.shopify_node import ShopifyNode
 from apps.api.app.node_system.nodes.slack.slack_node import SlackNode
 from apps.api.app.node_system.nodes.slack.slack_trigger import SlackTriggerNode
@@ -213,6 +218,12 @@ node_registry.register(ShopifyNode)
 node_registry.register(ApifyNode)
 node_registry.register(AlgoliaNode)
 node_registry.register(SquareNode)
+# Phase 2.1 — Microsoft 365 family (shared microsoft_oauth credential).
+node_registry.register(OutlookNode)
+node_registry.register(MicrosoftTeamsNode)
+node_registry.register(OneDriveNode)
+node_registry.register(SharePointNode)
+node_registry.register(MicrosoftExcelNode)
 node_registry.register(StripeNode)
 node_registry.register(HubSpotNode)
 node_registry.register(TelegramNode)

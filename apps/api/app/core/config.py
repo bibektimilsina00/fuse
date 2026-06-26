@@ -69,6 +69,14 @@ class Settings(BaseSettings):
 
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
+
+    # Microsoft 365 OAuth (Outlook, Teams, OneDrive, SharePoint, Excel,
+    # Planner). `MICROSOFT_TENANT_ID` defaults to `common` (multi-tenant
+    # + personal accounts). Deployments that need single-tenant lock
+    # override it with the tenant guid.
+    MICROSOFT_CLIENT_ID: str = ""
+    MICROSOFT_CLIENT_SECRET: str = ""
+    MICROSOFT_TENANT_ID: str = "common"
     # Google Picker SDK keys (separate from OAuth client). The
     # `developer key` is a browser-restricted API key for the Picker
     # library; the `app id` is the numeric Cloud-project number used by

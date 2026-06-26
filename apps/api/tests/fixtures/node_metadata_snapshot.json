@@ -14720,6 +14720,474 @@
     "tools": null,
     "type": "action.meta.whatsapp"
   },
+  "action.microsoft_excel": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#ffffff",
+    "credential_type": "microsoft_oauth",
+    "default_height": null,
+    "default_width": null,
+    "description": "Microsoft Excel workbooks \u2014 worksheets, ranges, tables.",
+    "dynamic_outputs_from": null,
+    "icon": "microsoft-excel",
+    "inputs": 1,
+    "name": "Microsoft Excel",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "values",
+        "type": "array"
+      },
+      {
+        "label": "address",
+        "type": "string"
+      },
+      {
+        "label": "rowCount",
+        "type": "number"
+      },
+      {
+        "label": "columnCount",
+        "type": "number"
+      },
+      {
+        "label": "value",
+        "type": "array"
+      },
+      {
+        "label": "name",
+        "type": "string"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "microsoft_oauth",
+        "label": "Microsoft Excel Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "list_worksheets",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "List Worksheets",
+            "value": "list_worksheets"
+          },
+          {
+            "label": "Add Worksheet",
+            "value": "add_worksheet"
+          },
+          {
+            "label": "Get Range",
+            "value": "get_range"
+          },
+          {
+            "label": "Update Range",
+            "value": "update_range"
+          },
+          {
+            "label": "List Tables",
+            "value": "list_tables"
+          },
+          {
+            "label": "Add Table Row",
+            "value": "add_table_row"
+          },
+          {
+            "label": "List Table Rows",
+            "value": "list_table_rows"
+          },
+          {
+            "label": "Delete Table Row",
+            "value": "delete_table_row"
+          },
+          {
+            "label": "Get Cell",
+            "value": "get_cell"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_worksheets",
+            "add_worksheet",
+            "get_range",
+            "update_range",
+            "list_tables",
+            "add_table_row",
+            "list_table_rows",
+            "delete_table_row",
+            "get_cell"
+          ]
+        },
+        "label": "Workbook (Drive Item ID)",
+        "name": "workbook_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_range",
+            "update_range",
+            "get_cell"
+          ]
+        },
+        "label": "Worksheet Name",
+        "name": "worksheet",
+        "placeholder": "Sheet1",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_range",
+            "update_range"
+          ]
+        },
+        "label": "Range (A1)",
+        "name": "range",
+        "placeholder": "A1:C10",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "update_range",
+            "add_table_row"
+          ]
+        },
+        "label": "Values (JSON 2D array)",
+        "name": "values",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "update_range"
+          ]
+        },
+        "label": "Formulas (JSON 2D array)",
+        "mode": "advanced",
+        "name": "formulas",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "update_range"
+          ]
+        },
+        "label": "Number Format (JSON 2D array)",
+        "mode": "advanced",
+        "name": "number_format",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_table_row",
+            "list_table_rows",
+            "delete_table_row"
+          ]
+        },
+        "label": "Table Name",
+        "name": "table_name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "delete_table_row"
+          ]
+        },
+        "label": "Row Index",
+        "mode": "advanced",
+        "name": "row_index",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_cell"
+          ]
+        },
+        "label": "Cell Address",
+        "mode": "advanced",
+        "name": "address",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_worksheet"
+          ]
+        },
+        "label": "New Worksheet Name",
+        "name": "new_sheet_name",
+        "type": "string"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.microsoft_excel"
+  },
+  "action.microsoft_teams": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "microsoft_oauth",
+    "default_height": null,
+    "default_width": null,
+    "description": "Microsoft Teams \u2014 chats, channels, messages.",
+    "dynamic_outputs_from": null,
+    "icon": "microsoft-teams",
+    "inputs": 1,
+    "name": "Microsoft Teams",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "id",
+        "type": "string"
+      },
+      {
+        "label": "displayName",
+        "type": "string"
+      },
+      {
+        "label": "body",
+        "type": "object"
+      },
+      {
+        "label": "from",
+        "type": "object"
+      },
+      {
+        "label": "value",
+        "type": "array"
+      },
+      {
+        "label": "@odata.nextLink",
+        "type": "string"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "microsoft_oauth",
+        "label": "Microsoft Teams Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "list_my_teams",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "List My Teams",
+            "value": "list_my_teams"
+          },
+          {
+            "label": "List Channels",
+            "value": "list_channels"
+          },
+          {
+            "label": "Get Channel",
+            "value": "get_channel"
+          },
+          {
+            "label": "Send Channel Message",
+            "value": "send_channel_message"
+          },
+          {
+            "label": "List Channel Messages",
+            "value": "list_channel_messages"
+          },
+          {
+            "label": "List My Chats",
+            "value": "list_chats"
+          },
+          {
+            "label": "Send Chat Message",
+            "value": "send_chat_message"
+          },
+          {
+            "label": "List Chat Messages",
+            "value": "list_chat_messages"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_channels",
+            "get_channel",
+            "send_channel_message",
+            "list_channel_messages"
+          ]
+        },
+        "label": "Team ID",
+        "name": "team_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_channel",
+            "send_channel_message",
+            "list_channel_messages"
+          ]
+        },
+        "label": "Channel ID",
+        "name": "channel_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_chat_message",
+            "list_chat_messages"
+          ]
+        },
+        "label": "Chat ID",
+        "name": "chat_id",
+        "type": "string"
+      },
+      {
+        "label": "Message ID",
+        "name": "message_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_channel_message",
+            "send_chat_message"
+          ]
+        },
+        "label": "Message Content",
+        "name": "content",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_channel_message",
+            "send_chat_message"
+          ]
+        },
+        "default": "html",
+        "label": "Content Type",
+        "mode": "advanced",
+        "name": "content_type",
+        "options": [
+          {
+            "label": "HTML",
+            "value": "html"
+          },
+          {
+            "label": "Text",
+            "value": "text"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_channel_messages",
+            "list_chat_messages"
+          ]
+        },
+        "default": 25,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.microsoft_teams"
+  },
   "action.mixpanel": {
     "allow_error": true,
     "category": "integration",
@@ -15982,6 +16450,237 @@
     "tools": null,
     "type": "action.notion"
   },
+  "action.onedrive": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#ffffff",
+    "credential_type": "microsoft_oauth",
+    "default_height": null,
+    "default_width": null,
+    "description": "OneDrive \u2014 list, get, upload, download, move, delete files.",
+    "dynamic_outputs_from": null,
+    "icon": "onedrive",
+    "inputs": 1,
+    "name": "OneDrive",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "id",
+        "type": "string"
+      },
+      {
+        "label": "name",
+        "type": "string"
+      },
+      {
+        "label": "size",
+        "type": "number"
+      },
+      {
+        "label": "webUrl",
+        "type": "string"
+      },
+      {
+        "label": "value",
+        "type": "array"
+      },
+      {
+        "label": "@odata.nextLink",
+        "type": "string"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "microsoft_oauth",
+        "label": "OneDrive Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "list_root",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "List Root Items",
+            "value": "list_root"
+          },
+          {
+            "label": "List Folder",
+            "value": "list_folder"
+          },
+          {
+            "label": "Get Item",
+            "value": "get_item"
+          },
+          {
+            "label": "Upload Small File",
+            "value": "upload_file"
+          },
+          {
+            "label": "Download File (content URL)",
+            "value": "download_file"
+          },
+          {
+            "label": "Search",
+            "value": "search"
+          },
+          {
+            "label": "Move Item",
+            "value": "move_item"
+          },
+          {
+            "label": "Delete Item",
+            "value": "delete_item"
+          },
+          {
+            "label": "Create Folder",
+            "value": "create_folder"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_item",
+            "download_file",
+            "move_item",
+            "delete_item"
+          ]
+        },
+        "label": "Item ID",
+        "name": "item_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_folder",
+            "upload_file",
+            "create_folder"
+          ]
+        },
+        "label": "Folder ID",
+        "name": "folder_id",
+        "placeholder": "root",
+        "type": "string"
+      },
+      {
+        "label": "Path",
+        "mode": "advanced",
+        "name": "path",
+        "placeholder": "Documents/notes.txt",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "upload_file",
+            "create_folder"
+          ]
+        },
+        "label": "File Name",
+        "name": "filename",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "upload_file"
+          ]
+        },
+        "label": "Content (text)",
+        "name": "content",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "search"
+          ]
+        },
+        "label": "Search",
+        "name": "search_query",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "move_item"
+          ]
+        },
+        "label": "New Parent Folder ID",
+        "name": "new_parent_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "move_item"
+          ]
+        },
+        "label": "New Name",
+        "mode": "advanced",
+        "name": "new_name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_root",
+            "list_folder",
+            "search"
+          ]
+        },
+        "default": 50,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.onedrive"
+  },
   "action.openalex": {
     "allow_error": true,
     "category": "integration",
@@ -16168,6 +16867,299 @@
     ],
     "tools": null,
     "type": "action.openalex"
+  },
+  "action.outlook": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#ffffff",
+    "credential_type": "microsoft_oauth",
+    "default_height": null,
+    "default_width": null,
+    "description": "Outlook mail \u2014 list, get, send, reply, move, delete messages.",
+    "dynamic_outputs_from": null,
+    "icon": "outlook",
+    "inputs": 1,
+    "name": "Outlook",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "id",
+        "type": "string"
+      },
+      {
+        "label": "subject",
+        "type": "string"
+      },
+      {
+        "label": "from",
+        "type": "object"
+      },
+      {
+        "label": "toRecipients",
+        "type": "array"
+      },
+      {
+        "label": "bodyPreview",
+        "type": "string"
+      },
+      {
+        "label": "value",
+        "type": "array"
+      },
+      {
+        "label": "@odata.nextLink",
+        "type": "string"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "microsoft_oauth",
+        "label": "Outlook Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "list_messages",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "List Messages",
+            "value": "list_messages"
+          },
+          {
+            "label": "List Messages in Folder",
+            "value": "list_folder_messages"
+          },
+          {
+            "label": "Get Message",
+            "value": "get_message"
+          },
+          {
+            "label": "Send Message",
+            "value": "send_message"
+          },
+          {
+            "label": "Reply to Message",
+            "value": "reply_message"
+          },
+          {
+            "label": "Move Message",
+            "value": "move_message"
+          },
+          {
+            "label": "Delete Message",
+            "value": "delete_message"
+          },
+          {
+            "label": "List Folders",
+            "value": "list_folders"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_message",
+            "reply_message",
+            "move_message",
+            "delete_message"
+          ]
+        },
+        "label": "Message ID",
+        "name": "message_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_folder_messages",
+            "move_message"
+          ]
+        },
+        "label": "Folder ID",
+        "name": "folder_id",
+        "placeholder": "inbox",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_message"
+          ]
+        },
+        "label": "To (CSV emails)",
+        "name": "to",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_message"
+          ]
+        },
+        "label": "CC",
+        "mode": "advanced",
+        "name": "cc",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_message"
+          ]
+        },
+        "label": "BCC",
+        "mode": "advanced",
+        "name": "bcc",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_message"
+          ]
+        },
+        "label": "Subject",
+        "name": "subject",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_message"
+          ]
+        },
+        "label": "Body (HTML or text)",
+        "name": "body",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_message"
+          ]
+        },
+        "default": "HTML",
+        "label": "Body Type",
+        "mode": "advanced",
+        "name": "body_type",
+        "options": [
+          {
+            "label": "HTML",
+            "value": "HTML"
+          },
+          {
+            "label": "Text",
+            "value": "Text"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "reply_message"
+          ]
+        },
+        "label": "Reply Body",
+        "name": "reply_body",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_messages",
+            "list_folder_messages"
+          ]
+        },
+        "label": "$filter",
+        "mode": "advanced",
+        "name": "filter",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_messages"
+          ]
+        },
+        "label": "$search",
+        "mode": "advanced",
+        "name": "search",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_messages"
+          ]
+        },
+        "label": "$orderby",
+        "mode": "advanced",
+        "name": "orderby",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_messages",
+            "list_folder_messages"
+          ]
+        },
+        "default": 25,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.outlook"
   },
   "action.perplexity": {
     "allow_error": true,
@@ -19196,6 +20188,245 @@
     ],
     "tools": null,
     "type": "action.serper"
+  },
+  "action.sharepoint": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "microsoft_oauth",
+    "default_height": null,
+    "default_width": null,
+    "description": "SharePoint \u2014 sites, lists, list items, pages.",
+    "dynamic_outputs_from": null,
+    "icon": "sharepoint",
+    "inputs": 1,
+    "name": "SharePoint",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "id",
+        "type": "string"
+      },
+      {
+        "label": "displayName",
+        "type": "string"
+      },
+      {
+        "label": "webUrl",
+        "type": "string"
+      },
+      {
+        "label": "value",
+        "type": "array"
+      },
+      {
+        "label": "fields",
+        "type": "object"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "microsoft_oauth",
+        "label": "SharePoint Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "search_sites",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Search Sites",
+            "value": "search_sites"
+          },
+          {
+            "label": "Get Site",
+            "value": "get_site"
+          },
+          {
+            "label": "List Lists on Site",
+            "value": "list_lists"
+          },
+          {
+            "label": "Get List",
+            "value": "get_list"
+          },
+          {
+            "label": "Create List",
+            "value": "create_list"
+          },
+          {
+            "label": "List Items",
+            "value": "list_items"
+          },
+          {
+            "label": "Create List Item",
+            "value": "create_item"
+          },
+          {
+            "label": "Update List Item Fields",
+            "value": "update_item"
+          },
+          {
+            "label": "Delete List Item",
+            "value": "delete_item"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_site",
+            "list_lists",
+            "get_list",
+            "create_list",
+            "list_items",
+            "create_item",
+            "update_item",
+            "delete_item"
+          ]
+        },
+        "label": "Site ID",
+        "name": "site_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_list",
+            "list_items",
+            "create_item",
+            "update_item",
+            "delete_item"
+          ]
+        },
+        "label": "List ID",
+        "name": "list_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "update_item",
+            "delete_item"
+          ]
+        },
+        "label": "Item ID",
+        "name": "item_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "search_sites"
+          ]
+        },
+        "label": "Search Sites",
+        "name": "search_query",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_item",
+            "update_item"
+          ]
+        },
+        "label": "Item Fields (JSON)",
+        "name": "fields",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_list"
+          ]
+        },
+        "label": "List Display Name",
+        "name": "display_name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_list"
+          ]
+        },
+        "default": "genericList",
+        "label": "List Template",
+        "mode": "advanced",
+        "name": "list_template",
+        "options": [
+          {
+            "label": "Generic List",
+            "value": "genericList"
+          },
+          {
+            "label": "Document Library",
+            "value": "documentLibrary"
+          },
+          {
+            "label": "Tasks",
+            "value": "tasks"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_items"
+          ]
+        },
+        "default": 50,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.sharepoint"
   },
   "action.shopify": {
     "allow_error": true,
