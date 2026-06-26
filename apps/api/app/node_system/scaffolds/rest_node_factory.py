@@ -221,6 +221,10 @@ async def _dispatch_declarative(
         json=body,
     )
     output = _flatten_output(op, raw, node.props)
+    # 204/empty responses produce `None` — NodeResult requires a dict.
+    # Tag the empty result so downstream nodes can still branch on it.
+    if output is None:
+        output = {"empty": True}
     return NodeResult(success=True, output_data=output)
 
 

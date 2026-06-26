@@ -10282,6 +10282,244 @@
     "tools": null,
     "type": "action.image_gen"
   },
+  "action.instantly": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "instantly_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Cold-email outreach campaigns + lead management via Instantly.ai.",
+    "dynamic_outputs_from": null,
+    "icon": "instantly",
+    "inputs": 1,
+    "name": "Instantly",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "id",
+        "type": "string"
+      },
+      {
+        "label": "name",
+        "type": "string"
+      },
+      {
+        "label": "status",
+        "type": "string"
+      },
+      {
+        "label": "items",
+        "type": "array"
+      },
+      {
+        "label": "campaign_id",
+        "type": "string"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "instantly_api_key",
+        "label": "Instantly Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "list_campaigns",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "List Campaigns",
+            "value": "list_campaigns"
+          },
+          {
+            "label": "Create Campaign",
+            "value": "create_campaign"
+          },
+          {
+            "label": "Get Campaign",
+            "value": "get_campaign"
+          },
+          {
+            "label": "Pause Campaign",
+            "value": "pause_campaign"
+          },
+          {
+            "label": "Resume Campaign",
+            "value": "resume_campaign"
+          },
+          {
+            "label": "Add Lead",
+            "value": "add_lead"
+          },
+          {
+            "label": "Get Lead",
+            "value": "get_lead"
+          },
+          {
+            "label": "List Leads",
+            "value": "list_leads"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_campaign",
+            "pause_campaign",
+            "resume_campaign",
+            "add_lead",
+            "list_leads"
+          ]
+        },
+        "label": "Campaign ID",
+        "name": "campaign_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_lead"
+          ]
+        },
+        "label": "Lead ID",
+        "name": "lead_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_lead"
+          ]
+        },
+        "label": "Email",
+        "name": "email",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_lead"
+          ]
+        },
+        "label": "First Name",
+        "mode": "advanced",
+        "name": "first_name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_lead"
+          ]
+        },
+        "label": "Last Name",
+        "mode": "advanced",
+        "name": "last_name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_lead"
+          ]
+        },
+        "label": "Company",
+        "mode": "advanced",
+        "name": "company_name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_lead"
+          ]
+        },
+        "label": "Personalization",
+        "mode": "advanced",
+        "name": "personalization",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_lead"
+          ]
+        },
+        "label": "Custom Variables (JSON)",
+        "mode": "advanced",
+        "name": "custom_variables",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_campaign"
+          ]
+        },
+        "label": "Campaign Name",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_campaigns",
+            "list_leads"
+          ]
+        },
+        "default": 25,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.instantly"
+  },
   "action.jira": {
     "allow_error": true,
     "category": "integration",
@@ -10942,6 +11180,227 @@
     ],
     "tools": null,
     "type": "action.llm"
+  },
+  "action.loops": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "loops_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Product email + audience automation via Loops.so.",
+    "dynamic_outputs_from": null,
+    "icon": "loops",
+    "inputs": 1,
+    "name": "Loops",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "success",
+        "type": "boolean"
+      },
+      {
+        "label": "id",
+        "type": "string"
+      },
+      {
+        "label": "email",
+        "type": "string"
+      },
+      {
+        "label": "lists",
+        "type": "array"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "loops_api_key",
+        "label": "Loops Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "send_transactional",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Send Transactional",
+            "value": "send_transactional"
+          },
+          {
+            "label": "Create Contact",
+            "value": "create_contact"
+          },
+          {
+            "label": "Update Contact",
+            "value": "update_contact"
+          },
+          {
+            "label": "Find Contact",
+            "value": "find_contact"
+          },
+          {
+            "label": "Delete Contact",
+            "value": "delete_contact"
+          },
+          {
+            "label": "Send Event",
+            "value": "send_event"
+          },
+          {
+            "label": "List Mailing Lists",
+            "value": "list_lists"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_transactional",
+            "create_contact",
+            "update_contact",
+            "find_contact",
+            "delete_contact",
+            "send_event"
+          ]
+        },
+        "label": "Email",
+        "name": "email",
+        "placeholder": "user@example.com",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_transactional"
+          ]
+        },
+        "label": "Template ID",
+        "name": "transactionalId",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_transactional"
+          ]
+        },
+        "label": "Variables (JSON)",
+        "name": "dataVariables",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_event"
+          ]
+        },
+        "label": "Event Name",
+        "name": "eventName",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_event"
+          ]
+        },
+        "label": "Event Properties (JSON)",
+        "name": "eventProperties",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_contact",
+            "update_contact"
+          ]
+        },
+        "label": "Contact Properties (JSON)",
+        "name": "contactProperties",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_contact",
+            "update_contact"
+          ]
+        },
+        "label": "First Name",
+        "mode": "advanced",
+        "name": "firstName",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_contact",
+            "update_contact"
+          ]
+        },
+        "label": "Last Name",
+        "mode": "advanced",
+        "name": "lastName",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_contact",
+            "update_contact"
+          ]
+        },
+        "description": "Object mapping list id to membership boolean: {\"abc123\": true}",
+        "label": "Mailing Lists (JSON)",
+        "mode": "advanced",
+        "name": "mailingLists",
+        "type": "json"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.loops"
   },
   "action.memory": {
     "allow_error": true,
@@ -12728,6 +13187,503 @@
     "tools": null,
     "type": "action.postgres"
   },
+  "action.postmark": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "postmark_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Transactional email via Postmark \u2014 single sends, template sends, stats.",
+    "dynamic_outputs_from": null,
+    "icon": "postmark",
+    "inputs": 1,
+    "name": "Postmark",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "MessageID",
+        "type": "string"
+      },
+      {
+        "label": "To",
+        "type": "string"
+      },
+      {
+        "label": "SubmittedAt",
+        "type": "string"
+      },
+      {
+        "label": "ErrorCode",
+        "type": "number"
+      },
+      {
+        "label": "Message",
+        "type": "string"
+      },
+      {
+        "label": "Status",
+        "type": "string"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "postmark_api_key",
+        "label": "Postmark Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "send_email",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Send Email",
+            "value": "send_email"
+          },
+          {
+            "label": "Send with Template",
+            "value": "send_template"
+          },
+          {
+            "label": "Get Message Stats",
+            "value": "get_message"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email",
+            "send_template"
+          ]
+        },
+        "label": "From",
+        "name": "From",
+        "placeholder": "you@yourdomain.com",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email",
+            "send_template"
+          ]
+        },
+        "label": "To",
+        "name": "To",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "Subject",
+        "name": "Subject",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "HTML body",
+        "name": "HtmlBody",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "Text body",
+        "name": "TextBody",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email",
+            "send_template"
+          ]
+        },
+        "label": "CC",
+        "mode": "advanced",
+        "name": "Cc",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email",
+            "send_template"
+          ]
+        },
+        "label": "BCC",
+        "mode": "advanced",
+        "name": "Bcc",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email",
+            "send_template"
+          ]
+        },
+        "label": "Reply-To",
+        "mode": "advanced",
+        "name": "ReplyTo",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email",
+            "send_template"
+          ]
+        },
+        "label": "Tag",
+        "mode": "advanced",
+        "name": "Tag",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_template"
+          ]
+        },
+        "label": "Template ID",
+        "name": "TemplateId",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_template"
+          ]
+        },
+        "label": "Template Alias",
+        "name": "TemplateAlias",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_template"
+          ]
+        },
+        "label": "Template Model (JSON)",
+        "name": "TemplateModel",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_message"
+          ]
+        },
+        "label": "Message ID",
+        "name": "MessageID",
+        "type": "string"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.postmark"
+  },
+  "action.resend": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "resend_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Transactional email via Resend \u2014 single sends, batch sends, and lookup.",
+    "dynamic_outputs_from": null,
+    "icon": "resend",
+    "inputs": 1,
+    "name": "Resend",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "id",
+        "type": "string"
+      },
+      {
+        "label": "from",
+        "type": "string"
+      },
+      {
+        "label": "to",
+        "type": "array"
+      },
+      {
+        "label": "subject",
+        "type": "string"
+      },
+      {
+        "label": "created_at",
+        "type": "string"
+      },
+      {
+        "label": "last_event",
+        "type": "string"
+      },
+      {
+        "label": "data",
+        "type": "array"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "resend_api_key",
+        "label": "Resend Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "send_email",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Send Email",
+            "value": "send_email"
+          },
+          {
+            "label": "Send Batch",
+            "value": "send_batch"
+          },
+          {
+            "label": "Get Email",
+            "value": "get_email"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_email"
+          ]
+        },
+        "label": "Email ID",
+        "name": "email_id",
+        "placeholder": "re_...",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "From",
+        "name": "from",
+        "placeholder": "you@yourdomain.com",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "To (JSON array or string)",
+        "name": "to",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "Subject",
+        "name": "subject",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "HTML body",
+        "name": "html",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "Text body",
+        "name": "text",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "CC (JSON array)",
+        "mode": "advanced",
+        "name": "cc",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "BCC (JSON array)",
+        "mode": "advanced",
+        "name": "bcc",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "Reply-To",
+        "mode": "advanced",
+        "name": "reply_to",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "Attachments (JSON array)",
+        "mode": "advanced",
+        "name": "attachments",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "Tags (JSON array)",
+        "mode": "advanced",
+        "name": "tags",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_batch"
+          ]
+        },
+        "label": "Emails (JSON array)",
+        "name": "batch",
+        "type": "json"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.resend"
+  },
   "action.salesforce": {
     "allow_error": true,
     "category": "integration",
@@ -12904,6 +13860,199 @@
     ],
     "tools": null,
     "type": "action.salesforce"
+  },
+  "action.sendgrid": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "sendgrid_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Transactional + marketing email via SendGrid \u2014 send, contacts, lists.",
+    "dynamic_outputs_from": null,
+    "icon": "sendgrid",
+    "inputs": 1,
+    "name": "SendGrid",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "id",
+        "type": "string"
+      },
+      {
+        "label": "result",
+        "type": "array"
+      },
+      {
+        "label": "lists",
+        "type": "array"
+      },
+      {
+        "label": "contact_count",
+        "type": "number"
+      },
+      {
+        "label": "job_id",
+        "type": "string"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "sendgrid_api_key",
+        "label": "SendGrid Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "send_email",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Send Email",
+            "value": "send_email"
+          },
+          {
+            "label": "Add / Update Contacts",
+            "value": "add_contacts"
+          },
+          {
+            "label": "List Lists",
+            "value": "list_lists"
+          },
+          {
+            "label": "Get List",
+            "value": "get_list"
+          },
+          {
+            "label": "Search Contact by Email",
+            "value": "search_contact"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "From",
+        "name": "from_",
+        "placeholder": "you@yourdomain.com",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "To (JSON array of emails or strings)",
+        "name": "to",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "Subject",
+        "name": "subject",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "HTML body",
+        "name": "html",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_email"
+          ]
+        },
+        "label": "Text body",
+        "name": "text",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "search_contact"
+          ]
+        },
+        "label": "Contact email",
+        "name": "contact_email",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_list"
+          ]
+        },
+        "label": "List ID",
+        "name": "list_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_contacts"
+          ]
+        },
+        "label": "Contacts (JSON array)",
+        "name": "contacts",
+        "type": "json"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.sendgrid"
   },
   "action.serper": {
     "allow_error": true,

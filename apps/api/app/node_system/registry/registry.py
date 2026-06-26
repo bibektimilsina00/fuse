@@ -65,6 +65,7 @@ from apps.api.app.node_system.nodes.http.request.request import HttpRequestNode
 from apps.api.app.node_system.nodes.http.webhook.webhook import WebhookTriggerNode
 from apps.api.app.node_system.nodes.hubspot.hubspot_node import HubSpotNode
 from apps.api.app.node_system.nodes.huggingface.huggingface_node import HuggingFaceNode
+from apps.api.app.node_system.nodes.instantly.instantly_node import InstantlyNode
 from apps.api.app.node_system.nodes.jira.jira_node import JiraNode
 from apps.api.app.node_system.nodes.linear.linear_node import LinearNode
 from apps.api.app.node_system.nodes.logic.code.code_node import CodeNode
@@ -75,6 +76,7 @@ from apps.api.app.node_system.nodes.logic.human_input.human_input import HumanIn
 from apps.api.app.node_system.nodes.logic.loop.loop_node import LoopNode
 from apps.api.app.node_system.nodes.logic.sub_workflow.sub_workflow_node import SubWorkflowNode
 from apps.api.app.node_system.nodes.logic.while_loop.while_loop import WhileLoopNode
+from apps.api.app.node_system.nodes.loops.loops_node import LoopsNode
 from apps.api.app.node_system.nodes.meta.facebook_action import FacebookActionNode
 from apps.api.app.node_system.nodes.meta.facebook_trigger import FacebookTriggerNode
 from apps.api.app.node_system.nodes.meta.instagram_action import InstagramActionNode
@@ -84,7 +86,10 @@ from apps.api.app.node_system.nodes.meta.lead_trigger import LeadTriggerNode
 from apps.api.app.node_system.nodes.meta.whatsapp_action import WhatsAppActionNode
 from apps.api.app.node_system.nodes.meta.whatsapp_trigger import WhatsAppTriggerNode
 from apps.api.app.node_system.nodes.notion.notion_node import NotionNode
+from apps.api.app.node_system.nodes.postmark.postmark_node import PostmarkNode
+from apps.api.app.node_system.nodes.resend.resend_node import ResendNode
 from apps.api.app.node_system.nodes.salesforce.salesforce_node import SalesforceNode
+from apps.api.app.node_system.nodes.sendgrid.sendgrid_node import SendGridNode
 from apps.api.app.node_system.nodes.serper.serper_node import SerperNode
 from apps.api.app.node_system.nodes.slack.slack_node import SlackNode
 from apps.api.app.node_system.nodes.slack.slack_trigger import SlackTriggerNode
@@ -143,6 +148,11 @@ node_registry.register(TavilyNode)
 node_registry.register(SerperNode)
 node_registry.register(BrandfetchNode)
 node_registry.register(HuggingFaceNode)
+node_registry.register(ResendNode)
+node_registry.register(SendGridNode)
+node_registry.register(PostmarkNode)
+node_registry.register(LoopsNode)
+node_registry.register(InstantlyNode)
 node_registry.register(StripeNode)
 node_registry.register(HubSpotNode)
 node_registry.register(TelegramNode)
