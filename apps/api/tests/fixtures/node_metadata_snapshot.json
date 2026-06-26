@@ -814,6 +814,223 @@
     "tools": null,
     "type": "action.airtable"
   },
+  "action.attio": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "attio_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Attio CRM \u2014 manage records on any custom object schema.",
+    "dynamic_outputs_from": null,
+    "icon": "attio",
+    "inputs": 1,
+    "name": "Attio",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "data",
+        "type": "object"
+      },
+      {
+        "label": "id",
+        "type": "object"
+      },
+      {
+        "label": "items",
+        "type": "array"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "attio_api_key",
+        "label": "Attio Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "create_record",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Create Record",
+            "value": "create_record"
+          },
+          {
+            "label": "Get Record",
+            "value": "get_record"
+          },
+          {
+            "label": "Update Record",
+            "value": "update_record"
+          },
+          {
+            "label": "Delete Record",
+            "value": "delete_record"
+          },
+          {
+            "label": "Query Records",
+            "value": "list_records"
+          },
+          {
+            "label": "List Objects",
+            "value": "list_objects"
+          },
+          {
+            "label": "Add to List",
+            "value": "add_to_list"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_record",
+            "get_record",
+            "update_record",
+            "delete_record",
+            "list_records"
+          ]
+        },
+        "label": "Object",
+        "name": "object_slug",
+        "placeholder": "people | companies | deals | custom_slug",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_record",
+            "update_record",
+            "delete_record"
+          ]
+        },
+        "label": "Record ID",
+        "name": "record_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_record",
+            "update_record"
+          ]
+        },
+        "label": "Record values (JSON)",
+        "name": "data",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_records"
+          ]
+        },
+        "label": "Filter (JSON)",
+        "mode": "advanced",
+        "name": "filter",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_records"
+          ]
+        },
+        "label": "Sorts (JSON)",
+        "mode": "advanced",
+        "name": "sorts",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_records"
+          ]
+        },
+        "default": 25,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_records"
+          ]
+        },
+        "default": 0,
+        "label": "Offset",
+        "mode": "advanced",
+        "name": "offset",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_to_list"
+          ]
+        },
+        "label": "List ID",
+        "name": "list_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_to_list"
+          ]
+        },
+        "label": "Entry values (JSON)",
+        "name": "entry_data",
+        "type": "json"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.attio"
+  },
   "action.brandfetch": {
     "allow_error": true,
     "category": "integration",
@@ -11429,6 +11646,333 @@
     "tools": null,
     "type": "action.instantly"
   },
+  "action.intercom": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "intercom_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Intercom \u2014 manage contacts, conversations, and messages.",
+    "dynamic_outputs_from": null,
+    "icon": "intercom",
+    "inputs": 1,
+    "name": "Intercom",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "id",
+        "type": "string"
+      },
+      {
+        "label": "type",
+        "type": "string"
+      },
+      {
+        "label": "email",
+        "type": "string"
+      },
+      {
+        "label": "name",
+        "type": "string"
+      },
+      {
+        "label": "data",
+        "type": "array"
+      },
+      {
+        "label": "segments",
+        "type": "array"
+      },
+      {
+        "label": "total_count",
+        "type": "number"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "intercom_api_key",
+        "label": "Intercom Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "create_contact",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Create Contact",
+            "value": "create_contact"
+          },
+          {
+            "label": "Get Contact",
+            "value": "get_contact"
+          },
+          {
+            "label": "Update Contact",
+            "value": "update_contact"
+          },
+          {
+            "label": "Search Contacts",
+            "value": "search_contacts"
+          },
+          {
+            "label": "List Contacts",
+            "value": "list_contacts"
+          },
+          {
+            "label": "Send Message",
+            "value": "send_message"
+          },
+          {
+            "label": "Reply to Conversation",
+            "value": "reply_conversation"
+          },
+          {
+            "label": "List Segments",
+            "value": "list_segments"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_contact",
+            "update_contact"
+          ]
+        },
+        "label": "Contact ID",
+        "name": "contact_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_contact"
+          ]
+        },
+        "label": "External ID",
+        "mode": "advanced",
+        "name": "external_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_contact",
+            "update_contact",
+            "send_message"
+          ]
+        },
+        "label": "Email",
+        "name": "email",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_contact",
+            "update_contact"
+          ]
+        },
+        "label": "Name",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_contact",
+            "update_contact"
+          ]
+        },
+        "label": "Phone",
+        "mode": "advanced",
+        "name": "phone",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_contact"
+          ]
+        },
+        "label": "Role",
+        "mode": "advanced",
+        "name": "role",
+        "options": [
+          {
+            "label": "User",
+            "value": "user"
+          },
+          {
+            "label": "Lead",
+            "value": "lead"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_contact",
+            "update_contact"
+          ]
+        },
+        "label": "Custom Attributes (JSON)",
+        "mode": "advanced",
+        "name": "custom_attributes",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "reply_conversation"
+          ]
+        },
+        "label": "Conversation ID",
+        "name": "conversation_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "reply_conversation"
+          ]
+        },
+        "default": "comment",
+        "label": "Message Type",
+        "name": "message_type",
+        "options": [
+          {
+            "label": "Comment",
+            "value": "comment"
+          },
+          {
+            "label": "Note",
+            "value": "note"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_message",
+            "reply_conversation"
+          ]
+        },
+        "label": "Body",
+        "name": "body",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_message",
+            "reply_conversation"
+          ]
+        },
+        "label": "Admin ID (sender)",
+        "name": "admin_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_message"
+          ]
+        },
+        "label": "From email",
+        "mode": "advanced",
+        "name": "from_email",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "send_message"
+          ]
+        },
+        "label": "Subject",
+        "mode": "advanced",
+        "name": "subject",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "search_contacts"
+          ]
+        },
+        "label": "Search Query (JSON)",
+        "mode": "advanced",
+        "name": "query",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_contacts"
+          ]
+        },
+        "default": 50,
+        "label": "Per page",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.intercom"
+  },
   "action.jira": {
     "allow_error": true,
     "category": "integration",
@@ -13711,6 +14255,412 @@
     "tools": null,
     "type": "action.meta.whatsapp"
   },
+  "action.mixpanel": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "mixpanel_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Mixpanel \u2014 event tracking + query engagement and funnels.",
+    "dynamic_outputs_from": null,
+    "icon": "mixpanel",
+    "inputs": 1,
+    "name": "Mixpanel",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "status",
+        "type": "number"
+      },
+      {
+        "label": "error",
+        "type": "string"
+      },
+      {
+        "label": "results",
+        "type": "array"
+      },
+      {
+        "label": "page",
+        "type": "number"
+      },
+      {
+        "label": "session_id",
+        "type": "string"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "mixpanel_api_key",
+        "label": "Mixpanel Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "track_event",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Track Event",
+            "value": "track_event"
+          },
+          {
+            "label": "Set User Profile",
+            "value": "set_profile"
+          },
+          {
+            "label": "Alias User",
+            "value": "alias_user"
+          },
+          {
+            "label": "Query Events",
+            "value": "query_events"
+          },
+          {
+            "label": "Query Engage (Users)",
+            "value": "query_engage"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "track_event",
+            "query_events"
+          ]
+        },
+        "label": "Event name",
+        "name": "event",
+        "placeholder": "Signed Up",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "track_event",
+            "set_profile",
+            "alias_user"
+          ]
+        },
+        "label": "Distinct ID",
+        "name": "distinct_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "track_event"
+          ]
+        },
+        "label": "Properties (JSON)",
+        "name": "properties",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "set_profile"
+          ]
+        },
+        "label": "Set Properties (JSON)",
+        "name": "set_properties",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "alias_user"
+          ]
+        },
+        "label": "Alias",
+        "mode": "advanced",
+        "name": "alias",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query_events"
+          ]
+        },
+        "label": "From (YYYY-MM-DD)",
+        "name": "from_date",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query_events"
+          ]
+        },
+        "label": "To (YYYY-MM-DD)",
+        "name": "to_date",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query_events",
+            "query_engage"
+          ]
+        },
+        "label": "Where clause",
+        "mode": "advanced",
+        "name": "where",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "track_event",
+            "set_profile",
+            "alias_user"
+          ]
+        },
+        "label": "Project Token",
+        "name": "project_token",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query_engage"
+          ]
+        },
+        "default": 100,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.mixpanel"
+  },
+  "action.monday": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "monday_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Monday.com \u2014 manage boards, items, updates via GraphQL.",
+    "dynamic_outputs_from": null,
+    "icon": "monday",
+    "inputs": 1,
+    "name": "Monday.com",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "id",
+        "type": "string"
+      },
+      {
+        "label": "name",
+        "type": "string"
+      },
+      {
+        "label": "boards",
+        "type": "array"
+      },
+      {
+        "label": "items",
+        "type": "array"
+      },
+      {
+        "label": "count",
+        "type": "number"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "monday_api_key",
+        "label": "Monday.com Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "list_boards",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "List Boards",
+            "value": "list_boards"
+          },
+          {
+            "label": "Get Board",
+            "value": "get_board"
+          },
+          {
+            "label": "Create Item",
+            "value": "create_item"
+          },
+          {
+            "label": "Update Item",
+            "value": "update_item"
+          },
+          {
+            "label": "Delete Item",
+            "value": "delete_item"
+          },
+          {
+            "label": "Add Update to Item",
+            "value": "add_update"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_board",
+            "create_item",
+            "update_item"
+          ]
+        },
+        "label": "Board ID",
+        "name": "board_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "update_item",
+            "delete_item",
+            "add_update"
+          ]
+        },
+        "label": "Item ID",
+        "name": "item_id",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_item"
+          ]
+        },
+        "label": "Item Name",
+        "name": "item_name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_item",
+            "update_item"
+          ]
+        },
+        "label": "Column Values (JSON)",
+        "name": "column_values",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "add_update"
+          ]
+        },
+        "label": "Update body",
+        "name": "body",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_boards"
+          ]
+        },
+        "default": 25,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.monday"
+  },
   "action.mongodb": {
     "allow_error": true,
     "category": "integration",
@@ -15206,6 +16156,316 @@
     ],
     "tools": null,
     "type": "action.pinecone"
+  },
+  "action.pipedrive": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "pipedrive_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Pipedrive CRM \u2014 manage deals, persons, organizations, and activities.",
+    "dynamic_outputs_from": null,
+    "icon": "pipedrive",
+    "inputs": 1,
+    "name": "Pipedrive",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "data",
+        "type": "object"
+      },
+      {
+        "label": "success",
+        "type": "boolean"
+      },
+      {
+        "label": "items",
+        "type": "array"
+      },
+      {
+        "label": "additional_data",
+        "type": "object"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "pipedrive_api_key",
+        "label": "Pipedrive Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "create_deal",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Create Deal",
+            "value": "create_deal"
+          },
+          {
+            "label": "Get Deal",
+            "value": "get_deal"
+          },
+          {
+            "label": "Update Deal",
+            "value": "update_deal"
+          },
+          {
+            "label": "List Deals",
+            "value": "list_deals"
+          },
+          {
+            "label": "Create Person",
+            "value": "create_person"
+          },
+          {
+            "label": "Get Person",
+            "value": "get_person"
+          },
+          {
+            "label": "Search Persons",
+            "value": "search_persons"
+          },
+          {
+            "label": "Create Organization",
+            "value": "create_organization"
+          },
+          {
+            "label": "List Pipelines",
+            "value": "list_pipelines"
+          },
+          {
+            "label": "List Stages",
+            "value": "list_stages"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_deal",
+            "update_deal"
+          ]
+        },
+        "label": "Deal ID",
+        "name": "deal_id",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_deal",
+            "get_person"
+          ]
+        },
+        "label": "Person ID",
+        "name": "person_id",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_deal",
+            "create_person"
+          ]
+        },
+        "label": "Organization ID",
+        "name": "org_id",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_deal",
+            "update_deal"
+          ]
+        },
+        "label": "Title",
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_deal",
+            "update_deal"
+          ]
+        },
+        "label": "Value",
+        "mode": "advanced",
+        "name": "value",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_deal"
+          ]
+        },
+        "default": "USD",
+        "label": "Currency",
+        "mode": "advanced",
+        "name": "currency",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_deal",
+            "update_deal"
+          ]
+        },
+        "label": "Stage ID",
+        "mode": "advanced",
+        "name": "stage_id",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "update_deal",
+            "list_deals"
+          ]
+        },
+        "label": "Status",
+        "mode": "advanced",
+        "name": "status",
+        "options": [
+          {
+            "label": "Open",
+            "value": "open"
+          },
+          {
+            "label": "Won",
+            "value": "won"
+          },
+          {
+            "label": "Lost",
+            "value": "lost"
+          },
+          {
+            "label": "Deleted",
+            "value": "deleted"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_person",
+            "create_organization"
+          ]
+        },
+        "label": "Name",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_person"
+          ]
+        },
+        "label": "Email",
+        "name": "email",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_person"
+          ]
+        },
+        "label": "Phone",
+        "name": "phone",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "search_persons"
+          ]
+        },
+        "label": "Search term",
+        "name": "term",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_deals",
+            "search_persons"
+          ]
+        },
+        "default": 50,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "list_deals"
+          ]
+        },
+        "default": 0,
+        "label": "Offset",
+        "mode": "advanced",
+        "name": "start",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.pipedrive"
   },
   "action.plivo": {
     "allow_error": true,
