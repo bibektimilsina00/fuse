@@ -107,10 +107,18 @@ async def rest_request(
         value_template=manifest.auth_value_template,
         query_param=manifest.auth_query_param,
     )
+    # `extra_headers` supports `{token}` substitution so providers that
+    # require the same key under two headers (e.g. Supabase's
+    # `Authorization: Bearer X` + `apikey: X`) can declare both in the
+    # manifest without a custom handler.
+    resolved_extra = {
+        k: (v.replace("{token}", token) if isinstance(v, str) and "{token}" in v and token else v)
+        for k, v in manifest.extra_headers.items()
+    }
     headers = {
         "Content-Type": manifest.content_type,
         "Accept": "application/json",
-        **manifest.extra_headers,
+        **resolved_extra,
         **auth_headers,
     }
     merged_params: dict[str, Any] = {**auth_params, **(params or {})}

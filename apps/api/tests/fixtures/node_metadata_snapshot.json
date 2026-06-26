@@ -14460,6 +14460,301 @@
     "tools": null,
     "type": "action.perplexity"
   },
+  "action.pinecone": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "pinecone_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Pinecone vector database \u2014 manage indexes + upsert/query vectors.",
+    "dynamic_outputs_from": null,
+    "icon": "pinecone",
+    "inputs": 1,
+    "name": "Pinecone",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "indexes",
+        "type": "array"
+      },
+      {
+        "label": "matches",
+        "type": "array"
+      },
+      {
+        "label": "vectors",
+        "type": "object"
+      },
+      {
+        "label": "upserted_count",
+        "type": "number"
+      },
+      {
+        "label": "namespace",
+        "type": "string"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "pinecone_api_key",
+        "label": "Pinecone Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "list_indexes",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "List Indexes",
+            "value": "list_indexes"
+          },
+          {
+            "label": "Describe Index",
+            "value": "describe_index"
+          },
+          {
+            "label": "Create Index",
+            "value": "create_index"
+          },
+          {
+            "label": "Delete Index",
+            "value": "delete_index"
+          },
+          {
+            "label": "Upsert Vectors",
+            "value": "upsert"
+          },
+          {
+            "label": "Query Vectors",
+            "value": "query"
+          },
+          {
+            "label": "Fetch by IDs",
+            "value": "fetch"
+          },
+          {
+            "label": "Delete Vectors",
+            "value": "delete_vectors"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "describe_index",
+            "create_index",
+            "delete_index"
+          ]
+        },
+        "label": "Index Name",
+        "name": "index_name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_index"
+          ]
+        },
+        "label": "Dimension",
+        "mode": "advanced",
+        "name": "dimension",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_index"
+          ]
+        },
+        "default": "cosine",
+        "label": "Metric",
+        "mode": "advanced",
+        "name": "metric",
+        "options": [
+          {
+            "label": "cosine",
+            "value": "cosine"
+          },
+          {
+            "label": "dotproduct",
+            "value": "dotproduct"
+          },
+          {
+            "label": "euclidean",
+            "value": "euclidean"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_index"
+          ]
+        },
+        "default": "aws",
+        "label": "Cloud",
+        "mode": "advanced",
+        "name": "cloud",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_index"
+          ]
+        },
+        "default": "us-east-1",
+        "label": "Region",
+        "mode": "advanced",
+        "name": "region",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "upsert",
+            "query",
+            "fetch",
+            "delete_vectors"
+          ]
+        },
+        "label": "Namespace",
+        "mode": "advanced",
+        "name": "namespace",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "upsert"
+          ]
+        },
+        "label": "Vectors (JSON array)",
+        "name": "vectors",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query"
+          ]
+        },
+        "label": "Query Vector (JSON array)",
+        "name": "vector",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "fetch",
+            "delete_vectors"
+          ]
+        },
+        "label": "IDs (JSON array)",
+        "name": "ids",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query"
+          ]
+        },
+        "default": 10,
+        "label": "Top K",
+        "mode": "advanced",
+        "name": "top_k",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query"
+          ]
+        },
+        "default": false,
+        "label": "Include vectors",
+        "mode": "advanced",
+        "name": "include_values",
+        "type": "boolean"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query"
+          ]
+        },
+        "default": true,
+        "label": "Include metadata",
+        "mode": "advanced",
+        "name": "include_metadata",
+        "type": "boolean"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query",
+            "delete_vectors"
+          ]
+        },
+        "label": "Filter (JSON)",
+        "mode": "advanced",
+        "name": "filter",
+        "type": "json"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.pinecone"
+  },
   "action.postgres": {
     "allow_error": true,
     "category": "integration",
@@ -15041,6 +15336,254 @@
     ],
     "tools": null,
     "type": "action.postmark"
+  },
+  "action.qdrant": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "qdrant_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Qdrant vector database \u2014 manage collections + upsert/search points.",
+    "dynamic_outputs_from": null,
+    "icon": "qdrant",
+    "inputs": 1,
+    "name": "Qdrant",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "result",
+        "type": "object"
+      },
+      {
+        "label": "status",
+        "type": "string"
+      },
+      {
+        "label": "collections",
+        "type": "array"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "qdrant_api_key",
+        "label": "Qdrant Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "list_collections",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "List Collections",
+            "value": "list_collections"
+          },
+          {
+            "label": "Get Collection",
+            "value": "get_collection"
+          },
+          {
+            "label": "Create Collection",
+            "value": "create_collection"
+          },
+          {
+            "label": "Delete Collection",
+            "value": "delete_collection"
+          },
+          {
+            "label": "Upsert Points",
+            "value": "upsert_points"
+          },
+          {
+            "label": "Search Points",
+            "value": "search_points"
+          },
+          {
+            "label": "Delete Points",
+            "value": "delete_points"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get_collection",
+            "create_collection",
+            "delete_collection",
+            "upsert_points",
+            "search_points",
+            "delete_points"
+          ]
+        },
+        "label": "Collection Name",
+        "name": "collection",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_collection"
+          ]
+        },
+        "label": "Vector Size",
+        "mode": "advanced",
+        "name": "size",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "create_collection"
+          ]
+        },
+        "default": "Cosine",
+        "label": "Distance",
+        "mode": "advanced",
+        "name": "distance",
+        "options": [
+          {
+            "label": "Cosine",
+            "value": "Cosine"
+          },
+          {
+            "label": "Euclid",
+            "value": "Euclid"
+          },
+          {
+            "label": "Dot",
+            "value": "Dot"
+          },
+          {
+            "label": "Manhattan",
+            "value": "Manhattan"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "upsert_points"
+          ]
+        },
+        "label": "Points (JSON array)",
+        "name": "points",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "search_points"
+          ]
+        },
+        "label": "Query Vector (JSON array)",
+        "name": "vector",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "delete_points"
+          ]
+        },
+        "label": "Point IDs (JSON array)",
+        "name": "ids",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "search_points"
+          ]
+        },
+        "default": 10,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "search_points",
+            "delete_points"
+          ]
+        },
+        "label": "Filter (JSON)",
+        "mode": "advanced",
+        "name": "filter",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "search_points"
+          ]
+        },
+        "default": true,
+        "label": "Include payload",
+        "mode": "advanced",
+        "name": "with_payload",
+        "type": "boolean"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "search_points"
+          ]
+        },
+        "default": false,
+        "label": "Include vector",
+        "mode": "advanced",
+        "name": "with_vector",
+        "type": "boolean"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.qdrant"
   },
   "action.resend": {
     "allow_error": true,
@@ -16916,6 +17459,192 @@
     "tools": null,
     "type": "action.stt"
   },
+  "action.supabase": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "supabase_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Read and write Supabase tables through PostgREST.",
+    "dynamic_outputs_from": null,
+    "icon": "supabase",
+    "inputs": 1,
+    "name": "Supabase",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "items",
+        "type": "array"
+      },
+      {
+        "label": "count",
+        "type": "number"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "supabase_api_key",
+        "label": "Supabase Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "select_rows",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Select Rows",
+            "value": "select_rows"
+          },
+          {
+            "label": "Insert Row",
+            "value": "insert_row"
+          },
+          {
+            "label": "Insert Rows (batch)",
+            "value": "insert_rows"
+          },
+          {
+            "label": "Update Rows",
+            "value": "update_rows"
+          },
+          {
+            "label": "Delete Rows",
+            "value": "delete_rows"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "select_rows",
+            "insert_row",
+            "insert_rows",
+            "update_rows",
+            "delete_rows"
+          ]
+        },
+        "label": "Table",
+        "name": "table",
+        "placeholder": "users",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "insert_row",
+            "update_rows"
+          ]
+        },
+        "label": "Row (JSON object)",
+        "name": "row",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "insert_rows"
+          ]
+        },
+        "label": "Rows (JSON array for batch insert)",
+        "name": "rows",
+        "type": "json"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "select_rows",
+            "update_rows",
+            "delete_rows"
+          ]
+        },
+        "description": "PostgREST filter syntax. Multiple filters AND-join via &.",
+        "label": "Filter",
+        "mode": "advanced",
+        "name": "filter",
+        "placeholder": "id=eq.5 or name=ilike.*alice*",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "select_rows"
+          ]
+        },
+        "default": "*",
+        "label": "Select (CSV columns)",
+        "mode": "advanced",
+        "name": "select",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "select_rows"
+          ]
+        },
+        "default": 100,
+        "label": "Limit",
+        "mode": "advanced",
+        "name": "limit",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "select_rows"
+          ]
+        },
+        "label": "Order",
+        "mode": "advanced",
+        "name": "order",
+        "type": "string"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.supabase"
+  },
   "action.tavily": {
     "allow_error": true,
     "category": "integration",
@@ -17431,6 +18160,201 @@
     "tools": null,
     "type": "action.thinking"
   },
+  "action.tinybird": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "tinybird_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Tinybird \u2014 analytics queries + data source ingestion.",
+    "dynamic_outputs_from": null,
+    "icon": "tinybird",
+    "inputs": 1,
+    "name": "Tinybird",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "data",
+        "type": "array"
+      },
+      {
+        "label": "meta",
+        "type": "array"
+      },
+      {
+        "label": "rows",
+        "type": "number"
+      },
+      {
+        "label": "statistics",
+        "type": "object"
+      },
+      {
+        "label": "pipes",
+        "type": "array"
+      },
+      {
+        "label": "datasources",
+        "type": "array"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "tinybird_api_key",
+        "label": "Tinybird Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "query_pipe",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "Query Pipe (JSON)",
+            "value": "query_pipe"
+          },
+          {
+            "label": "Run SQL",
+            "value": "query_sql"
+          },
+          {
+            "label": "Append Rows",
+            "value": "append_rows"
+          },
+          {
+            "label": "List Pipes",
+            "value": "list_pipes"
+          },
+          {
+            "label": "List Data Sources",
+            "value": "list_datasources"
+          },
+          {
+            "label": "Get Pipe",
+            "value": "get_pipe"
+          },
+          {
+            "label": "Get Data Source",
+            "value": "get_datasource"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query_pipe",
+            "get_pipe"
+          ]
+        },
+        "label": "Pipe Name",
+        "name": "pipe_name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "append_rows",
+            "get_datasource"
+          ]
+        },
+        "label": "Data Source Name",
+        "name": "datasource_name",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query_sql"
+          ]
+        },
+        "label": "SQL",
+        "mode": "advanced",
+        "name": "sql",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "append_rows"
+          ]
+        },
+        "description": "One JSON object per line, e.g. {\"id\":1}\\n{\"id\":2}",
+        "label": "Rows (newline-delimited JSON)",
+        "mode": "advanced",
+        "name": "rows",
+        "type": "string"
+      },
+      {
+        "default": "append",
+        "label": "Append mode",
+        "mode": "advanced",
+        "name": "mode",
+        "options": [
+          {
+            "label": "append",
+            "value": "append"
+          },
+          {
+            "label": "replace",
+            "value": "replace"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "query_sql"
+          ]
+        },
+        "default": "JSON",
+        "label": "Format",
+        "mode": "advanced",
+        "name": "format",
+        "type": "string"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.tinybird"
+  },
   "action.tts": {
     "allow_error": true,
     "category": "ai",
@@ -17677,6 +18601,174 @@
     ],
     "tools": null,
     "type": "action.tts"
+  },
+  "action.upstash_redis": {
+    "allow_error": true,
+    "category": "integration",
+    "color": "#1c1c1c",
+    "credential_type": "upstash_redis_api_key",
+    "default_height": null,
+    "default_width": null,
+    "description": "Run Redis commands against Upstash via the REST API.",
+    "dynamic_outputs_from": null,
+    "icon": "upstash",
+    "inputs": 1,
+    "name": "Upstash Redis",
+    "operation_tool_map": null,
+    "outputs": 1,
+    "outputs_schema": [
+      {
+        "label": "result",
+        "type": "string"
+      }
+    ],
+    "properties": [
+      {
+        "credentialType": "upstash_redis_api_key",
+        "label": "Upstash Redis Account",
+        "name": "credential",
+        "required": true,
+        "type": "credential"
+      },
+      {
+        "default": "get",
+        "label": "Operation",
+        "name": "operation",
+        "options": [
+          {
+            "label": "GET",
+            "value": "get"
+          },
+          {
+            "label": "SET",
+            "value": "set"
+          },
+          {
+            "label": "DEL",
+            "value": "del"
+          },
+          {
+            "label": "INCR / INCRBY",
+            "value": "incr"
+          },
+          {
+            "label": "EXPIRE",
+            "value": "expire"
+          },
+          {
+            "label": "TTL",
+            "value": "ttl"
+          },
+          {
+            "label": "KEYS",
+            "value": "keys"
+          },
+          {
+            "label": "EXISTS",
+            "value": "exists"
+          }
+        ],
+        "type": "options"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "get",
+            "set",
+            "del",
+            "incr",
+            "expire",
+            "ttl",
+            "exists"
+          ]
+        },
+        "label": "Key",
+        "name": "key",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "set"
+          ]
+        },
+        "label": "Value",
+        "name": "value",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "set",
+            "expire"
+          ]
+        },
+        "label": "TTL (seconds)",
+        "mode": "advanced",
+        "name": "ttl_seconds",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "keys"
+          ]
+        },
+        "label": "Pattern",
+        "mode": "advanced",
+        "name": "pattern",
+        "placeholder": "user:*",
+        "type": "string"
+      },
+      {
+        "condition": {
+          "field": "operation",
+          "value": [
+            "incr"
+          ]
+        },
+        "default": 1,
+        "label": "Increment by",
+        "mode": "advanced",
+        "name": "increment",
+        "type": "number"
+      },
+      {
+        "default": 0,
+        "description": "Number of times to retry this node on failure (0 = no retries).",
+        "group": "Retry",
+        "label": "Retries",
+        "mode": "advanced",
+        "name": "retries",
+        "type": "number"
+      },
+      {
+        "condition": {
+          "field": "retries",
+          "value": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "default": 1000,
+        "description": "Milliseconds to wait between retries.",
+        "group": "Retry",
+        "label": "Retry Delay (ms)",
+        "mode": "advanced",
+        "name": "retry_delay_ms",
+        "type": "number"
+      }
+    ],
+    "tools": null,
+    "type": "action.upstash_redis"
   },
   "action.vercel": {
     "allow_error": true,

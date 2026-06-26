@@ -92,8 +92,10 @@ from apps.api.app.node_system.nodes.meta.whatsapp_trigger import WhatsAppTrigger
 from apps.api.app.node_system.nodes.newsapi.newsapi_node import NewsAPINode
 from apps.api.app.node_system.nodes.notion.notion_node import NotionNode
 from apps.api.app.node_system.nodes.openalex.openalex_node import OpenAlexNode
+from apps.api.app.node_system.nodes.pinecone.pinecone_node import PineconeNode
 from apps.api.app.node_system.nodes.posthog.posthog_node import PostHogNode
 from apps.api.app.node_system.nodes.postmark.postmark_node import PostmarkNode
+from apps.api.app.node_system.nodes.qdrant.qdrant_node import QdrantNode
 from apps.api.app.node_system.nodes.resend.resend_node import ResendNode
 from apps.api.app.node_system.nodes.salesforce.salesforce_node import SalesforceNode
 from apps.api.app.node_system.nodes.sendgrid.sendgrid_node import SendGridNode
@@ -102,8 +104,11 @@ from apps.api.app.node_system.nodes.serper.serper_node import SerperNode
 from apps.api.app.node_system.nodes.slack.slack_node import SlackNode
 from apps.api.app.node_system.nodes.slack.slack_trigger import SlackTriggerNode
 from apps.api.app.node_system.nodes.stripe.stripe_node import StripeNode
+from apps.api.app.node_system.nodes.supabase.supabase_node import SupabaseNode
 from apps.api.app.node_system.nodes.tavily.tavily_node import TavilyNode
 from apps.api.app.node_system.nodes.telegram.telegram_node import TelegramNode
+from apps.api.app.node_system.nodes.tinybird.tinybird_node import TinybirdNode
+from apps.api.app.node_system.nodes.upstash_redis.upstash_redis_node import UpstashRedisNode
 from apps.api.app.node_system.nodes.vercel.vercel_node import VercelNode
 from apps.api.app.node_system.nodes.wikipedia.wikipedia_node import WikipediaNode
 
@@ -173,6 +178,11 @@ node_registry.register(PostHogNode)
 node_registry.register(DubNode)
 node_registry.register(VercelNode)
 node_registry.register(CloudflareNode)
+node_registry.register(SupabaseNode)
+node_registry.register(UpstashRedisNode)
+node_registry.register(PineconeNode)
+node_registry.register(QdrantNode)
+node_registry.register(TinybirdNode)
 node_registry.register(StripeNode)
 node_registry.register(HubSpotNode)
 node_registry.register(TelegramNode)

@@ -68,6 +68,85 @@ PROVIDERS = {
             CredentialField(id="api_key", label="API Key", type="password", placeholder="fc-...")
         ],
     ),
+    "supabase": APIKeyProvider(
+        id="supabase_api_key",
+        name="Supabase",
+        icon_slug="supabase",
+        color="#1c1c1c",
+        description="Supabase — read/write Postgres tables via PostgREST.",
+        hint="Service role or anon key + project URL",
+        fields=[
+            CredentialField(
+                id="project_url",
+                label="Project URL",
+                type="string",
+                placeholder="https://abc.supabase.co",
+            ),
+            CredentialField(id="api_key", label="API Key", type="password", placeholder="eyJ..."),
+        ],
+    ),
+    "upstash_redis": APIKeyProvider(
+        id="upstash_redis_api_key",
+        name="Upstash Redis",
+        icon_slug="upstash",
+        color="#1c1c1c",
+        description="Upstash Redis — REST-driven Redis commands.",
+        hint="REST URL + REST token",
+        fields=[
+            CredentialField(
+                id="rest_url",
+                label="REST URL",
+                type="string",
+                placeholder="https://abc-12345.upstash.io",
+            ),
+            CredentialField(id="api_key", label="REST Token", type="password", placeholder="Token"),
+        ],
+    ),
+    "pinecone": APIKeyProvider(
+        id="pinecone_api_key",
+        name="Pinecone",
+        icon_slug="pinecone",
+        color="#1c1c1c",
+        description="Pinecone — vector database control + data plane.",
+        hint="API key + per-index host",
+        fields=[
+            CredentialField(id="api_key", label="API Key", type="password", placeholder="API Key"),
+            CredentialField(
+                id="index_host",
+                label="Index Host (optional, data-plane ops)",
+                type="string",
+                placeholder="abc-123456.svc.us-east-1.aws.pinecone.io",
+            ),
+        ],
+    ),
+    "qdrant": APIKeyProvider(
+        id="qdrant_api_key",
+        name="Qdrant",
+        icon_slug="qdrant",
+        color="#1c1c1c",
+        description="Qdrant — vector database (cloud or self-hosted).",
+        hint="Cluster URL + API key",
+        fields=[
+            CredentialField(
+                id="cluster_url",
+                label="Cluster URL",
+                type="string",
+                placeholder="https://abc.us-east.aws.cloud.qdrant.io:6333",
+            ),
+            CredentialField(id="api_key", label="API Key", type="password", placeholder="API Key"),
+        ],
+    ),
+    "tinybird": APIKeyProvider(
+        id="tinybird_api_key",
+        name="Tinybird",
+        icon_slug="tinybird",
+        color="#1c1c1c",
+        description="Tinybird — managed ClickHouse for product analytics.",
+        hint="Workspace admin or pipe token",
+        fields=[
+            CredentialField(id="api_key", label="API Key", type="password", placeholder="p.eyJ...")
+        ],
+    ),
     "sentry": APIKeyProvider(
         id="sentry_api_key",
         name="Sentry",
