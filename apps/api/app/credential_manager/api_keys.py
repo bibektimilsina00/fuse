@@ -68,6 +68,80 @@ PROVIDERS = {
             CredentialField(id="api_key", label="API Key", type="password", placeholder="fc-...")
         ],
     ),
+    "pipedrive": APIKeyProvider(
+        id="pipedrive_api_key",
+        name="Pipedrive",
+        icon_slug="pipedrive",
+        color="#1c1c1c",
+        description="Pipedrive CRM — deals, persons, organizations.",
+        hint="API token + company domain",
+        fields=[
+            CredentialField(
+                id="company_domain",
+                label="Company Domain",
+                type="string",
+                placeholder="your-team",
+            ),
+            CredentialField(id="api_key", label="API Token", type="password", placeholder="Token"),
+        ],
+    ),
+    "attio": APIKeyProvider(
+        id="attio_api_key",
+        name="Attio",
+        icon_slug="attio",
+        color="#1c1c1c",
+        description="Attio CRM — flexible-schema records, lists, and objects.",
+        hint="API Key",
+        fields=[
+            CredentialField(id="api_key", label="API Key", type="password", placeholder="API Key")
+        ],
+    ),
+    "mixpanel": APIKeyProvider(
+        id="mixpanel_api_key",
+        name="Mixpanel",
+        icon_slug="mixpanel",
+        color="#1c1c1c",
+        description="Mixpanel — event tracking + engagement queries.",
+        hint="Service account username + secret (project token for ingestion)",
+        fields=[
+            CredentialField(
+                id="username",
+                label="Service Account Username",
+                type="string",
+                placeholder="serviceaccount.user",
+            ),
+            CredentialField(
+                id="api_secret",
+                label="Service Account Secret",
+                type="password",
+                placeholder="Secret",
+            ),
+        ],
+    ),
+    "monday": APIKeyProvider(
+        id="monday_api_key",
+        name="Monday.com",
+        icon_slug="monday",
+        color="#1c1c1c",
+        description="Monday.com — boards, items, updates via GraphQL.",
+        hint="API token (Profile → Admin → API)",
+        fields=[
+            CredentialField(id="api_key", label="API Token", type="password", placeholder="Token")
+        ],
+    ),
+    "intercom": APIKeyProvider(
+        id="intercom_api_key",
+        name="Intercom",
+        icon_slug="intercom",
+        color="#1c1c1c",
+        description="Intercom — contacts, conversations, messages.",
+        hint="Access token (Developer Hub → Authentication)",
+        fields=[
+            CredentialField(
+                id="api_key", label="Access Token", type="password", placeholder="Token"
+            )
+        ],
+    ),
     "twilio": APIKeyProvider(
         id="twilio_api_key",
         name="Twilio",

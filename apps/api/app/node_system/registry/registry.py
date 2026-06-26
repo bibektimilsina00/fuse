@@ -16,6 +16,7 @@ from apps.api.app.node_system.nodes.ai.thinking.thinking import ThinkingNode
 from apps.api.app.node_system.nodes.ai.tts.tts_node import TTSNode
 from apps.api.app.node_system.nodes.ai.vision.vision_node import VisionNode
 from apps.api.app.node_system.nodes.airtable.airtable_node import AirtableNode
+from apps.api.app.node_system.nodes.attio.attio_node import AttioNode
 from apps.api.app.node_system.nodes.brandfetch.brandfetch_node import BrandfetchNode
 from apps.api.app.node_system.nodes.cloudflare.cloudflare_node import CloudflareNode
 from apps.api.app.node_system.nodes.common.condition.condition import ConditionNode
@@ -70,6 +71,7 @@ from apps.api.app.node_system.nodes.http.webhook.webhook import WebhookTriggerNo
 from apps.api.app.node_system.nodes.hubspot.hubspot_node import HubSpotNode
 from apps.api.app.node_system.nodes.huggingface.huggingface_node import HuggingFaceNode
 from apps.api.app.node_system.nodes.instantly.instantly_node import InstantlyNode
+from apps.api.app.node_system.nodes.intercom.intercom_node import IntercomNode
 from apps.api.app.node_system.nodes.jira.jira_node import JiraNode
 from apps.api.app.node_system.nodes.linear.linear_node import LinearNode
 from apps.api.app.node_system.nodes.logic.code.code_node import CodeNode
@@ -91,10 +93,13 @@ from apps.api.app.node_system.nodes.meta.lead_action import LeadActionNode
 from apps.api.app.node_system.nodes.meta.lead_trigger import LeadTriggerNode
 from apps.api.app.node_system.nodes.meta.whatsapp_action import WhatsAppActionNode
 from apps.api.app.node_system.nodes.meta.whatsapp_trigger import WhatsAppTriggerNode
+from apps.api.app.node_system.nodes.mixpanel.mixpanel_node import MixpanelNode
+from apps.api.app.node_system.nodes.monday.monday_node import MondayNode
 from apps.api.app.node_system.nodes.newsapi.newsapi_node import NewsAPINode
 from apps.api.app.node_system.nodes.notion.notion_node import NotionNode
 from apps.api.app.node_system.nodes.openalex.openalex_node import OpenAlexNode
 from apps.api.app.node_system.nodes.pinecone.pinecone_node import PineconeNode
+from apps.api.app.node_system.nodes.pipedrive.pipedrive_node import PipedriveNode
 from apps.api.app.node_system.nodes.plivo.plivo_node import PlivoNode
 from apps.api.app.node_system.nodes.posthog.posthog_node import PostHogNode
 from apps.api.app.node_system.nodes.postmark.postmark_node import PostmarkNode
@@ -193,6 +198,11 @@ node_registry.register(MailgunNode)
 node_registry.register(SendblueNode)
 node_registry.register(MessageBirdNode)
 node_registry.register(PlivoNode)
+node_registry.register(PipedriveNode)
+node_registry.register(AttioNode)
+node_registry.register(MixpanelNode)
+node_registry.register(MondayNode)
+node_registry.register(IntercomNode)
 node_registry.register(StripeNode)
 node_registry.register(HubSpotNode)
 node_registry.register(TelegramNode)
