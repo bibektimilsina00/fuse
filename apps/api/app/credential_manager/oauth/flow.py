@@ -884,6 +884,194 @@ class MicrosoftOAuthProvider:
         return with_expiry_metadata(body)
 
 
+class _SimpleOAuthProvider:
+    """Boilerplate-light OAuth2 provider for vanilla Bearer-token flows.
+
+    Subclasses set the five identity attributes (id, name, icon_slug,
+    color, description, scopes), the two endpoints (`_AUTH_URL`,
+    `_TOKEN_URL`), the scope string (`_SCOPE_STR`), and the env-var
+    names + redirect service. Everything else (auth URL build, token
+    exchange, refresh) is shared.
+
+    Used for providers whose OAuth dance is the textbook flow: a code
+    grant to a token endpoint, refresh-token rotation, no audience /
+    PKCE-required / multi-tenant complications. Five Phase 2.2
+    providers (Asana, HubSpot, Calendly, Zoom, Box) all fit this shape.
+    """
+
+    type = "oauth"
+    # Subclass overrides — empty defaults keep the class instantiable
+    # for type-checking but every real subclass replaces them.
+    id: str = ""
+    name: str = ""
+    icon_slug: str | None = None
+    color: str = "#1c1c1c"
+    description: str = ""
+    scopes: list[str] = []
+    _AUTH_URL: str = ""
+    _TOKEN_URL: str = ""
+    _SCOPE_STR: str = ""
+    _CLIENT_ID_ATTR: str = ""
+    _CLIENT_SECRET_ATTR: str = ""
+    _REDIRECT_SERVICE: str = ""
+
+    def get_authorization_url(self, state, code_challenge=None):
+        from urllib.parse import urlencode
+
+        params: dict = {
+            "client_id": getattr(settings, self._CLIENT_ID_ATTR, "") or "",
+            "redirect_uri": REDIRECT_URI.format(service=self._REDIRECT_SERVICE),
+            "response_type": "code",
+            "state": state,
+        }
+        if self._SCOPE_STR:
+            params["scope"] = self._SCOPE_STR
+        if code_challenge:
+            params["code_challenge"] = code_challenge
+            params["code_challenge_method"] = "S256"
+        return f"{self._AUTH_URL}?{urlencode(params)}"
+
+    async def exchange_code(self, code, code_verifier=None):
+        import httpx
+
+        data: dict = {
+            "client_id": getattr(settings, self._CLIENT_ID_ATTR, "") or "",
+            "client_secret": getattr(settings, self._CLIENT_SECRET_ATTR, "") or "",
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": REDIRECT_URI.format(service=self._REDIRECT_SERVICE),
+        }
+        if code_verifier:
+            data["code_verifier"] = code_verifier
+        async with httpx.AsyncClient() as client:
+            response = await client.post(self._TOKEN_URL, data=data)
+        body = response.json()
+        if "error" in body:
+            raise ValueError(
+                f"{self.name} OAuth failed: {body.get('error_description', body['error'])}"
+            )
+        return with_expiry_metadata(body)
+
+    async def refresh_access_token(self, refresh_token: str):
+        import httpx
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                self._TOKEN_URL,
+                data={
+                    "client_id": getattr(settings, self._CLIENT_ID_ATTR, "") or "",
+                    "client_secret": getattr(settings, self._CLIENT_SECRET_ATTR, "") or "",
+                    "refresh_token": refresh_token,
+                    "grant_type": "refresh_token",
+                },
+            )
+        body = response.json()
+        if "access_token" not in body:
+            err = body.get("error_description") or body.get("error") or body
+            raise ValueError(f"{self.name} token refresh failed: {err}")
+        return with_expiry_metadata(body)
+
+
+class AsanaOAuthProvider(_SimpleOAuthProvider):
+    id = "asana_oauth"
+    name = "Asana"
+    icon_slug = "asana"
+    color = "#1c1c1c"
+    description = "Connect Asana for projects, tasks, and team workflows."
+    scopes = [
+        "Read and write tasks, projects, sections, and comments",
+        "Read your workspace and team metadata",
+    ]
+    _AUTH_URL = "https://app.asana.com/-/oauth_authorize"
+    _TOKEN_URL = "https://app.asana.com/-/oauth_token"
+    _SCOPE_STR = "default"
+    _CLIENT_ID_ATTR = "ASANA_CLIENT_ID"
+    _CLIENT_SECRET_ATTR = "ASANA_CLIENT_SECRET"
+    _REDIRECT_SERVICE = "asana"
+
+
+class HubSpotOAuthProvider(_SimpleOAuthProvider):
+    id = "hubspot_oauth"
+    name = "HubSpot (OAuth)"
+    icon_slug = "hubspot"
+    color = "#1c1c1c"
+    description = "Connect HubSpot CRM via OAuth — contacts, deals, companies, tickets."
+    scopes = [
+        "Read and write CRM contacts, companies, deals, and tickets",
+        "Send transactional emails and manage marketing assets",
+        "Read your HubSpot account profile",
+    ]
+    _AUTH_URL = "https://app.hubspot.com/oauth/authorize"
+    _TOKEN_URL = "https://api.hubapi.com/oauth/v1/token"
+    _SCOPE_STR = (
+        "crm.objects.contacts.read crm.objects.contacts.write "
+        "crm.objects.companies.read crm.objects.companies.write "
+        "crm.objects.deals.read crm.objects.deals.write tickets oauth"
+    )
+    _CLIENT_ID_ATTR = "HUBSPOT_CLIENT_ID"
+    _CLIENT_SECRET_ATTR = "HUBSPOT_CLIENT_SECRET"
+    _REDIRECT_SERVICE = "hubspot"
+
+
+class CalendlyOAuthProvider(_SimpleOAuthProvider):
+    id = "calendly_oauth"
+    name = "Calendly"
+    icon_slug = "calendly"
+    color = "#1c1c1c"
+    description = "Connect Calendly for scheduled events, invitees, and webhooks."
+    scopes = [
+        "Read your scheduled events and invitee details",
+        "Manage webhook subscriptions for new bookings",
+        "Read your Calendly user profile",
+    ]
+    _AUTH_URL = "https://auth.calendly.com/oauth/authorize"
+    _TOKEN_URL = "https://auth.calendly.com/oauth/token"
+    _SCOPE_STR = "default"
+    _CLIENT_ID_ATTR = "CALENDLY_CLIENT_ID"
+    _CLIENT_SECRET_ATTR = "CALENDLY_CLIENT_SECRET"
+    _REDIRECT_SERVICE = "calendly"
+
+
+class ZoomOAuthProvider(_SimpleOAuthProvider):
+    id = "zoom_oauth"
+    name = "Zoom"
+    icon_slug = "zoom"
+    color = "#ffffff"
+    description = "Connect Zoom for meeting management, users, and recordings."
+    scopes = [
+        "Read and write meetings on your account",
+        "Read your Zoom user profile",
+        "Read meeting recordings and transcripts",
+    ]
+    _AUTH_URL = "https://zoom.us/oauth/authorize"
+    _TOKEN_URL = "https://zoom.us/oauth/token"
+    _SCOPE_STR = "meeting:read meeting:write user:read recording:read"
+    _CLIENT_ID_ATTR = "ZOOM_CLIENT_ID"
+    _CLIENT_SECRET_ATTR = "ZOOM_CLIENT_SECRET"
+    _REDIRECT_SERVICE = "zoom"
+
+
+class BoxOAuthProvider(_SimpleOAuthProvider):
+    id = "box_oauth"
+    name = "Box"
+    icon_slug = "box"
+    color = "#1c1c1c"
+    description = "Connect Box for cloud file storage, folders, and sharing."
+    scopes = [
+        "Read and write Box files and folders",
+        "Create and manage share links",
+        "Read your Box user profile",
+    ]
+    _AUTH_URL = "https://account.box.com/api/oauth2/authorize"
+    _TOKEN_URL = "https://api.box.com/oauth2/token"
+    # Box treats empty scope as "all scopes the developer app was
+    # configured with" — explicit scopes here would narrow that grant.
+    _SCOPE_STR = ""
+    _CLIENT_ID_ATTR = "BOX_CLIENT_ID"
+    _CLIENT_SECRET_ATTR = "BOX_CLIENT_SECRET"
+    _REDIRECT_SERVICE = "box"
+
+
 PROVIDERS = {
     "slack": SlackOAuthProvider(),
     "github": GitHubOAuthProvider(),
@@ -892,6 +1080,11 @@ PROVIDERS = {
     "meta": MetaOAuthProvider(),
     "instagram": InstagramOAuthProvider(),
     "microsoft": MicrosoftOAuthProvider(),
+    "asana": AsanaOAuthProvider(),
+    "hubspot": HubSpotOAuthProvider(),
+    "calendly": CalendlyOAuthProvider(),
+    "zoom": ZoomOAuthProvider(),
+    "box": BoxOAuthProvider(),
 }
 
 

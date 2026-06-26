@@ -18,8 +18,11 @@ from apps.api.app.node_system.nodes.ai.vision.vision_node import VisionNode
 from apps.api.app.node_system.nodes.airtable.airtable_node import AirtableNode
 from apps.api.app.node_system.nodes.algolia.algolia_node import AlgoliaNode
 from apps.api.app.node_system.nodes.apify.apify_node import ApifyNode
+from apps.api.app.node_system.nodes.asana.asana_node import AsanaNode
 from apps.api.app.node_system.nodes.attio.attio_node import AttioNode
+from apps.api.app.node_system.nodes.box.box_node import BoxNode
 from apps.api.app.node_system.nodes.brandfetch.brandfetch_node import BrandfetchNode
+from apps.api.app.node_system.nodes.calendly.calendly_node import CalendlyNode
 from apps.api.app.node_system.nodes.cloudflare.cloudflare_node import CloudflareNode
 from apps.api.app.node_system.nodes.common.condition.condition import ConditionNode
 from apps.api.app.node_system.nodes.common.cron.cron_node import CronTriggerNode
@@ -131,6 +134,7 @@ from apps.api.app.node_system.nodes.typeform.typeform_node import TypeformNode
 from apps.api.app.node_system.nodes.upstash_redis.upstash_redis_node import UpstashRedisNode
 from apps.api.app.node_system.nodes.vercel.vercel_node import VercelNode
 from apps.api.app.node_system.nodes.wikipedia.wikipedia_node import WikipediaNode
+from apps.api.app.node_system.nodes.zoom.zoom_node import ZoomNode
 
 
 class NodeRegistry:
@@ -224,6 +228,11 @@ node_registry.register(MicrosoftTeamsNode)
 node_registry.register(OneDriveNode)
 node_registry.register(SharePointNode)
 node_registry.register(MicrosoftExcelNode)
+# Phase 2.2 — CRM / meetings OAuth majors.
+node_registry.register(AsanaNode)
+node_registry.register(CalendlyNode)
+node_registry.register(ZoomNode)
+node_registry.register(BoxNode)
 node_registry.register(StripeNode)
 node_registry.register(HubSpotNode)
 node_registry.register(TelegramNode)
