@@ -68,6 +68,63 @@ PROVIDERS = {
             CredentialField(id="api_key", label="API Key", type="password", placeholder="fc-...")
         ],
     ),
+    "resend": APIKeyProvider(
+        id="resend_api_key",
+        name="Resend",
+        icon_slug="resend",
+        color="#1c1c1c",
+        description="Resend — transactional email API.",
+        hint="re_...",
+        fields=[
+            CredentialField(id="api_key", label="API Key", type="password", placeholder="re_...")
+        ],
+    ),
+    "sendgrid": APIKeyProvider(
+        id="sendgrid_api_key",
+        name="SendGrid",
+        icon_slug="sendgrid",
+        color="#1c1c1c",
+        description="SendGrid — transactional + marketing email.",
+        hint="SG....",
+        fields=[
+            CredentialField(id="api_key", label="API Key", type="password", placeholder="SG....")
+        ],
+    ),
+    "postmark": APIKeyProvider(
+        id="postmark_api_key",
+        name="Postmark",
+        icon_slug="postmark",
+        color="#1c1c1c",
+        description="Postmark — fast transactional email.",
+        hint="Server Token (one per Postmark server)",
+        fields=[
+            CredentialField(
+                id="api_key", label="Server Token", type="password", placeholder="Server Token"
+            )
+        ],
+    ),
+    "loops": APIKeyProvider(
+        id="loops_api_key",
+        name="Loops",
+        icon_slug="loops",
+        color="#1c1c1c",
+        description="Loops.so — product email + audience automation.",
+        hint="API Key",
+        fields=[
+            CredentialField(id="api_key", label="API Key", type="password", placeholder="API Key")
+        ],
+    ),
+    "instantly": APIKeyProvider(
+        id="instantly_api_key",
+        name="Instantly",
+        icon_slug="instantly",
+        color="#1c1c1c",
+        description="Instantly.ai — cold-email outreach + lead management.",
+        hint="API Key",
+        fields=[
+            CredentialField(id="api_key", label="API Key", type="password", placeholder="API Key")
+        ],
+    ),
     "exa": APIKeyProvider(
         id="exa_api_key",
         name="Exa",
